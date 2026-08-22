@@ -1,0 +1,408 @@
+{
+  "rules": [
+    {
+      "pathPattern": "/p0/*",
+      "apiPath": "/api/slips/p0/*"
+    },
+    {
+      "pathPattern": "/p1/*",
+      "apiPath": "/api/slips/p1/*"
+    },
+    {
+      "pathPattern": "/p2/*",
+      "apiPath": "/api/slips/p2/*"
+    },
+    {
+      "pathPattern": "/p3/*",
+      "apiPath": "/api/slips/p3/*"
+    },
+    {
+      "pathPattern": "/p4/*",
+      "apiPath": "/api/slips/p4/*"
+    },
+    {
+      "pathPattern": "/p5/*",
+      "apiPath": "/api/slips/p5/*"
+    },
+    {
+      "pathPattern": "/p6/*",
+      "apiPath": "/api/slips/p6/*"
+    },
+    {
+      "pathPattern": "/p7/*",
+      "apiPath": "/api/slips/p7/*"
+    },
+    {
+      "pathPattern": "/p8/*",
+      "apiPath": "/api/slips/p8/*"
+    },
+    {
+      "pathPattern": "/p9/*",
+      "apiPath": "/api/slips/p9/*"
+    },
+    {
+      "pathPattern": "/p10/*",
+      "apiPath": "/api/slips/p10/*"
+    },
+    {
+      "pathPattern": "/p11/*",
+      "apiPath": "/api/slips/p11/*"
+    },
+    {
+      "pathPattern": "/p12/*",
+      "apiPath": "/api/slips/p12/*"
+    },
+    {
+      "pathPattern": "/p13/*",
+      "apiPath": "/api/slips/p13/*"
+    },
+    {
+      "pathPattern": "/p14/*",
+      "apiPath": "/api/slips/p14/*"
+    },
+    {
+      "pathPattern": "/p15/*",
+      "apiPath": "/api/slips/p15/*"
+    },
+    {
+      "pathPattern": "/p16/*",
+      "apiPath": "/api/slips/p16/*"
+    },
+    {
+      "pathPattern": "/p17/*",
+      "apiPath": "/api/slips/p17/*"
+    },
+    {
+      "pathPattern": "/p18/*",
+      "apiPath": "/api/slips/p18/*"
+    },
+    {
+      "pathPattern": "/p19/*",
+      "apiPath": "/api/slips/p19/*"
+    },
+    {
+      "pathPattern": "/p20/*",
+      "apiPath": "/api/slips/p20/*"
+    },
+    {
+      "pathPattern": "/p21/*",
+      "apiPath": "/api/slips/p21/*"
+    },
+    {
+      "pathPattern": "/p22/*",
+      "apiPath": "/api/slips/p22/*"
+    },
+    {
+      "pathPattern": "/p23/*",
+      "apiPath": "/api/slips/p23/*"
+    },
+    {
+      "pathPattern": "/p24/*",
+      "apiPath": "/api/slips/p24/*"
+    },
+    {
+      "pathPattern": "/p25/*",
+      "apiPath": "/api/slips/p25/*"
+    },
+    {
+      "pathPattern": "/p26/*",
+      "apiPath": "/api/slips/p26/*"
+    },
+    {
+      "pathPattern": "/p27/*",
+      "apiPath": "/api/slips/p27/*"
+    },
+    {
+      "pathPattern": "/p28/*",
+      "apiPath": "/api/slips/p28/*"
+    },
+    {
+      "pathPattern": "/p29/*",
+      "apiPath": "/api/slips/p29/*"
+    },
+    {
+      "pathPattern": "/p30/*",
+      "apiPath": "/api/slips/p30/*"
+    },
+    {
+      "pathPattern": "/p31/*",
+      "apiPath": "/api/slips/p31/*"
+    },
+    {
+      "pathPattern": "/p32/*",
+      "apiPath": "/api/slips/p32/*"
+    },
+    {
+      "pathPattern": "/p33/*",
+      "apiPath": "/api/slips/p33/*"
+    },
+    {
+      "pathPattern": "/p34/*",
+      "apiPath": "/api/slips/p34/*"
+    },
+    {
+      "pathPattern": "/p35/*",
+      "apiPath": "/api/slips/p35/*"
+    },
+    {
+      "pathPattern": "/p36/*",
+      "apiPath": "/api/slips/p36/*"
+    },
+    {
+      "pathPattern": "/p37/*",
+      "apiPath": "/api/slips/p37/*"
+    },
+    {
+      "pathPattern": "/p38/*",
+      "apiPath": "/api/slips/p38/*"
+    },
+    {
+      "pathPattern": "/p39/*",
+      "apiPath": "/api/slips/p39/*"
+    },
+    {
+      "pathPattern": "/p40/*",
+      "apiPath": "/api/slips/p40/*"
+    },
+    {
+      "pathPattern": "/p41/*",
+      "apiPath": "/api/slips/p41/*"
+    },
+    {
+      "pathPattern": "/p42/*",
+      "apiPath": "/api/slips/p42/*"
+    },
+    {
+      "pathPattern": "/p43/*",
+      "apiPath": "/api/slips/p43/*"
+    },
+    {
+      "pathPattern": "/p44/*",
+      "apiPath": "/api/slips/p44/*"
+    },
+    {
+      "pathPattern": "/p45/*",
+      "apiPath": "/api/slips/p45/*"
+    },
+    {
+      "pathPattern": "/p46/*",
+      "apiPath": "/api/slips/p46/*"
+    },
+    {
+      "pathPattern": "/p47/*",
+      "apiPath": "/api/slips/p47/*"
+    },
+    {
+      "pathPattern": "/p48/*",
+      "apiPath": "/api/slips/p48/*"
+    },
+    {
+      "pathPattern": "/p49/*",
+      "apiPath": "/api/slips/p49/*"
+    },
+    {
+      "pathPattern": "/p50/*",
+      "apiPath": "/api/slips/p50/*"
+    },
+    {
+      "pathPattern": "/p51/*",
+      "apiPath": "/api/slips/p51/*"
+    },
+    {
+      "pathPattern": "/p52/*",
+      "apiPath": "/api/slips/p52/*"
+    },
+    {
+      "pathPattern": "/p53/*",
+      "apiPath": "/api/slips/p53/*"
+    },
+    {
+      "pathPattern": "/p54/*",
+      "apiPath": "/api/slips/p54/*"
+    },
+    {
+      "pathPattern": "/p55/*",
+      "apiPath": "/api/slips/p55/*"
+    },
+    {
+      "pathPattern": "/p56/*",
+      "apiPath": "/api/slips/p56/*"
+    },
+    {
+      "pathPattern": "/p57/*",
+      "apiPath": "/api/slips/p57/*"
+    },
+    {
+      "pathPattern": "/p58/*",
+      "apiPath": "/api/slips/p58/*"
+    },
+    {
+      "pathPattern": "/p59/*",
+      "apiPath": "/api/slips/p59/*"
+    },
+    {
+      "pathPattern": "/p60/*",
+      "apiPath": "/api/slips/p60/*"
+    },
+    {
+      "pathPattern": "/p61/*",
+      "apiPath": "/api/slips/p61/*"
+    },
+    {
+      "pathPattern": "/p62/*",
+      "apiPath": "/api/slips/p62/*"
+    },
+    {
+      "pathPattern": "/p63/*",
+      "apiPath": "/api/slips/p63/*"
+    },
+    {
+      "pathPattern": "/p64/*",
+      "apiPath": "/api/slips/p64/*"
+    },
+    {
+      "pathPattern": "/p65/*",
+      "apiPath": "/api/slips/p65/*"
+    },
+    {
+      "pathPattern": "/p66/*",
+      "apiPath": "/api/slips/p66/*"
+    },
+    {
+      "pathPattern": "/p67/*",
+      "apiPath": "/api/slips/p67/*"
+    },
+    {
+      "pathPattern": "/p68/*",
+      "apiPath": "/api/slips/p68/*"
+    },
+    {
+      "pathPattern": "/p69/*",
+      "apiPath": "/api/slips/p69/*"
+    },
+    {
+      "pathPattern": "/p70/*",
+      "apiPath": "/api/slips/p70/*"
+    },
+    {
+      "pathPattern": "/p71/*",
+      "apiPath": "/api/slips/p71/*"
+    },
+    {
+      "pathPattern": "/p72/*",
+      "apiPath": "/api/slips/p72/*"
+    },
+    {
+      "pathPattern": "/p73/*",
+      "apiPath": "/api/slips/p73/*"
+    },
+    {
+      "pathPattern": "/p74/*",
+      "apiPath": "/api/slips/p74/*"
+    },
+    {
+      "pathPattern": "/p75/*",
+      "apiPath": "/api/slips/p75/*"
+    },
+    {
+      "pathPattern": "/p76/*",
+      "apiPath": "/api/slips/p76/*"
+    },
+    {
+      "pathPattern": "/p77/*",
+      "apiPath": "/api/slips/p77/*"
+    },
+    {
+      "pathPattern": "/p78/*",
+      "apiPath": "/api/slips/p78/*"
+    },
+    {
+      "pathPattern": "/p79/*",
+      "apiPath": "/api/slips/p79/*"
+    },
+    {
+      "pathPattern": "/p80/*",
+      "apiPath": "/api/slips/p80/*"
+    },
+    {
+      "pathPattern": "/p81/*",
+      "apiPath": "/api/slips/p81/*"
+    },
+    {
+      "pathPattern": "/p82/*",
+      "apiPath": "/api/slips/p82/*"
+    },
+    {
+      "pathPattern": "/p83/*",
+      "apiPath": "/api/slips/p83/*"
+    },
+    {
+      "pathPattern": "/p84/*",
+      "apiPath": "/api/slips/p84/*"
+    },
+    {
+      "pathPattern": "/p85/*",
+      "apiPath": "/api/slips/p85/*"
+    },
+    {
+      "pathPattern": "/p86/*",
+      "apiPath": "/api/slips/p86/*"
+    },
+    {
+      "pathPattern": "/p87/*",
+      "apiPath": "/api/slips/p87/*"
+    },
+    {
+      "pathPattern": "/p88/*",
+      "apiPath": "/api/slips/p88/*"
+    },
+    {
+      "pathPattern": "/p89/*",
+      "apiPath": "/api/slips/p89/*"
+    },
+    {
+      "pathPattern": "/p90/*",
+      "apiPath": "/api/slips/p90/*"
+    },
+    {
+      "pathPattern": "/p91/*",
+      "apiPath": "/api/slips/p91/*"
+    },
+    {
+      "pathPattern": "/p92/*",
+      "apiPath": "/api/slips/p92/*"
+    },
+    {
+      "pathPattern": "/p93/*",
+      "apiPath": "/api/slips/p93/*"
+    },
+    {
+      "pathPattern": "/p94/*",
+      "apiPath": "/api/slips/p94/*"
+    },
+    {
+      "pathPattern": "/p95/*",
+      "apiPath": "/api/slips/p95/*"
+    },
+    {
+      "pathPattern": "/p96/*",
+      "apiPath": "/api/slips/p96/*"
+    },
+    {
+      "pathPattern": "/p97/*",
+      "apiPath": "/api/slips/p97/*"
+    },
+    {
+      "pathPattern": "/p98/*",
+      "apiPath": "/api/slips/p98/*"
+    },
+    {
+      "pathPattern": "/p99/*",
+      "apiPath": "/api/slips/p99/*"
+    },
+    {
+      "pathPattern": "/p100/*",
+      "apiPath": "/api/slips/p100/*"
+    }
+  ]
+}

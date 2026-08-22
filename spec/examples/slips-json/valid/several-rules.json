@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "pathPattern": "/tip",
+      "apiPath": "/api/slips/tip/default"
+    },
+    {
+      "pathPattern": "/delegate/*",
+      "apiPath": "/api/slips/delegate/*"
+    },
+    {
+      "pathPattern": "/pay/**",
+      "apiPath": "/api/slips/pay/**"
+    }
+  ]
+}

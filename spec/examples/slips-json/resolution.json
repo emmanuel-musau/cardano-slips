@@ -1,0 +1,144 @@
+{
+  "cases": [
+    {
+      "name": "resolves an exact literal path",
+      "rules": [
+        {
+          "pathPattern": "/tip",
+          "apiPath": "/api/slips/tip/default"
+        }
+      ],
+      "path": "/tip",
+      "resolved": "/api/slips/tip/default"
+    },
+    {
+      "name": "fills a single-segment wildcard",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/delegate/POOL1",
+      "resolved": "/api/slips/delegate/POOL1"
+    },
+    {
+      "name": "fills a trailing catch-all with every remaining segment",
+      "rules": [
+        {
+          "pathPattern": "/pay/**",
+          "apiPath": "/api/slips/pay/**"
+        }
+      ],
+      "path": "/pay/2026/summer/tickets",
+      "resolved": "/api/slips/pay/2026/summer/tickets"
+    },
+    {
+      "name": "takes the first matching rule",
+      "rules": [
+        {
+          "pathPattern": "/pay/*",
+          "apiPath": "/api/slips/promo/*"
+        },
+        {
+          "pathPattern": "/pay/**",
+          "apiPath": "/api/slips/pay/**"
+        }
+      ],
+      "path": "/pay/alice",
+      "resolved": "/api/slips/promo/alice"
+    },
+    {
+      "name": "does not re-match its own output",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/pay/*"
+        },
+        {
+          "pathPattern": "/pay/*",
+          "apiPath": "/api/slips/pay/*"
+        }
+      ],
+      "path": "/delegate/POOL1",
+      "resolved": "/pay/POOL1"
+    },
+    {
+      "name": "leaves a path no rule matches alone",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/about",
+      "resolved": "/about"
+    },
+    {
+      "name": "carries the query string across",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/delegate/POOL1?ref=twitter",
+      "resolved": "/api/slips/delegate/POOL1?ref=twitter"
+    },
+    {
+      "name": "keeps an encoded slash inside one segment",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/delegate/a%2Fb",
+      "resolved": "/api/slips/delegate/a%2Fb"
+    },
+    {
+      "name": "removes dot segments before matching",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/promo/../delegate/POOL1",
+      "resolved": "/api/slips/delegate/POOL1"
+    },
+    {
+      "name": "does not treat a trailing slash as equivalent",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/delegate/POOL1/",
+      "resolved": "/delegate/POOL1/"
+    },
+    {
+      "name": "matches case-sensitively",
+      "rules": [
+        {
+          "pathPattern": "/delegate/*",
+          "apiPath": "/api/slips/delegate/*"
+        }
+      ],
+      "path": "/Delegate/POOL1",
+      "resolved": "/Delegate/POOL1"
+    },
+    {
+      "name": "does not let a catch-all match zero segments",
+      "rules": [
+        {
+          "pathPattern": "/pay/**",
+          "apiPath": "/api/slips/pay/**"
+        }
+      ],
+      "path": "/pay",
+      "resolved": "/pay"
+    }
+  ]
+}

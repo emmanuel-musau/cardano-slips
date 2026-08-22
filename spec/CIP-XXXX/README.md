@@ -102,6 +102,128 @@ schema disagree, the schema is the defect. Payloads that a conforming
 implementation MUST accept, and payloads it MUST reject, are published as a
 test corpus in [`../examples/`](../examples).
 
+### Domain mapping
+
+A Slip endpoint is an API path, and an API path is not what anyone wants to
+share. `slips.json` puts a human path in front of one, so that the link a person
+posts reads as something a person wrote.
+
+A publisher serves it at `/slips.json`, at the root of the origin the human path
+is on. It MUST set `Access-Control-Allow-Origin: *`, MUST NOT require
+credentials, and SHOULD be cacheable — the same rules discovery follows, and for
+the same reason: a client runs in a page on an origin the publisher does not
+control, and a file the browser withholds does not exist.
+
+The file is optional. Where an origin serves no mapping, a client MUST treat the
+link as its own endpoint and `GET` it directly, which is what a publisher whose
+URLs are already the endpoints wants.
+
+`slips.json` carries no `version`. Every other shape in this protocol declares
+one, and this one cannot coherently: it maps paths for a whole origin, and an
+origin is free to serve a version 1 endpoint at one path and a version 2
+endpoint at another. It also carries no `type`, because it is fetched from a
+fixed filename rather than returned by a negotiated endpoint — there is nothing
+it could be confused with.
+
+`rules` is an array of 1–100 rules, tried in order.
+
+| Field | Required | Type | Rule |
+|---|---|---|---|
+| `pathPattern` | yes | string | The human path this rule answers for. |
+| `apiPath` | yes | string | The endpoint path it resolves to. MUST carry the same wildcards, of the same kinds, in the same order, as its `pathPattern`. |
+
+**Both are path-absolute references, and that is a security property rather than
+a convenience.** Neither may carry a scheme or an authority, so a rule that sent
+a person to another host is not something this file can express. A protocol
+where one URL stands for another, and where the second may be anywhere, is the
+hijacked link [CIP-13]'s security considerations warn about — and it would
+reopen exactly what [Linked actions](#linked-actions) closes by requiring every
+`href` to stay on the discovery origin. A rule that must be *checked* is a rule
+an implementation can forget; a grammar that cannot carry a host has nothing to
+forget. The cost is real and accepted: a publisher whose endpoints live on
+another host, `api.example` in front of `example`, serves the mapping from that
+host or proxies to it.
+
+**The grammar.** A path template is one or more segments, each introduced by
+`/`. A segment is a literal, or `*`, or — as the final segment only — `**`.
+
+- `*` matches exactly one non-empty segment.
+- `**` matches one or more segments, and MUST NOT appear anywhere but last. A
+  `**` in the middle of a pattern has two readings whenever the literal after it
+  also occurs inside what it swallowed, and a specification with two readings
+  has none.
+- A wildcard is a whole segment. `/pay/user-*` is not a pattern.
+- Dot segments are not permitted in either field, and neither is an empty one.
+
+A client MUST reject a `slips.json` whose `apiPath` does not carry the same
+wildcards, of the same kinds, in the same order, as its `pathPattern`:
+substitution is positional, and a rule whose two sides disagree has no defined
+result. A publisher MUST NOT declare the same `pathPattern` twice — the second
+rule can never be reached, so it is a mistake about the file rather than a
+choice within it.
+
+**Resolution.** Given the path of a link and the rules, a client:
+
+1. Separates the query string, which takes no part in matching.
+2. Removes dot segments from the path, per [RFC 3986] §5.2.4.
+3. Tries each rule in order, comparing segments as they appear in the path —
+   case-sensitively, without decoding them, and without treating a trailing
+   slash as equivalent to its absence.
+4. On the first rule that matches, substitutes the captured segments into
+   `apiPath` in order, still encoded as they arrived, and appends the query.
+5. Where no rule matches, uses the path unchanged.
+
+**A client MUST NOT match the result against the rules again.** Resolution is a
+single substitution. Iterating it would make a loop expressible in a file no
+validator could reject, and it would let one rule's output be silently rewritten
+by another rule its author never considered.
+
+Because segments are compared as they arrive, an encoded `/` stays inside the
+segment that carries it: `%2F` never splits a path into two. A client that
+decoded before matching would let a crafted link reach a rule the publisher
+wrote for something else.
+
+**A mapping that cannot be read is not a mapping that is absent.** Where
+`/slips.json` answers `404` or `410`, the origin has no mapping and the link is
+its own endpoint. Where the fetch fails any other way — a timeout, a `5xx`, a
+refused cross-origin request — a client MUST NOT treat it as absent, and MUST
+fail with `UNREACHABLE`: it cannot tell an origin with no mapping from one whose
+mapping it failed to read, and guessing sends the person to a human path that
+was never meant to answer. A file that arrives and does not satisfy the schema
+above is `MALFORMED_RESPONSE`, and a client MUST NOT fall back to the human path
+in that case either.
+
+**Worked example.** A pool operator shares
+`https://linktap.example/delegate/POOL1`. The client fetches
+`https://linktap.example/slips.json`, finds the single rule above, matches
+`/delegate/POOL1` against `/delegate/*`, captures `POOL1`, and issues its `GET`
+to `https://linktap.example/api/slips/delegate/POOL1`. Everything after that —
+discovery, the build request, balancing — happens against the resolved URL. The
+link that was shared never appears again, and the person who shared it never had
+to see the one that does the work.
+
+```http
+GET /slips.json HTTP/1.1
+Host: linktap.example
+Accept: application/json
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Access-Control-Allow-Origin: *
+Cache-Control: public, max-age=300
+
+{
+  "rules": [
+    {
+      "pathPattern": "/delegate/*",
+      "apiPath": "/api/slips/delegate/*"
+    }
+  ]
+}
+```
+
 ### Discovery
 
 A client discovers a Slip by issuing `GET` to the Slip endpoint.
@@ -206,8 +328,9 @@ A client MUST resolve `href` against the discovery URL, and MUST reject the
 response unless every resolved target has the same origin as the discovery URL.
 A Slip that hands a person to a third party for the transaction is
 indistinguishable from a hijacked link, and [CIP-13]'s own security
-considerations raise exactly that concern. Where a publisher wants a human URL
-in front of a technical endpoint, `slips.json` is the sanctioned indirection.
+considerations raise exactly that concern. Where a publisher wants a human
+URL in front of a technical endpoint,
+[`slips.json`](#domain-mapping) is the sanctioned indirection.
 
 The cap of three is a property of the shape, not of any client: a publisher
 offering more choices expresses them as a `select` parameter, which stays
@@ -881,11 +1004,10 @@ exists to close.
 Filled incrementally, one section per issue. Add subsections here rather than
 new top-level headings — CIP-0001 fixes the H2 set.
 
-  #16  slips.json domain mapping
   #19  mandatory client-side effects derivation and mismatch rules
   #20  security considerations
 
-Those three insert above 'Failure responses' and 'Protocol versioning', which
+Those two insert above 'Failure responses' and 'Protocol versioning', which
 are cross-cutting and read last.
 
 The `//slip` authority registration and its versioned grammar belong here
