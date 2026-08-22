@@ -1,0 +1,8 @@
+{
+  "rules": [
+    {
+      "pathPattern": "/delegate/*",
+      "apiPath": "/api/slips/delegate/*"
+    }
+  ]
+}

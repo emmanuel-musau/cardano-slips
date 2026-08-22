@@ -1,0 +1,8 @@
+{
+  "rules": [
+    {
+      "pathPattern": "/pay/user-*",
+      "apiPath": "/api/slips/pay/*"
+    }
+  ]
+}
