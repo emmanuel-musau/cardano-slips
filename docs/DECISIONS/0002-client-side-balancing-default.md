@@ -26,4 +26,4 @@ Mode A is the only build mode implemented in v1. The spec reserves the Mode B de
 
 The privacy claim becomes structural rather than a policy promise: in v1 there is no code path that transmits a user's UTxO set to an endpoint, which is easy to verify and easy to state to reviewers. The eUTxO input-selection constraint converts into a privacy advantage over Solana rather than a drawback.
 
-The cost is that script-heavy actions cannot be expressed in v1, so the AdaLink reference integration is limited to payments and certificate actions. When Mode B is implemented later, the client gains a warning path and a second balancing branch, and the adversarial corpus needs cases for server-built transactions — a real cost, deliberately deferred.
+The cost is that script-heavy actions cannot be expressed in v1, so the AdaLink reference integration is limited to payments and certificate actions. When Mode B is implemented later, the client gains a warning path and a second balancing branch, and the attack examples need cases for server-built transactions — a real cost, deliberately deferred.

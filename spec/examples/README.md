@@ -1,8 +1,8 @@
-# Example corpus
+# Examples
 
-Canonical payloads for the shapes defined in [`../CIP-XXXX/README.md`](../CIP-XXXX/README.md).
-They are part of the specification, not test scaffolding: an independent
-implementation can run this corpus and find out whether it conforms without
+The payloads for every shape defined in [`../CIP-XXXX/README.md`](../CIP-XXXX/README.md).
+They are part of the specification, not test rigging: an independent
+implementation can run these examples and find out whether it conforms without
 reading a line of our code.
 
 One directory per shape, named for the `type` the payload declares, and the same
@@ -76,7 +76,7 @@ piped to the wire: both would pass every check a schema can make.
 
 ## `error/` — the codes, and the two payloads that prove the split
 
-The failure taxonomy is a closed set for an endpoint, and each of its eight
+The failure codes are a closed set for an endpoint, and each of its eight
 endpoint-raised codes has a payload in `valid/`. Seven codes are raised only by
 a client and have none on purpose. Three name a failure of the exchange itself —
 `MALFORMED_RESPONSE`, `UNSUPPORTED_VERSION`, `UNREACHABLE` — so there is no body
@@ -102,7 +102,7 @@ back to classifying by HTTP status.
 ## Keeping it honest
 
 `test/spec-domain-mapping.test.ts`, `test/spec-get-discovery.test.ts`,
-`test/spec-post-intent.test.ts` and `test/spec-error-taxonomy.test.ts` assert
+`test/spec-post-intent.test.ts` and `test/spec-error-codes.test.ts` assert
 that every file here is accounted for: each `valid/` payload validates, each
 `invalid/schema/` payload is rejected by the keyword and at the location its
 case names, and each `invalid/rule/` payload **passes** validation — which is
@@ -112,5 +112,5 @@ and the suite fails if that column ever collapses to one value. Adding a file
 without recording what it demonstrates fails the suite.
 
 Every JSON example printed in the CIP is one of these files, matched to its
-directory by the `type` it declares. The specification and the corpus cannot
-disagree, because the text is drawn from the corpus.
+directory by the `type` it declares. The specification and these examples
+cannot disagree, because the text is drawn from them.

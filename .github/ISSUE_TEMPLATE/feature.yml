@@ -47,7 +47,7 @@ body:
         - "@cardano-slips/server"
         - "@cardano-slips/identity"
         - "@cardano-slips/flow"
-        - apps/interstitial
+        - apps/page
         - examples/adalink
         - repo tooling (CI, build, lint)
         - not sure

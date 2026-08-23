@@ -7,20 +7,20 @@ import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.
 import { describe, expect, it } from "vitest"
 
 /**
- * The failure taxonomy and the versioning rule (#18).
+ * The failure codes and the versioning rule (#18).
  *
  * Two things are being pinned here, and they are the same thing seen twice.
  *
- * The taxonomy is a closed vocabulary: fifteen codes, each in exactly one of
+ * The codes are a closed vocabulary: fifteen of them, each in exactly one of
  * three classes, and the class — not the wording — is what a client acts on.
- * That only holds if the prose table, the JSON Schema and the example corpus
+ * That only holds if the table in the written spec, the JSON Schema and the examples
  * agree about which codes exist, who may send them, and what status carries
  * them. Any two of those can drift silently, so every pair is compared.
  *
  * The versioning rule is what a client does when it meets a response it was
  * not built for. It has no schema to enforce it, because the whole point is
  * that the response may satisfy some *other* version's schema, so the rules are
- * asserted against the prose directly. They are load-bearing: a client that
+ * asserted against the written spec directly. They are load-bearing: a client that
  * renders the fields it happens to recognise, from a response it has admitted
  * it does not understand, reopens the gap between what is shown and what is
  * signed that the rest of this protocol exists to close.
@@ -82,12 +82,12 @@ const section = (heading: string): string => {
 const failures = section("Failure responses")
 const versioning = section("Protocol versioning")
 
-/** Every markdown table in a chunk of prose, as rows of trimmed cells. */
-const tables = (prose: string): Array<Array<Array<string>>> => {
+/** Every markdown table in a chunk of text, as rows of trimmed cells. */
+const tables = (text: string): Array<Array<Array<string>>> => {
   const found: Array<Array<Array<string>>> = []
   let current: Array<Array<string>> = []
 
-  for (const line of prose.split("\n")) {
+  for (const line of text.split("\n")) {
     if (line.startsWith("|")) {
       current.push(
         line
@@ -106,8 +106,8 @@ const tables = (prose: string): Array<Array<Array<string>>> => {
 
 const unquote = (cell: string): string => cell.replaceAll("`", "")
 
-// The field table comes first in the section, the taxonomy second.
-const [fieldRows, taxonomyRows] = tables(failures)
+// The field table comes first in the section, the code table second.
+const [fieldRows, codeRows] = tables(failures)
 
 type Code = {
   readonly code: string
@@ -116,15 +116,15 @@ type Code = {
   readonly raisedBy: ReadonlyArray<string>
 }
 
-const taxonomy: ReadonlyArray<Code> = (taxonomyRows ?? []).map((row) => ({
+const codeTable: ReadonlyArray<Code> = (codeRows ?? []).map((row) => ({
   code: unquote(row[0] ?? ""),
   klass: row[1] ?? "",
   status: unquote(row[2] ?? ""),
   raisedBy: (row[3] ?? "").split(",").map((who) => who.trim())
 }))
 
-const sent = taxonomy.filter((entry) => entry.raisedBy.includes("endpoint"))
-const raisedLocally = taxonomy.filter((entry) => !entry.raisedBy.includes("endpoint"))
+const sent = codeTable.filter((entry) => entry.raisedBy.includes("endpoint"))
+const raisedLocally = codeTable.filter((entry) => !entry.raisedBy.includes("endpoint"))
 const enumerated = ((endpointSchema["$defs"] as Record<string, { enum?: Array<string> }>)["code"]?.enum ?? []).slice()
 
 /** One rejection the schema itself must produce, and where. */
@@ -170,7 +170,7 @@ const ruleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegE
 ]
 
 describe("the failure schema", () => {
-  it("accepts every payload the corpus says is conforming, under both schemas", () => {
+  it("accepts every payload the examples say is conforming, under both schemas", () => {
     const rejected = fixtures("valid")
       .flatMap((file) => [
         { file: `${file} (endpoint)`, errors: errorsFor(fixture("valid", file)) },
@@ -234,26 +234,26 @@ describe("the rules the schema cannot express", () => {
   })
 })
 
-describe("the taxonomy", () => {
+describe("the code table", () => {
   it("is published as a table a reader can act on", () => {
-    expect(taxonomy.length).toBeGreaterThan(0)
+    expect(codeTable.length).toBeGreaterThan(0)
     expect(sent.length).toBeGreaterThan(0)
     expect(raisedLocally.length).toBeGreaterThan(0)
   })
 
   it("names each code once", () => {
-    expect(new Set(taxonomy.map((entry) => entry.code)).size).toBe(taxonomy.length)
+    expect(new Set(codeTable.map((entry) => entry.code)).size).toBe(codeTable.length)
   })
 
   it("puts every code in exactly one of the three classes", () => {
     // The class is the contract. A code with no class, or one invented in a
     // later edit, would leave a client with no defined behaviour for it.
-    const misclassed = taxonomy.filter((entry) => !["request", "terminal", "transient"].includes(entry.klass))
+    const misclassed = codeTable.filter((entry) => !["request", "terminal", "transient"].includes(entry.klass))
     expect(misclassed.map((entry) => `${entry.code}: ${entry.klass}`)).toEqual([])
   })
 
   it("shapes each code like a code", () => {
-    const malformed = taxonomy.filter((entry) => !/^[A-Z][A-Z0-9_]{2,47}$/.test(entry.code))
+    const malformed = codeTable.filter((entry) => !/^[A-Z][A-Z0-9_]{2,47}$/.test(entry.code))
     expect(malformed.map((entry) => entry.code)).toEqual([])
   })
 
@@ -279,9 +279,9 @@ describe("the taxonomy", () => {
   })
 
   it("names the one code both parties can raise, and keeps it sendable", () => {
-    // The count here used to be stated as a bare numeral in the prose and was
+    // The count here used to be stated as a bare numeral in the written spec and was
     // wrong. Deriving it from the table instead means it cannot drift again.
-    const dual = taxonomy.filter((entry) => entry.raisedBy.includes("endpoint") && entry.raisedBy.includes("client"))
+    const dual = codeTable.filter((entry) => entry.raisedBy.includes("endpoint") && entry.raisedBy.includes("client"))
     expect(dual.map((entry) => entry.code)).toEqual(["WRONG_NETWORK"])
     expect(enumerated).toContain("WRONG_NETWORK")
     expect(failures).toMatch(/`WRONG_NETWORK` is raised by both/)
@@ -304,7 +304,7 @@ describe("the taxonomy", () => {
     }
   })
 
-  it("illustrates every code an endpoint can send with a payload in the corpus", () => {
+  it("illustrates every code an endpoint can send with a payload in the examples", () => {
     // A code documented but never exercised is a code no implementation has
     // had to produce. Each one gets a payload a server can be tested against.
     const covered = fixtures("valid").map((file) => (fixture("valid", file) as { code?: string }).code)
@@ -417,7 +417,7 @@ describe("what a client does with a failure", () => {
 
 describe("the CIP's cross-references", () => {
   it("points every internal link at a heading that exists", () => {
-    // #15 wrote two sentences deferring to "the error taxonomy" as prose,
+    // #15 wrote two sentences deferring to "the error codeTable" in words,
     // because there was no section to link to yet. Both are links now, and a
     // CIP that cross-references itself can start rotting quietly as sections
     // are renamed on the way to the freeze.
@@ -435,9 +435,10 @@ describe("the CIP's cross-references", () => {
     expect(linked.filter((target) => !present.has(target))).toEqual([])
   })
 
-  it("defers nothing to a taxonomy that now exists", () => {
-    // The two sentences #15 left open. If either phrasing comes back, a reader
-    // is being sent to a section by description rather than by link.
+  it("defers nothing to a section that now exists", () => {
+    // The two sentences #15 left open. The old wording is matched verbatim on
+    // purpose: this guards the exact phrasing that used to be there, so it stays
+    // written the old way even though the document no longer uses that word.
     expect(source).not.toMatch(/specified with the error\s+taxonomy/)
   })
 })
@@ -474,8 +475,8 @@ describe("protocol versioning", () => {
     expect(versioning).toMatch(/MUST NOT `POST`/)
   })
 
-  it("names that refusal with a code the taxonomy defines", () => {
-    expect(taxonomy.map((entry) => entry.code)).toContain("UNSUPPORTED_VERSION")
+  it("names that refusal with a code the table defines", () => {
+    expect(codeTable.map((entry) => entry.code)).toContain("UNSUPPORTED_VERSION")
   })
 
   it("declares the same version on every response shape", () => {
