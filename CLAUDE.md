@@ -50,11 +50,12 @@ pnpm typecheck        # tsc --noEmit
 ## Working rules
 
 - Work is driven by GitHub issues (`emmanuel-musau/cardano-slips`), ordered by dependency; respect `Depends on #N` lines. One issue = one branch = one PR. Board: https://github.com/users/emmanuel-musau/projects/1
+- **Two permanent branches.** `main` is published and default — protected against everyone including the owner, and the only branch releases publish from. `dev` is where work happens: the same four checks gate any PR into it, but the owner commits straight to it. Feature branches start from `dev` and target `dev`; only `dev` targets `main`, with a merge commit. `docs/WORKFLOW.md` carries the full model, including the back-merge after each release.
 - Do not start an issue whose dependencies are open. Do not expand an issue's scope — file a new issue instead.
 - Branch names are `<type>/<purpose>`: the type prefix, a slash, then the purpose in kebab-case — `chore/pnpm-workspace`, `feat/ada-delta`, `fix/mismatch-block`. No issue numbers, no other punctuation. Types: `feat`, `fix`, `chore`, `docs`, `test`, `spec`, `infra`. The purpose is one or two words naming the thing, not the sentence; the issue link lives in the commit trailer and the PR.
 - Every change ships with tests in the same PR. See **Testing** below — this is not a soft preference.
 - Changeset required for any change under `packages/*`.
-- Never commit or push unless explicitly asked. Never touch `main` directly.
+- Never commit or push unless explicitly asked — `dev` included, its openness is the owner's to use, not yours to assume. Never touch `main` directly.
 
 ## Testing — treat this as a first-class requirement
 
