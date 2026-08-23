@@ -38,7 +38,7 @@ The client records `BLAKE2b-256(canonical-cbor(tx_body))` — the transaction id
 
 ## 4. The effects engine — the security model
 
-The server's metadata is a claim; the transaction is the truth. Before any signature request the client independently derives from the tx CBOR:
+The server's metadata is a claim; the transaction is the truth. Before any signature request the client independently derives — from the tx CBOR, the values of the inputs it spends and the protocol parameters in force, all supplied as arguments and never fetched mid-derivation:
 
 - net ADA delta for the user's addresses, and the exact fee
 - net native-asset deltas per policy/asset

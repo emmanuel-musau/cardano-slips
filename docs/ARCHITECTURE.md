@@ -80,14 +80,16 @@ Decodes balanced transaction CBOR and derives, independently of anything the end
 | mint/burn | assets created/destroyed |
 | validity interval | "Expires in 4m 12s" |
 
-Then compares derived effects against declared metadata and returns `match | mismatch(reasons[])`. Undeclared effects — an extra output, an unexpected certificate — are always a mismatch.
+Then compares derived effects against what the endpoint declared in the partial intent and returns `match | mismatch(reasons[])`. Undeclared effects — an extra output, an unexpected certificate — are always a mismatch. The rules and the reason vocabulary are normative: see [The comparison](../spec/CIP-XXXX/README.md#the-comparison), whose published table of verdicts `compare.ts` runs as conformance vectors.
 
-**This package is a pure function of (tx CBOR, declared metadata, user addresses).** It performs no I/O and imports nothing from `flow`, `server`, or any network layer. That purity is what makes the attack examples a meaningful proof: they exercise the exact code path that runs before a real signature. If the engine had side effects or network calls, "we blocked 100% of lying transactions" would be a claim about a system rather than a property of a function.
+**Two of the five terms are easy to miss, and both were found late.** A net ADA delta needs the value of the inputs being spent, and a transaction body carries only references to them — so **resolved inputs** are an argument (ADR-0010). A fee ceiling, the raise of an output to the ledger minimum, a deposit told apart from a spend, and a validity interval shown as wall-clock time all need **protocol parameters** — the minimum-fee coefficients, the per-byte cost, the stake deposit and its refund, and the slot-to-time mapping. In Mode A the client holds all of it before it starts. Anything the engine had to fetch would put a network call between a person and a signature.
+
+**This package is a pure function of (tx CBOR, declared metadata, user addresses, resolved inputs, protocol parameters).** It performs no I/O and imports nothing from `flow`, `server`, or any network layer. That purity is what makes the attack examples a meaningful proof: they exercise the exact code path that runs before a real signature. If the engine had side effects or network calls, "we blocked 100% of lying transactions" would be a claim about a system rather than a property of a function.
 
 | Module | Owns |
 |---|---|
 | `decode.ts` | CBOR → structured transaction. Where the edge cases live; budget accordingly. |
-| `derive.ts` | Diffs inputs against outputs for the user's addresses → ADA delta, per-policy asset deltas, exact fee, certificates, withdrawals, mint/burn, validity interval |
+| `derive.ts` | Diffs inputs against outputs for the user's addresses → ADA delta, per-policy asset deltas, exact fee, certificates, withdrawals, mint/burn, validity interval. Takes four of the five terms — the declared metadata is the comparison's business, not the arithmetic's. |
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
 | `test/fixtures/` | ~50 known-good mainnet transactions with expected outputs. Regression safety. Every fixture's derived commit must equal its known transaction id, and CML cross-checks the derived fields as a second opinion (ADR-0010). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |

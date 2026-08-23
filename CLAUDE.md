@@ -112,7 +112,7 @@ The **hard invariants below each need a test that fails if the invariant is brok
 
 ## Hard invariants (violating these is a bug, whatever the ticket says)
 
-1. `packages/verifier` stays a pure function of (tx CBOR, declared metadata, user addresses). It must not import from `flow`, `server`, or any network layer.
+1. `packages/verifier` stays a pure function of (tx CBOR, declared metadata, user addresses, resolved inputs, protocol parameters). It must not import from `flow`, `server`, or any network layer. All five terms arrive as arguments, never as lookups — an engine that fetches an input's value or a protocol parameter mid-derivation can be made slow, made to fail, or made to answer wrongly by whoever answers.
 2. The client never sends the user's UTxO set to a Slip endpoint (Mode A only in v1).
 3. A metadata/effects mismatch always hard-blocks signing. No override paths, no allowlists.
 4. `signTx` returns a witness set, not a signed tx — witnesses are assembled into the body before `submitTx`.
