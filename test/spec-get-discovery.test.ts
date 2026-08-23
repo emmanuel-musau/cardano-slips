@@ -9,13 +9,13 @@ import { describe, expect, it } from "vitest"
 /**
  * The GET discovery contract (#15).
  *
- * Three artefacts have to agree: the JSON Schema, the example corpus, and the
- * prose in the CIP. Any two of them can drift apart silently — a field added to
- * the schema and never documented, a rule written in prose that nothing
+ * Three artefacts have to agree: the JSON Schema, the examples, and the
+ * text in the CIP. Any two of them can drift apart silently — a field added to
+ * the schema and never documented, a rule written in the spec that nothing
  * enforces, an example that stopped being valid. Everything here exists to make
  * that drift fail on commit instead of in review.
  *
- * The corpus itself is published as part of the spec: `spec/examples/get`
+ * The examples themselves are published as part of the spec: `spec/examples/get`
  * carries payloads a conforming implementation must accept, payloads the schema
  * must reject, and payloads that are schema-valid but violate a rule the schema
  * cannot express. That third bucket is not a gap — it is the list of checks a
@@ -46,7 +46,7 @@ const fixture = (dir: string, file: string): unknown => readJson(join(examples, 
  * definition applied at two levels, so the properties it requires are declared
  * in the schemas that use it, not in the definition itself. Satisfying the rule
  * would mean duplicating those declarations inside every branch. A misspelled
- * `required` entry is caught instead by the prose-versus-schema comparison
+ * `required` entry is caught instead by the text-versus-schema comparison
  * below, which would find a field the CIP does not document.
  */
 const ajv = new Ajv2020({ strict: true, strictRequired: false, allErrors: true })
@@ -94,7 +94,7 @@ const schemaRejections: ReadonlyArray<Rejection> = [
 /**
  * Rules a JSON Schema cannot express: two of them compare sibling values, and
  * one needs the request URL. They are still normative, so the payloads live in
- * the corpus with the rule they break, and the client-side check that has to
+ * the examples with the rule they break, and the client-side check that has to
  * catch each one arrives with `core`.
  */
 const ruleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegExp }> = [
@@ -105,7 +105,7 @@ const ruleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegE
 ]
 
 describe("the discovery schema", () => {
-  it("accepts every payload the corpus says is conforming", () => {
+  it("accepts every payload the examples say is conforming", () => {
     const rejected = fixtures("valid")
       .map((file) => ({ file, errors: errorsFor(fixture("valid", file)) }))
       .filter(({ errors }) => errors.length > 0)
@@ -151,7 +151,7 @@ describe("the rules the schema cannot express", () => {
   })
 })
 
-describe("the example corpus", () => {
+describe("the examples", () => {
   it("labels every button with the value its own href sends", () => {
     // Nothing in the schema relates a label to an href, so an example can say
     // one amount and request another and still validate. In a specification
@@ -242,17 +242,17 @@ describe("the CIP text and the schema", () => {
     ).toEqual(required.sort())
   })
 
-  it("illustrates its sections only with payloads from the corpus", () => {
+  it("illustrates its sections only with payloads from the examples", () => {
     // An example written inline is an example nothing validates. Every JSON
     // block in the specification is a file under `spec/examples/<shape>/valid`,
     // so a shape change breaks the example and the fixture together or not at
     // all. The block's own `type` picks which shape it is held to, which is
     // what lets one check cover a document that grows a section per issue —
     // a new shape registers here when its section lands.
-    const shapes: Record<string, { readonly schema: string; readonly corpus: string }> = {
-      slip: { schema: "slip-get-response.schema.json", corpus: "get" },
-      error: { schema: "slip-error-response.schema.json", corpus: "error" },
-      partial: { schema: "slip-partial-intent.schema.json", corpus: "partial" }
+    const shapes: Record<string, { readonly schema: string; readonly examples: string }> = {
+      slip: { schema: "slip-get-response.schema.json", examples: "get" },
+      error: { schema: "slip-error-response.schema.json", examples: "error" },
+      partial: { schema: "slip-partial-intent.schema.json", examples: "partial" }
     }
 
     const blocks = [...source.matchAll(/```json\n([\s\S]*?)```/g)].map(
@@ -277,11 +277,11 @@ describe("the CIP text and the schema", () => {
         `a JSON example in the CIP fails its own schema: ${shapeAjv.errorsText(shapeValidate.errors)}`
       ).toBe(true)
 
-      const corpus = join(root, "spec", "examples", shape.corpus, "valid")
-      const held = readdirSync(corpus)
+      const dir = join(root, "spec", "examples", shape.examples, "valid")
+      const held = readdirSync(dir)
         .filter((file) => file.endsWith(".json"))
-        .map((file) => readJson(join(corpus, file)))
-      expect(held, `a JSON example in the CIP is not in the corpus: ${printed}`).toContainEqual(block)
+        .map((file) => readJson(join(dir, file)))
+      expect(held, `a JSON example in the CIP is not in the examples: ${printed}`).toContainEqual(block)
     }
   })
 
@@ -334,8 +334,8 @@ describe("the vocabulary the rename settled", () => {
     }
   })
 
-  it("documents the same value in the CIP prose", () => {
-    // The prose table and the schema are the two places an implementer looks;
+  it("documents the same value in the CIP text", () => {
+    // The table and the schema are the two places an implementer looks;
     // they disagreeing is exactly the drift this file exists to catch.
     expect(source).toContain('MUST be `"slip"`')
     expect(source).not.toContain('MUST be `"action"`')

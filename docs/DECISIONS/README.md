@@ -16,6 +16,6 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0006](0006-two-tier-publisher-identity.md) | Ship publisher identity in two tiers, with the domain manifest as the default | Accepted |
 | [0007](0007-action-authority.md) | Claim `//action` as the URI authority, register it through CPS-16, and keep it out of M1 | Superseded by ADR-0008 |
 | [0008](0008-rename-to-slips.md) | Rename the protocol to Cardano Slips and claim `//slip` | Accepted |
-| [0009](0009-error-taxonomy-and-versioning.md) | Classify failures by what a client does next, and version the protocol with a single integer per URL | Accepted |
+| [0009](0009-error-codes-and-versioning.md) | Classify failures by what a client does next, and version the protocol with a single integer per URL | Accepted |
 
 Two more are already ticketed as spikes and land here when decided: CBOR decode approach (#33) and CIP-0170 go/no-go (#63) — which ADR-0006 narrows to the Tier-2 question only.

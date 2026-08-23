@@ -45,7 +45,7 @@ const ajv = new Ajv2020({ strict: true, strictRequired: false, allErrors: true }
 const validateRequest: ValidateFunction = ajv.compile(requestSchema)
 const validateIntent: ValidateFunction = ajv.compile(intentSchema)
 
-/** One corpus shape: its directory, its schema, and the validator over it. */
+/** One example shape: its directory, its schema, and the validator over it. */
 type Shape = {
   readonly dir: string
   readonly validate: ValidateFunction
@@ -128,7 +128,7 @@ const intentRuleRejections: ReadonlyArray<{ readonly file: string; readonly rule
 ]
 
 describe("the build request", () => {
-  it("accepts every payload the corpus says is conforming", () => {
+  it("accepts every payload the examples say is conforming", () => {
     const rejected = fixtures(build, "valid")
       .map((file) => ({ file, errors: errorsFor(build, fixture(build, "valid", file)) }))
       .filter(({ errors }) => errors.length > 0)
@@ -172,7 +172,7 @@ describe("the build request", () => {
 })
 
 describe("the partial intent", () => {
-  it("accepts every payload the corpus says is conforming", () => {
+  it("accepts every payload the examples say is conforming", () => {
     const rejected = fixtures(partial, "valid")
       .map((file) => ({ file, errors: errorsFor(partial, fixture(partial, "valid", file)) }))
       .filter(({ errors }) => errors.length > 0)
@@ -230,7 +230,7 @@ describe("quantities", () => {
     return found
   }
 
-  it("are integer base units in decimal strings, everywhere in the corpus", () => {
+  it("are integer base units in decimal strings, everywhere in the examples", () => {
     // The most repeated bug in the web+cardano family, pinned. A JSON number
     // would carry the same value and lose it: 9007199254740993 lovelace does
     // not survive a double, and "12.5" is not a quantity of anything.
@@ -305,11 +305,11 @@ const slice = (heading: string, level: number): string => {
 }
 
 /** Every markdown table in a section, as rows of trimmed cells. */
-const tables = (prose: string): Array<Array<Array<string>>> => {
+const tables = (text: string): Array<Array<Array<string>>> => {
   const found: Array<Array<Array<string>>> = []
   let current: Array<Array<string>> | undefined
 
-  for (const line of prose.split("\n")) {
+  for (const line of text.split("\n")) {
     if (line.startsWith("|")) {
       const cells = line
         .split("|")
@@ -380,10 +380,10 @@ describe("the CIP text and the schemas", () => {
     ).toEqual(properties(entry.schema, entry.path).required.sort())
   })
 
-  it("illustrates the request with a body from the corpus", () => {
+  it("illustrates the request with a body from the examples", () => {
     // The one payload in this specification with no `type` to name it by, so
     // it travels inside an ```http block rather than a ```json one. It is held
-    // to the corpus all the same: an example nothing validates teaches whatever
+    // to the examples all the same: an example nothing validates teaches whatever
     // its author last typed.
     const bodies = [...source.matchAll(/```http\nPOST[\s\S]*?\n\n(\{[\s\S]*?)\n```/g)].map(
       (match) => JSON.parse(match[1]) as unknown
@@ -393,7 +393,7 @@ describe("the CIP text and the schemas", () => {
     const held = fixtures(build, "valid").map((file) => fixture(build, "valid", file))
     for (const body of bodies) {
       expect(errorsFor(build, body), `a request example in the CIP fails its own schema`).toEqual([])
-      expect(held, `a request example in the CIP is not in the corpus`).toContainEqual(body)
+      expect(held, `a request example in the CIP is not in the examples`).toContainEqual(body)
     }
   })
 })
@@ -455,7 +455,7 @@ describe("the obligations this step puts on both parties", () => {
 describe("build modes", () => {
   it("reserves the field a server-balanced Slip would declare", () => {
     // ADR-0002 defers Mode B and requires the field be reserved. Reserving it
-    // in prose alone would not do: a client MUST reject an undefined member,
+    // in words alone would not do: a client MUST reject an undefined member,
     // so an endpoint sending it would be malformed rather than unsupported,
     // and Mode B would cost a major version it should not.
     const declared = (discoverySchema["properties"] as Record<string, Record<string, unknown>>)["build"]

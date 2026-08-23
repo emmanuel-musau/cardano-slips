@@ -12,19 +12,19 @@ Issues: `emmanuel-musau/cardano-slips` · Board: https://github.com/users/emmanu
 
 **Pulling work.** When an issue closes, promote items from the top of `Backlog` into `Ready` — anything whose `Depends on #N` issues are all closed is eligible. Never start an issue with an open dependency; if it seems necessary, the dependency is wrong and should be fixed on the issue.
 
-**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk spikes, the effects engine, balancing/signing, interstitial flow, mainnet deploy). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
+**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk spikes, the effects engine, balancing/signing, slip page flow, mainnet deploy). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
 
 **Points.** Fibonacci, capped at 5: `1` ≈ under 2 hours (config-level) · `2` ≈ half a day · `3` ≈ one day · `5` ≈ two days. Nothing is larger. If an issue starts feeling like an 8, stop and split it into new issues rather than absorbing the overrun silently.
 
 **Milestones.** `M1-Foundation` → `M1-Protocol` → `M1-Verifier` → `M1-Flow` → `M1-Integration` → `M1-Delivery`.
 
-## Scaffolding order
+## Build order
 
 The first three commits go in this order, and the third is the one people skip:
 
 | # | Commit | Why here |
 |---|---|---|
-| 1 | Root scaffolding — `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.js` | Nothing else builds correctly until the workspace resolves. |
+| 1 | Root setup — `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.js` | Nothing else builds correctly until the workspace resolves. |
 | 2 | `LICENSE`, `README`, CI workflow, issue templates, `CODEOWNERS` | Establishes the repo as public and contributable from commit two, not as an afterthought. |
 | 3 | `packages/core` with one passing test | Proves the toolchain end to end — workspace resolution, TypeScript, Vitest, Turborepo caching, CI — before anything real is built on top of it. |
 

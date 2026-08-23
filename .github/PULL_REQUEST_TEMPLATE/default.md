@@ -17,7 +17,7 @@ Closes #
      the test and say why it exercises the new path.
 
      If this fixes a bug, name the test that reproduces it.
-     If this touches `verifier`, say what was added to the adversarial corpus. -->
+     If this touches `verifier`, say what was added to the attack examples. -->
 
 ## Checklist
 

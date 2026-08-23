@@ -97,10 +97,10 @@ Three roles are referred to throughout:
   effects of the resulting transaction, and drives the wallet.
 
 Every payload defined here has a JSON Schema under
-[`schemas/`](./schemas), and those schemas are normative: where this prose and a
+[`schemas/`](./schemas), and those schemas are normative: where this document and a
 schema disagree, the schema is the defect. Payloads that a conforming
-implementation MUST accept, and payloads it MUST reject, are published as a
-test corpus in [`../examples/`](../examples).
+implementation MUST accept, and payloads it MUST reject, are published as
+test examples in [`../examples/`](../examples).
 
 ### Domain mapping
 
@@ -567,7 +567,7 @@ the card, MUST NOT present a control that can be pressed, and MUST fail with
 `UNSUPPORTED_BUILD_MODE`, so that a person meets a Slip this client cannot build
 rather than one that appears broken.
 
-The value is reserved in the schema rather than in prose alone. A client MUST
+The value is reserved in the schema rather than in words alone. A client MUST
 reject an undefined member, so an endpoint that declared a mode this version had
 not defined would be malformed rather than unsupported, and the mode that
 eventually ships would cost a major version instead of a field. What a
@@ -589,7 +589,7 @@ that the ledger or the wallet determines.
 
 `message` is a claim, not a description of the transaction. A client MUST render
 it alongside the effects it derived and MUST NOT render it in place of them:
-prose that reached the person instead of the arithmetic is the failure this
+a sentence that reached the person instead of the arithmetic is the failure this
 protocol is built to prevent.
 
 The `intent` object carries the transaction's parts.
@@ -823,7 +823,7 @@ otherwise is a non-conforming endpoint asserting a fact it has no access to.
 
 What the client holds at the end of this step is a complete, unsigned
 transaction, and the intent above is the declaration it will be judged against.
-The metadata a Slip showed at discovery is prose and is never that declaration:
+The metadata a Slip showed at discovery is words and is never that declaration:
 a claim in a `title` cannot be compared with arithmetic, and a client MUST NOT
 treat one as though it had been.
 
@@ -838,7 +838,7 @@ This is not the same thing as an action that cannot be used. `disabled` and its
 `reason` describe a Slip that was served successfully and currently offers
 nothing to sign; a failure response says the exchange itself did not happen. The
 body's discriminator is `"error"` for that reason, and this document says
-*failure* throughout to keep the two apart in prose.
+*failure* throughout to keep the two apart in writing.
 
 An endpoint MUST NOT report at `POST` a state it could have reported at `GET`.
 Where the state genuinely changed between the two — the last seat was taken, a
@@ -864,7 +864,7 @@ withholds the body: every failure then reaches the person as an unexplained one,
 including the failures they could have corrected themselves. A failure response
 MUST NOT be cached, and SHOULD set `Cache-Control: no-store`.
 
-**The taxonomy.** Every code belongs to one of three classes, and the class is
+**The classes.** Every code belongs to one of three classes, and the class is
 what a client acts on. The class is a property of the code, fixed by this
 document, and is deliberately not a field: an endpoint able to declare its own
 failure retryable is an endpoint able to keep a client asking.
