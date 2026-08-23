@@ -14,6 +14,7 @@ get/                   type: "slip"     — discovery metadata
 build-request/         (no type)        — the body a client POSTs
 partial/               type: "partial"  — the publisher's side of a transaction
 error/                 type: "error"    — a request that failed
+effects/               (no type)        — declared against derived, and the verdict
 └── valid/             MUST be accepted
     invalid/
     ├── schema/        MUST be rejected by the JSON Schema alone
@@ -37,6 +38,35 @@ resolver from a plausible one — an output that must not be re-matched, an
 encoded slash that must not split a segment, a trailing slash that is not
 equivalent — are behaviour, not shape. It has no rejection cases, and that is
 itself the point: file validation has already removed every way to express one.
+
+`effects/` carries no buckets at all, for the same reason `resolution.json`
+carries none: its subject is not a document. `verdicts.json` is a table of
+declared intents, the effects derived from the transaction built out of each,
+and the verdict the pair MUST produce — the comparison specified in
+[The comparison](../CIP-XXXX/README.md#the-comparison), which is the rule that
+blocks a signature and the reason this protocol needs no registry. A schema can
+say whether an intent is well formed; nothing it can express says whether a
+transaction does what the intent asked.
+
+Each case carries what the comparison reads and nothing else. `declared` is an
+intent an endpoint could return, and every one of them validates against
+`slip-partial-intent.schema.json`. `derived` renders the effects: the outputs
+with `mine` recording whether the wallet controls each address, the fee, the
+certificates and withdrawals with the same flag, any mint, the validity
+interval as wall-clock instants, and `unsupported` naming any body member this
+version cannot describe. `parameters` carries the three quantities only the
+protocol parameters can supply — the minimum fee for the transaction, the
+minimum ADA a change output would cost, and the ledger minimum for each declared
+output, which is what makes the raise of a token output an exact adjustment
+rather than a tolerance. `now` and `changeAddress` are the rest of the context a
+verdict depends on.
+
+The net ADA and asset deltas are deliberately absent: they are rendered to the
+person and never compared against anything, so a table that carried them would
+be asserting something the comparison does not read. `reasons` names why a block
+happened, from the vocabulary the CIP publishes; the reasons and the cases are
+held to each other, so a reason with no case and a case with no reason both fail
+the suite.
 
 `error/` is validated by two schemas rather than one. An endpoint conforms to
 `slip-error-response-endpoint.schema.json`, where `code` is closed to the eight
@@ -77,13 +107,14 @@ piped to the wire: both would pass every check a schema can make.
 ## `error/` — the codes, and the two payloads that prove the split
 
 The failure codes are a closed set for an endpoint, and each of its eight
-endpoint-raised codes has a payload in `valid/`. Seven codes are raised only by
+endpoint-raised codes has a payload in `valid/`. Eight codes are raised only by
 a client and have none on purpose. Three name a failure of the exchange itself —
 `MALFORMED_RESPONSE`, `UNSUPPORTED_VERSION`, `UNREACHABLE` — so there is no body
-they could arrive in. The other four arise after a conforming response, in work
+they could arrive in. The other five arise after a conforming response, in work
 only the client can do: `INSUFFICIENT_FUNDS`, `CANNOT_BALANCE` and
-`INTENT_EXPIRED` come out of balancing, and `UNSUPPORTED_BUILD_MODE` out of a
-Slip that asks to be balanced by its own publisher. `WRONG_NETWORK` is raised by
+`INTENT_EXPIRED` come out of balancing, `UNSUPPORTED_BUILD_MODE` out of a
+Slip that asks to be balanced by its own publisher, and `EFFECTS_MISMATCH` out
+of the comparison `effects/verdicts.json` publishes. `WRONG_NETWORK` is raised by
 both and is sendable, so it has one.
 
 Two payloads under `invalid/schema/` are rejected by the endpoint schema and
@@ -102,7 +133,8 @@ back to classifying by HTTP status.
 ## Keeping it honest
 
 `test/spec-domain-mapping.test.ts`, `test/spec-get-discovery.test.ts`,
-`test/spec-post-intent.test.ts` and `test/spec-error-codes.test.ts` assert
+`test/spec-post-intent.test.ts`, `test/spec-error-codes.test.ts` and
+`test/spec-effects.test.ts` assert
 that every file here is accounted for: each `valid/` payload validates, each
 `invalid/schema/` payload is rejected by the keyword and at the location its
 case names, and each `invalid/rule/` payload **passes** validation — which is
@@ -110,6 +142,12 @@ what makes it evidence that the rule has to live somewhere else. Every
 `error/invalid/schema/` case also records whether a client can still read it,
 and the suite fails if that column ever collapses to one value. Adding a file
 without recording what it demonstrates fails the suite.
+
+`effects/verdicts.json` is held differently, because it is behaviour rather
+than shape: `test/spec-effects.test.ts` runs every case against a reference
+comparator written from the numbered rules in the CIP, and `verifier`'s
+`compare.ts` will run the same table. The day the two disagree, one of them is
+wrong about the specification rather than about itself.
 
 Every JSON example printed in the CIP is one of these files, matched to its
 directory by the `type` it declares. The specification and these examples

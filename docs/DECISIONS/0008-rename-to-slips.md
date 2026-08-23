@@ -54,7 +54,20 @@ Actions.
 
 **Earlier ADRs are not edited.** They record what was decided when it was
 decided, including the name in use at the time. This ADR is the only place the
-rename lives.
+rename lives, so it is also where the reading is written down. Every name an
+earlier record carries is read through this table:
+
+| Written in an earlier ADR | Read as |
+|---|---|
+| `//action` | `//slip` |
+| `"type": "action"` | `"type": "slip"` |
+| `@cardano-actions/*` | `@cardano-slips/*` (ADR-0005) |
+| `.well-known/cardano-actions.json` | `.well-known/cardano-slips.json` (ADR-0006) |
+| an *action endpoint*, an *action* as the whole document | a **Slip endpoint**, a **Slip** |
+
+Where a current document and an earlier ADR disagree about a name, the current
+document is right and the ADR is not wrong — it is dated. `docs/REQUIREMENTS.md`
+is where the publisher manifest's filename lives today.
 
 ## Alternatives considered
 

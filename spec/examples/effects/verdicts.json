@@ -1,0 +1,1566 @@
+{
+  "cases": [
+    {
+      "name": "a payment built exactly as declared, with change returning to the wallet",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a token payment whose lovelace the client raised to the ledger minimum",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "0",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ]
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["1180940"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "1180940",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ],
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "8848391",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a declared amount already above the ledger minimum, left where it was",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "2000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "2000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "17829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "two declared payments in one transaction",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "25000000"
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "5000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750", "969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "25000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "5000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "9829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a delegation, with the deposit and the fee supplied by the client",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeRegistration"
+          },
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "47829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeRegistration",
+            "mine": true
+          },
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a vote delegation naming the declared DRep",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "voteDelegation",
+            "drep": "drep1y2wfmxsjt7786qc663mts7qh5m9nzn27qjzrpuglaq6wsgqws500e"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "voteDelegation",
+            "drep": "drep1y2wfmxsjt7786qc663mts7qh5m9nzn27qjzrpuglaq6wsgqws500e",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a withdrawal of the whole reward balance, part of it paid on",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000"
+          }
+        ],
+        "withdrawRewards": true,
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "4321000",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [
+          {
+            "mine": true,
+            "lovelace": "9491869"
+          }
+        ],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "a fee that absorbs a remainder too small to return as change",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          }
+        ],
+        "fee": "1000000",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "change split across two addresses the wallet controls",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "20000000",
+            "mine": true
+          },
+          {
+            "address": "addr1q86j7jcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfws2vu3wk",
+            "lovelace": "17829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
+      "name": "the declared payment is missing from the transaction",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.missing"]
+    },
+    {
+      "name": "a second payment nobody declared, to an address the wallet does not control",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "8000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "29829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.undeclared"]
+    },
+    {
+      "name": "the declared amount split into two outputs at the declared address",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "6000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "6000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.undeclared"]
+    },
+    {
+      "name": "one lovelace short of what was declared",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "11999999",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829132",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.lovelace"]
+    },
+    {
+      "name": "more than the declared amount, which is not the client's to give away",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12500000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37329131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.lovelace"]
+    },
+    {
+      "name": "an asset-carrying output raised past the ledger minimum",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "0",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ]
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["1180940"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "5000000",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ],
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "5029331",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.lovelace"]
+    },
+    {
+      "name": "one base unit short on the declared asset",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "0",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ]
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["1180940"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "1180940",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "11999999"
+              }
+            ],
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "8848391",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.assets"]
+    },
+    {
+      "name": "an asset the intent never mentioned, riding along in a declared output",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "0",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              }
+            ]
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["1180940"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "1180940",
+            "assets": [
+              {
+                "policyId": "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+                "assetName": "5553444d",
+                "quantity": "12000000"
+              },
+              {
+                "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+                "assetName": "484f534b59",
+                "quantity": "5000000"
+              }
+            ],
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "8848391",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.assets"]
+    },
+    {
+      "name": "change returned to an address the intent declares",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["output.undeclared"]
+    },
+    {
+      "name": "the declared certificate is absent",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.missing"]
+    },
+    {
+      "name": "a certificate nobody declared, alongside the one that was",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "47829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y",
+            "mine": true
+          },
+          {
+            "type": "stakeRegistration",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.undeclared"]
+    },
+    {
+      "name": "a delegation to a pool other than the declared one",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1qqqqqzyq2ffsq4jrx8sfz7q4nq0q6qmnvxvhxq7vfsq5jd3fq2q",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.target"]
+    },
+    {
+      "name": "a certificate acting on a stake credential the wallet does not control",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y",
+            "mine": false
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.credential"]
+    },
+    {
+      "name": "the declared certificates, in an order that changes what they do",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeRegistration"
+          },
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": []
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "47829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y",
+            "mine": true
+          },
+          {
+            "type": "stakeRegistration",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.order"]
+    },
+    {
+      "name": "a declared withdrawal the transaction does not make",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000"
+          }
+        ],
+        "withdrawRewards": true,
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "4321000",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["withdrawal.missing"]
+    },
+    {
+      "name": "a withdrawal nobody declared",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "47320131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [
+          {
+            "mine": true,
+            "lovelace": "9491869"
+          }
+        ],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["withdrawal.undeclared"]
+    },
+    {
+      "name": "a withdrawal from a reward account the wallet does not control",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000"
+          }
+        ],
+        "withdrawRewards": true,
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "5000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "4321000",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [
+          {
+            "mine": false,
+            "lovelace": "9491869"
+          }
+        ],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["withdrawal.account"]
+    },
+    {
+      "name": "a mint, which nothing in this version can declare",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [
+          {
+            "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+            "assetName": "484f534b59",
+            "quantity": "1000000"
+          }
+        ],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["mint.undeclared"]
+    },
+    {
+      "name": "a burn, which is the same rule with the sign reversed",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [
+          {
+            "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+            "assetName": "484f534b59",
+            "quantity": "-1000000"
+          }
+        ],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["mint.undeclared"]
+    },
+    {
+      "name": "a body member this version has no way to describe to a person",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": ["referenceInputs"],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["body.unsupported"]
+    },
+    {
+      "name": "a required signer, which the same rule blocks",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": ["requiredSigners"],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["body.unsupported"]
+    },
+    {
+      "name": "a fee one lovelace past what the ledger and a returned remainder explain",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          }
+        ],
+        "fee": "1140620",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["fee.excessive"]
+    },
+    {
+      "name": "a transaction that stays valid after the intent expires",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:41:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["interval.beyond-declared"]
+    },
+    {
+      "name": "a transaction that cannot be submitted until later today",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "12000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "37829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": "2026-08-22T19:30:00Z",
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["interval.not-yet-valid"]
+    },
+    {
+      "name": "several lies at once, each reported",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "25000000"
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "5000000"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": ["969750", "969750"]
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxcd9f33uzmeftka0df9mqqngnv7n5pysjpz4x4rkc30vgje9ckxtcvv6fygn4lutdqf56khahq80sujcrn0rhn3mg3sj0pnxm",
+            "lovelace": "25000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us",
+            "lovelace": "4000000",
+            "mine": false
+          },
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "10829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDelegation",
+            "poolId": "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.undeclared", "output.lovelace"]
+    }
+  ]
+}

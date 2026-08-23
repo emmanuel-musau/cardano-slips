@@ -1,0 +1,53 @@
+{
+  "name": "@cardano-slips/verifier",
+  "version": "0.0.0",
+  "description": "The security engine for Cardano Slips: decodes transaction CBOR, derives what it actually does, and compares that against what the endpoint declared",
+  "keywords": [
+    "cardano",
+    "cardano-slips",
+    "cbor",
+    "transaction",
+    "verification"
+  ],
+  "homepage": "https://github.com/emmanuel-musau/cardano-slips/tree/main/packages/verifier#readme",
+  "bugs": "https://github.com/emmanuel-musau/cardano-slips/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmanuel-musau/cardano-slips.git",
+    "directory": "packages/verifier"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+  },
+  "dependencies": {
+    "@cardano-slips/core": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

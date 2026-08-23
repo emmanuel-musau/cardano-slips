@@ -34,16 +34,26 @@ Do not skip commit three. Discovering a broken ESM resolution chain in week six,
 
 Two branches are permanent.
 
-**`main` is the published branch.** It is the default branch, so it is what a
-visitor sees, and it is what releases publish from. It is protected against
-everyone, the owner included: a pull request, four green checks, and a code
-owner review, with no admin bypass. Never push to `main` directly.
+**`main` is the published branch**, and the only one releases publish from.
+It is protected against everyone, the owner included: a pull request, four green
+checks, and a code owner review, with no admin bypass. Never push to `main`
+directly.
 
-**`dev` is where work happens.** The same four checks are required on any pull
-request into it, so a contribution is gated exactly as it would be on `main`.
-The repository owner is exempt and commits straight to `dev` — that is what it
-is for. CI runs on every push there, so a break surfaces on the commit that
-caused it rather than at merge time. `release.yml` never triggers from `dev`.
+**`dev` is where work happens**, and it is the default branch — new pull
+requests therefore target it without anyone having to change the base. The same
+four checks are required on any pull request into it, so a contribution is gated
+exactly as it would be on `main`. The repository owner is exempt and commits
+straight to `dev` — that is what it is for. CI runs on every push there, so a
+break surfaces on the commit that caused it rather than at merge time.
+`release.yml` never triggers from `dev`.
+
+Two things follow from `dev` being the default. A visitor to the repository
+lands on `dev` rather than on the released code, so `dev` has to stay
+presentable — a broken `README` there is the repository's front page. And
+Dependabot opens its pull requests against the default branch, so dependency
+bumps now arrive on `dev`, which is where they should be reviewed anyway.
+Changesets is unaffected: `.changeset/config.json` pins `baseBranch` to `main`
+explicitly, so versioning stays anchored to what actually shipped.
 
 `dev` merges into `main` with a **merge commit**, so `main` keeps one commit per
 ticket rather than one per release. Everything else squashes.

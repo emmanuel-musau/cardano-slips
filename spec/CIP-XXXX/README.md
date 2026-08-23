@@ -827,7 +827,573 @@ The metadata a Slip showed at discovery is words and is never that declaration:
 a claim in a `title` cannot be compared with arithmetic, and a client MUST NOT
 treat one as though it had been.
 
-<!-- #19 inserts effects derivation and the mismatch rules here. -->
+### Deriving the effects
+
+A client MUST derive, from the bytes of the transaction it is about to ask a
+person to sign, what that transaction does. It MUST do so before every signature
+request, including the one that follows a rebuild, and it MUST derive from the
+transaction alone — nothing an endpoint said takes part in the arithmetic.
+
+| Derived | What it is |
+|---|---|
+| `ada` | The net lovelace delta across the addresses the wallet controls: the value of the inputs the body spends, less the value of the outputs that return to it. |
+| `assets` | The same net delta, per `policyId` and `assetName` pair. |
+| `fee` | The fee the body states, exactly. |
+| `outputs` | Every output the body pays, with its address, its lovelace, its assets, and whether the wallet controls the address. |
+| `certificates` | Every certificate, with the type, the pool or DRep it names, the stake credential it acts on, and the deposit or refund the ledger applies to it. |
+| `withdrawals` | Every withdrawal, with its reward account and its amount. |
+| `mint` | Every asset the transaction creates or destroys, signed. |
+| `validFrom`, `validUntil` | The body's validity interval, converted to wall-clock instants. |
+
+**The derivation takes four terms, and none of them is a lookup.** A client MUST
+supply each as an argument:
+
+- **the transaction bytes**, as it will submit them;
+- **the value of every input the body spends.** A body carries references to its
+  inputs, not their contents, and a net delta is unobtainable without them. In
+  the mode specified here the client selected those inputs from its own wallet,
+  so it holds their values already.
+- **the addresses the wallet controls**, including its reward account;
+- **the protocol parameters in force** — the minimum-fee coefficients, the
+  per-byte cost that fixes an output's minimum ADA, the stake deposit and its
+  refund, and the mapping from slot to wall-clock time.
+
+A client MUST NOT fetch any of them while deriving. The derivation is the last
+thing that stands between a person and a signature, and one that reaches the
+network mid-flight can be made slow, made to fail, or made to answer wrongly by
+whoever is in a position to answer. Everything it needs is known before it
+starts, so it is given what it needs and computes; it never asks.
+
+**Whose addresses.** An address is the user's when the connected wallet reports
+it — used, unused, change, and the reward account. A client MUST treat an
+address it cannot confirm as the wallet's as though it belonged to someone else.
+Wallets answer this question incompletely: used addresses arrive a page at a
+time, and unused addresses past the gap are not reported at all. Erring in this
+direction overstates what leaves the wallet and understates what returns, so the
+person is shown a transaction no better than the one they are signing. Erring in
+the other direction would hide a payment to a stranger by mistaking it for
+change.
+
+**A client MUST render the derived effects, and MUST NOT render the endpoint's
+words in their place.** At minimum: the net ADA delta, the fee, each asset
+delta, each certificate with the pool or DRep it names, the amount of any
+withdrawal, any deposit or refund shown separately from what is spent, and the
+wall-clock expiry. A deposit is not a cost — it comes back — and showing it as
+one is wrong, while leaving it out of what a person is about to part with is
+worse.
+
+### The comparison
+
+The intent is the declaration. A `title`, a `description` and a `message` are
+words a publisher chose, and this document never compares them with anything;
+what the endpoint declared in the intent it returned is what the transaction is
+held to.
+
+Every derived effect MUST fall into one of two sets, and a client MUST block the
+signature unless every one of them does:
+
+1. **Declared** — the intent asked for it, and it matches under the rules below.
+2. **Supplied** — it is one of the adjustments this document names as the
+   client's own: the fee, a deposit or refund the ledger fixes, the raise of an
+   output to the ledger's minimum ADA, and change returning to `changeAddress`.
+
+There is no third set. An effect that is neither declared nor supplied is a
+mismatch, whether or not this document has a name for it — which is the property
+that matters, because the effects worth hiding are the ones nobody thought to
+name.
+
+**The comparison is exact, and admits no tolerance anywhere.** Both sides are
+integer counts of base units, so both sides are integers; a comparison that
+allows a margin allows an attacker who works inside the margin, and the margins
+that get proposed — a few lovelace, a percent of the fee — are worth more than
+the transactions this protocol is for. What might otherwise be called a
+tolerance is set 2 above: a closed list of adjustments, each with a stated cause
+and an exact value the client can compute.
+
+Each rule below names the reason a client reports when it fails. The reasons are
+a vocabulary for explaining a block to a person; the failure itself is always
+[`EFFECTS_MISMATCH`](#failure-responses).
+
+#### Matching the outputs
+
+Matching runs by address, because an address is what a person recognises and
+what determines who ends up holding the value.
+
+**Each declared output has exactly one permitted lovelace amount**: the amount
+declared, or the ledger's minimum for that output as encoded where the declared
+amount is below it. That is the floor rule from [Outputs](#outputs) stated as an
+equality — the raise has a computable value, so it never widens what the
+comparison accepts.
+
+For every address the intent declares, all three MUST hold:
+
+- **Count.** The number of outputs the body pays to it equals the number the
+  intent declared. Reported as `output.missing` where the body pays fewer and
+  `output.undeclared` where it pays more.
+- **Lovelace.** The total the body pays to it equals the sum of the permitted
+  amounts. Reported as `output.lovelace`.
+- **Assets.** For every asset named by either side, the total quantity the body
+  pays to it equals the total the intent declared. Reported as `output.assets`.
+
+Where the counts differ, the totals at that address are not compared: one
+difference explains the other, and two reports of the same fact tell a person
+less than one.
+
+**Every body output paying an address the intent does not declare MUST pay an
+address the wallet controls**, and is change. There may be several of them, and
+they need not all pay the same address. Reported as `output.undeclared`, this is
+the rule that closes the whole class: a payment to a stranger that no
+declaration accounts for cannot be built into a transaction this gate passes.
+
+A client MUST NOT return change to an address the intent declares. Sending the
+remainder back to an address that is also a declared recipient would make the
+count and the totals at that address unattributable — some of what arrives there
+was asked for and some of it is the person's own money coming home — and a
+comparison that cannot separate the two is a comparison an endpoint can hide
+behind. A client that meets this after building MUST rebuild to another address
+it controls.
+
+#### Matching the certificates
+
+The body's certificates MUST be the certificates the intent declared: the same
+number, of the same types, in the same order, each naming the same `poolId` or
+`drep`. Reported as `certificate.missing`, `certificate.undeclared`,
+`certificate.target` and `certificate.order`.
+
+Order is part of the comparison because the ledger applies certificates in
+order: a registration that follows the delegation depending on it is a different
+transaction from one that precedes it, and only one of the two does what the
+person was shown.
+
+A client reports the difference by the first of these that applies, so that what
+it says is what happened rather than every rule the difference violated:
+
+1. The counts differ — `certificate.missing` where the body carries fewer,
+   `certificate.undeclared` where it carries more.
+2. The types agree position by position, and a pool or a DRep does not —
+   `certificate.target`.
+3. The same certificates are all present in another order —
+   `certificate.order`.
+4. Otherwise the two sets differ in their contents, reported as
+   `certificate.missing` and `certificate.undeclared` together.
+
+**Every certificate MUST act on a stake credential the connected wallet
+controls**, reported as `certificate.credential`. This version has no field in
+which an endpoint could name a credential, so a certificate acting on someone
+else's is not a claim that failed to match — it is an effect nothing could have
+declared.
+
+The deposit a registration carries and the refund a deregistration returns are
+supplied, never compared. The ledger fixes both from a protocol parameter
+whatever anyone declared, and [Certificates](#certificates) is where this
+document says an endpoint may not state them.
+
+#### Matching the withdrawal
+
+Where the intent set `withdrawRewards` to `true`, the body MUST carry exactly
+one withdrawal and it MUST be from the wallet's own reward account. Where the
+intent did not, the body MUST carry none. Reported as `withdrawal.missing`,
+`withdrawal.undeclared` and `withdrawal.account`.
+
+The amount is not compared, because nothing declares it and the ledger admits
+only one value: the whole balance of the account. The client renders the figure
+it withdrew, as [Rewards](#rewards) requires.
+
+#### Effects nothing can declare
+
+Version 1 defines no field for a mint or a burn, a reference input, collateral,
+a required signer, a vote, a governance proposal, a treasury donation, or a
+script of any kind. A transaction carrying one is not a transaction with an
+undeclared field; it is a transaction doing something this version cannot
+describe to a person. A client MUST block, reporting `mint.undeclared` for a
+mint or burn and `body.unsupported` for the rest.
+
+**A client MUST refuse to derive effects from a transaction it cannot read
+completely.** A body member it does not model is not a member it may skip: the
+skipped member is precisely the undeclared effect this section exists to catch,
+and an era that adds one MUST reach a client as a refusal rather than as
+silence. This obligation is on the decoder, and it is the one place where a
+lenient implementation defeats every rule above it.
+
+#### The fee and the client's own adjustments
+
+| Supplied | Rule | Shown to the person as |
+|---|---|---|
+| the fee | Bounded below by what the protocol parameters require for this transaction, and above by the ceiling below. | a cost |
+| a deposit | Exactly the protocol parameter. | a cost that comes back, marked refundable |
+| a refund | Exactly the protocol parameter. | a return |
+| the raise to an output's minimum | Exactly the ledger's minimum for that output, and never more. | an effect of its own, with its cause |
+| change | To `changeAddress`, at an address the wallet controls. | part of the net delta, not a payment |
+
+Nothing declares the fee, so there is nothing to compare it against — but an
+unbounded fee is an undeclared payment under another name, and the person pays
+it either way. A client MUST block, reporting `fee.excessive`, where the fee
+exceeds:
+
+> the minimum fee the protocol parameters require for the transaction as built,
+> plus the minimum ADA an output to `changeAddress` would require.
+
+The first term is what this transaction costs to submit. The second is the only
+legitimate reason to exceed it: where the remainder after paying everything is
+too small to make a change output, it cannot be returned to the person and the
+balancer adds it to the fee instead. Beyond that sum, no rule of the ledger
+explains the difference.
+
+#### The validity interval
+
+A client MUST convert the body's interval to wall-clock instants and MUST block
+where either end is wrong:
+
+- an end later than `validUntil`, reported as `interval.beyond-declared`. The
+  obligation not to set one is in [Balancing](#balancing); this is what proves
+  it was kept.
+- a start later than the current time, reported as `interval.not-yet-valid`. A
+  transaction that cannot be submitted yet is one the person cannot act on, and
+  nothing in this version has a reason to build one.
+
+The conversion needs the network's slot-to-time mapping, which is why it is one
+of the four terms above. A client that assumes a constant slot length will show
+an expiry that drifts from the real one, and the person reading "expires in four
+minutes" is reading the client's arithmetic, not the ledger's.
+
+### Blocking
+
+A client that finds any mismatch MUST fail with `EFFECTS_MISMATCH`, and MUST NOT
+ask the wallet for a signature. The code is terminal in the sense
+[Failure responses](#failure-responses) gives the word: this transaction will
+not be signed, and no repetition of anything changes that. In particular the
+rebuild path — the one [Balancing](#balancing) defines for an expired interval —
+MUST NOT be used in answer to a mismatch. Rebuilding until the gate passes is
+the same thing as not having a gate.
+
+**There is no override.** No allowlist of publishers, no verified badge that
+relaxes the rule, no setting, no confirmation that lets a determined person
+through. A mismatch reached that person because the transaction and the
+declaration disagree, and no property of the publisher makes them agree. This
+document says so rather than leaving it to implementations because the override
+is the first thing anyone under commercial pressure asks for, and a protocol
+whose central guarantee is optional in practice does not have it.
+
+A client MUST show what was declared, what the transaction does, and which of
+the two it refused to reconcile, in plain language, and MUST NOT show the
+endpoint's `message` as an alternative account of the same transaction. The
+person does not need to be told which rule fired; they need to be able to see
+the difference the client saw.
+
+| Reason | Raised when |
+|---|---|
+| `output.missing` | The body pays fewer outputs to a declared address than the intent declared. |
+| `output.undeclared` | The body pays an output the intent did not declare, to an address the wallet does not control, or more outputs to a declared address than were declared. |
+| `output.lovelace` | The lovelace the body pays to an address is not the sum of the permitted amounts. |
+| `output.assets` | An asset total the body pays to an address is not the total declared. |
+| `certificate.missing` | A declared certificate is absent from the body. |
+| `certificate.undeclared` | The body carries a certificate the intent did not declare. |
+| `certificate.order` | The declared certificates are all present, in an order the intent did not ask for. |
+| `certificate.target` | A certificate names a pool or a DRep other than the declared one. |
+| `certificate.credential` | A certificate acts on a stake credential the wallet does not control. |
+| `withdrawal.missing` | `withdrawRewards` was declared and the body withdraws nothing. |
+| `withdrawal.undeclared` | The body withdraws where the intent did not declare it, or withdraws more than once. |
+| `withdrawal.account` | A withdrawal names a reward account the wallet does not control. |
+| `mint.undeclared` | The body mints or burns. Nothing in this version can declare it. |
+| `body.unsupported` | The body carries a member this version cannot describe: a reference input, collateral, a required signer, a vote, a proposal, a donation, or a script. |
+| `fee.excessive` | The fee exceeds the minimum for this transaction plus one change output's minimum ADA. |
+| `interval.beyond-declared` | The transaction stays valid past `validUntil`. |
+| `interval.not-yet-valid` | The transaction cannot be submitted until after the present moment. |
+
+A JSON Schema proves nothing about a comparison, so the cases that separate a
+conforming gate from a plausible one are published as behaviour:
+[`../examples/effects/verdicts.json`](../examples/effects/verdicts.json) is a
+table of declared intents, derived effects and the verdict each pair MUST
+produce. An implementation can run it without reading a line of ours.
+
+### Security considerations
+
+A Slip asks a person to sign a transaction that someone else asked for. That is
+the risk this protocol introduces, and this section states what answers it: what
+each party is trusted for, what an attacker in each position can attempt, and —
+as plainly as the rest — what this document does not defend against.
+
+#### What is trusted
+
+| Party | Trusted for | Not trusted for |
+|---|---|---|
+| the endpoint | nothing | anything at all. Every field it returns is a claim, and the only one this protocol acts on is the intent, which is checked against the transaction rather than believed. |
+| the client | everything — it derives the effects, runs the comparison and holds the block | nothing, and there is no way to write this cell honestly. A client an attacker controls has already won, and no rule in this document reaches below it. |
+| the wallet | holding the keys, reporting the addresses and the network it is on, and signing what it is given | saying what a transaction does. A wallet renders its own summary; nothing here depends on it. |
+| the transport | establishing which origin answered | saying who is behind that origin. See [Publisher identity](#publisher-identity). |
+
+**A client MUST resolve a Slip over `https:`, and MUST refuse any other scheme.**
+It MAY additionally admit `http:` on a loopback host, for development, and MUST
+NOT admit it anywhere else. Every guarantee in this document rests on knowing
+which origin answered; over cleartext there is no answer to that question, and
+the intent, the addresses inside it, and the metadata it is judged against are
+all rewritable in flight by whoever carries them.
+
+**A client MUST NOT follow a redirect to another origin** — not at
+`/slips.json`, not at discovery, not at `POST` — and MUST fail with
+`MALFORMED_RESPONSE` where one is returned. A cross-origin redirect is the same
+indirection [Linked actions](#linked-actions) forbids in an `href` and
+[`slips.json`](#domain-mapping) cannot express, arriving by a third route. A
+client MAY follow a same-origin redirect, and MUST bound how many it follows.
+
+**A client MUST NOT execute anything an endpoint returns.** These payloads are
+data. `description`, `message` and `reason.message` are plain text and MUST be
+rendered as text, as the fields that define them already require; `icon` is an
+image. A client that interpreted any of them as markup would be handing every
+publisher script execution inside a page that holds a wallet connection.
+
+**A client MUST bound what it reads.** Every array in this protocol has a
+maximum length and every string a maximum size, so a conforming response has a
+computable ceiling; a non-conforming one does not, and a response body with no
+end is a client that never renders anything. A client MUST impose a limit on the
+size of a response it will read and on how long it will wait for one, and MUST
+report exceeding either as `UNREACHABLE` — nothing usable was received, and the
+same request may well succeed later.
+
+#### A malicious endpoint
+
+**In this version the endpoint does not build the transaction; the client
+does.** What an endpoint controls is the intent it returns and the words around
+it. That narrows what it can attempt, and it does not make the gate optional:
+the derivation runs over the bytes the wallet is about to be handed, so it
+catches a divergence introduced anywhere between the intent and those bytes —
+by the endpoint, by the client's own balancer, by the library underneath it, or
+by anything that touched the transaction after it was built. A gate watching
+only the endpoint would be watching one of the four.
+
+| An endpoint attempts | What refuses it |
+|---|---|
+| an output to an address the person never saw | nothing, and nothing should: the client renders every address and amount it derived, and that is the Slip working. |
+| a payment the intent does not declare | `output.undeclared`. Every output the body pays is declared or is change to an address the wallet controls. |
+| more, or larger, payments to an address it did declare | `output.missing`, `output.undeclared`, `output.lovelace`, `output.assets`. The amounts are exact and the count is exact. |
+| a native asset slipped into a declared output | `output.assets`, over base units, against a declaration that cannot state decimals. |
+| a delegation to a pool or DRep other than the one shown | `certificate.target`. |
+| a certificate the intent never declared — a delegation riding along with a payment | `certificate.undeclared`. |
+| a certificate reordered so the ledger applies it differently | `certificate.order`. |
+| a declared certificate or withdrawal quietly absent from the transaction that reaches the wallet | `certificate.missing`, `withdrawal.missing`. What was declared has to be there too: a gate watching only for additions would pass a delegation that never delegates. |
+| a certificate acting on someone else's stake credential | `certificate.credential`. This version has no field that could name a credential, so there is no claim to fail — only an effect nothing could have declared. |
+| a withdrawal the person did not ask for, or from another account | `withdrawal.undeclared`, `withdrawal.account`. |
+| a mint, a burn, a script, a vote, a proposal, a donation, collateral, a reference input, a required signer | `mint.undeclared` and `body.unsupported`. This version cannot describe any of them to a person, so a transaction carrying one is blocked rather than rendered. |
+| a fee inflated into an undeclared payment | `fee.excessive`, bounded by the protocol parameters plus one change output's minimum ADA. |
+| a transaction left submittable for hours, or not submittable yet | `interval.beyond-declared` and `interval.not-yet-valid`, against the `validUntil` rules in [Balancing](#balancing). |
+
+What is left to a malicious endpoint is the one thing no arithmetic reaches: an
+intent that is exactly what it declares and still not what the person wanted.
+That is why the derived effects are rendered rather than merely computed. This
+protocol guarantees that a person is shown what a transaction does before they
+sign it. It does not guarantee that what it does is a good idea, and no protocol
+can.
+
+**What an endpoint learns.** Discovery is anonymous by construction: the same
+bytes go to everyone, credentials are forbidden at both ends, and nothing about
+the person takes part. The build request discloses one payment address and a
+network — what a counterparty learns from any transaction — and, through the
+request itself, whatever the network layer discloses: an address at the IP
+layer, a time, a user agent. An `icon` served from the publisher's own host
+discloses the same at render time, which is a cost of rendering a card and worth
+knowing rather than hiding. What an endpoint never learns is what the wallet
+holds; that is [Balancing](#balancing), and in this version there is no request
+in which it could ask.
+
+#### Metadata that lies
+
+Two things in this protocol are called metadata and only one of them is
+compared.
+
+`title`, `description`, `label` and `message` are sentences a publisher wrote.
+Nothing checks them, because nothing can: a schema cannot read a sentence, and
+arithmetic cannot contradict one. The intent is the declaration — a shape whose
+every field is an integer count, an address, a pool id or a DRep id — and it is
+what the transaction is held to.
+
+Three rules follow, and each is stated where it belongs; they are gathered here
+because they only work together:
+
+- A client MUST render the effects it derived, and MUST NOT render the
+  publisher's words in their place or present them as a summary of the
+  transaction ([Deriving the effects](#deriving-the-effects)).
+- Any mismatch hard-blocks the signature, with no override, no allowlist and no
+  confirmation that lets a determined person through ([Blocking](#blocking)).
+- A mismatch MUST NOT be answered by rebuilding. An endpoint that returns a
+  different intent to every `POST` cannot grind its way past the gate, because
+  each transaction is compared against the intent it was built from
+  ([Blocking](#blocking)).
+
+The last one is the one an implementation gets wrong by being helpful. A retry
+that eventually succeeds is indistinguishable, from the person's side, from a
+transaction that was fine all along.
+
+#### Replay
+
+Four different things can be replayed here and they have four different answers.
+
+**The link is meant to be replayed.** It is public, it is reshared, and every
+person who opens it gets their own intent built against their own unspent
+outputs. A Slip URL therefore has to survive being reshared, and a publisher
+MUST NOT place a secret in one: everything in the path and the query reaches
+every reader, every link unfurler, every referrer log and every browser
+history. An endpoint
+MUST NOT authenticate by anything a client is forbidden to send either — a
+client sends no cookies and no `Authorization` header at any step, so an
+endpoint that authorises by one is unusable rather than protected.
+
+**A partial intent replays harmlessly.** It names no inputs, carries no
+signature and commits nothing; anyone who obtains one and acts on it spends
+their own funds. This is why `INTENT_EXPIRED` is transient and why the rebuild
+path is a fresh `POST` rather than a stored artefact.
+
+**An unsigned transaction is not a bearer instrument.** It spends specific
+inputs of one wallet, and nobody without that wallet's keys can complete it.
+
+**A signed transaction is.** Once submitted it cannot be replayed — the ledger
+consumes its inputs, and on an eUTxO ledger the input set is the anti-replay
+device this protocol does not have to invent. The exposure is the interval
+before submission: a signed transaction that has not been submitted may be
+submitted by anyone who obtains it, at any moment until its validity interval
+ends, and the person who signed it cannot recall it — they can only spend one of
+its inputs first. That is what the interval rules are for. A client MUST NOT set
+an interval ending after `validUntil` and SHOULD set a shorter one; it MUST NOT
+ask for a signature over an interval that has already expired; and it MUST NOT
+retain a signed transaction beyond the submission it was signed for.
+
+#### Origin spoofing
+
+**The origin is the only identity this protocol establishes on its own.**
+Everything in a Slip stays on it: a linked action's `href` must resolve there, a
+`slips.json` rule cannot name another host, and a redirect may not leave it. So
+the party a person is dealing with when they act on a Slip is the origin the
+link is on, and **a client MUST show that origin where the person can see it at
+the moment they act** — not only in a place they would have to go looking.
+
+**A client MUST NOT render a publisher-supplied string in place of the origin.**
+`title` may claim any name at all; it is the attacker's own field, and a client
+that displays it as the source of a Slip has let the attacker write the answer
+to the only question the transport settled.
+
+**A link preview is not evidence.** The card an unfurler renders is built from
+`title`, `description` and `icon` — publisher-controlled fields, fetched by
+machines that never run the comparison and never see a transaction. A preview
+shows what a publisher said, and this document treats it that way everywhere.
+
+What none of this answers is *which* origin. `linktap.example` and a lookalike
+registered an hour ago are both origins serving honest Slips that pay their own
+addresses, and no derivation can separate them: the transaction really does pay
+the address the intent declared. [CIP-13]'s security considerations raise this
+as the hijacked link; the structural half of the answer is above, and the rest
+is the person recognising a name. A client SHOULD render domain names in the
+form its platform judges safe — the treatment browsers already give
+internationalised names — and what remains after that is the gap the identity
+layer exists to narrow.
+
+#### Server-balanced builds, and what they disclose
+
+Version 1 keeps the wallet's unspent outputs away from the endpoint
+structurally, not as a policy: the build request is a closed object of two
+fields, an endpoint MUST reject a body carrying any other member, and there is
+no shape in this version through which a UTxO set could travel.
+`build: "server"` names the mode where that changes, and reserves it without
+defining it.
+
+What the mode discloses is not one more field. A wallet's unspent output set is
+a picture of everything the person holds — every asset, every quantity, and,
+through the addresses that hold them, which of those holdings belong together —
+handed to a party this protocol assumes is dishonest, kept for as long as they
+like, and impossible to withdraw afterwards. A signature can be refused after
+the fact. A disclosure cannot.
+
+Two requirements therefore bind now, before the mode exists:
+
+- **An endpoint that balances server-side MUST declare `build: "server"` in its
+  discovery response**, and an endpoint MUST NOT ask for a wallet's unspent
+  outputs under any other declaration. The declaration is what makes the
+  disclosure visible before it happens, and it is read by a client that has not
+  agreed to it.
+- **A client MUST NOT disclose the wallet's unspent outputs without first
+  telling the person what is disclosed and to whom, and obtaining their
+  agreement for that endpoint on that occasion.** The agreement MUST NOT be
+  remembered as a default, and MUST NOT be inferred from an agreement given to
+  another publisher. A version 1 client satisfies this by refusing entirely: it
+  MUST NOT `POST` to a Slip declaring `build: "server"` and MUST fail with
+  `UNSUPPORTED_BUILD_MODE`, which is the strongest form the warning can take.
+
+Nothing about the mode touches [The comparison](#the-comparison). A
+server-balanced transaction faces the same derivation and the same block, and
+every rule there applies unchanged — an endpoint that selected the inputs still
+cannot pay a stranger, inflate a fee or mint an asset without being refused.
+What changes is only what the endpoint was told before it built, and that is
+precisely the part no later check can undo.
+
+#### Publisher identity
+
+The comparison proves what a transaction does. It says nothing about who
+published the link, and the two questions are independent: a transaction whose
+effects match its declaration exactly may still come from someone the person
+would not have dealt with had they known who they were.
+
+Without any identity mechanism, what a person has is the origin, rendered under
+the rules above. That is a real claim and a weak one — it proves someone
+controls a domain, not who they are.
+
+A publisher MAY bind that origin to an attested identity. [CIP-170] is the
+mechanism this proposal expects: a KERI attestation anchors a digest of a
+publisher's own document in the issuer's key event log and publishes a reference
+to it in transaction metadata under label `170`, and through an ACDC credential
+chain the identifier resolves to a legally recognised entity, valid only within
+the window the attestation states. What CIP-170 does not supply is the half a
+client needs first — it anchors a digest of arbitrary data, so it defines no
+publisher payload, and it answers no question of the form "given this origin,
+which identifier should I trust". A binding from an origin to an identifier has
+to be specified next to it, and the ecosystem's existing pattern for a runtime
+trust anchor is an origin-anchored document under `/.well-known/`, as
+[CIP-186] uses.
+
+**This version defines neither that payload nor its resolution.** What it fixes
+is how such a layer may behave, because the shape of the mistake is already
+visible:
+
+- **An attestation MUST NOT relax any rule in [The
+  comparison](#the-comparison).** No attested publisher, at any level of
+  assurance, gets a widened tolerance, a skipped check, or a way through a
+  block. An identity that can relax the gate is an allowlist, and an allowlist
+  is the registry this protocol exists in order not to need.
+- **A failure to resolve an attestation MUST NOT block a Slip, and MUST NOT
+  render as verified.** Absent, malformed, expired, revoked and valid are five
+  different states; only the last is verified, and a client MUST NOT resolve an
+  ambiguity in favour of it.
+- **A client MUST NOT require an attestation in order to render a Slip.** Most
+  publishers will have none, and a protocol that renders only attested ones has
+  chosen the registry by another route.
+- **An attestation is rendered alongside the origin, never in place of the
+  derived effects.** Knowing who is asking does not tell a person what they are
+  signing, and the moment a badge starts standing in for the arithmetic, the
+  badge is what an attacker buys.
+
+The two mechanisms answer different halves and neither substitutes for the
+other. Effects without identity leaves a person approving a transaction they can
+read from a party they cannot; identity without effects is a list of parties
+whose transactions nobody checks.
+
+#### What this document does not defend against
+
+- **A person persuaded to sign a transaction that does exactly what it says.**
+  The gate proves the transaction matches the declaration. Nothing here says the
+  declaration is a good idea, and an honest Slip paying an attacker's address is
+  an honest Slip.
+- **A compromised client.** The derivation, the comparison and the block all run
+  in the client. Where that is the attacker's code, nothing in this document
+  reaches below it. How a client is delivered and kept intact is a property of
+  that client, not of this protocol.
+- **A compromised or hostile wallet.** It holds the keys, and it reports the
+  addresses the derivation treats as the person's own.
+- **Key theft, malware, and a person who approves a connection to a page they
+  should not have opened.** All of these precede the first `GET`.
+- **A publisher who takes payment and does not deliver.** This protocol makes a
+  payment legible before it is signed. It does not make the counterparty
+  trustworthy, and it has no dispute, refund or escrow mechanism — nothing here
+  ever holds anyone's funds.
+- **A lookalike domain**, to the extent the person does not read the origin. See
+  [Origin spoofing](#origin-spoofing) and [Publisher
+  identity](#publisher-identity).
 
 ### Failure responses
 
@@ -881,6 +1447,7 @@ failure retryable is an endpoint able to keep a client asking.
 | `UNSUPPORTED_VERSION` | terminal | — | client | The response is in a major version this client does not implement. |
 | `UNSUPPORTED_BUILD_MODE` | terminal | — | client | The Slip declares a `build` mode this client does not implement. |
 | `CANNOT_BALANCE` | terminal | — | client | The intent cannot be built into a valid transaction, for a reason other than funds. |
+| `EFFECTS_MISMATCH` | terminal | — | client | The effects derived from the transaction contradict the intent the endpoint declared. |
 | `RATE_LIMITED` | transient | 429 | endpoint | The endpoint is deliberately refusing for now. `Retry-After` SHOULD be set. |
 | `UPSTREAM_FAILURE` | transient | 502 | endpoint | A service the endpoint depends on failed. |
 | `INTERNAL_ERROR` | transient | 500 | endpoint | The endpoint failed and cannot say more than that. |
@@ -943,10 +1510,12 @@ newer one. A response from a later major version never reaches this rule,
 because the version check precedes it — see [Protocol
 versioning](#protocol-versioning).
 
-Conditions arising after a transaction exists — derived effects contradicting
-declared metadata, a refused signature, a rejected submission — are named where
-those steps are specified. They are client conditions in this same vocabulary
-and never travel over HTTP.
+Conditions arising after a transaction exists — a refused signature, a rejected
+submission — are named where those steps are specified. They are client
+conditions in this same vocabulary and never travel over HTTP, and so is
+`EFFECTS_MISMATCH`: the rules that raise it are in
+[The comparison](#the-comparison), and the reason it can never be answered by
+retrying is in [Blocking](#blocking).
 
 ```json
 {
@@ -1004,12 +1573,6 @@ exists to close.
 Filled incrementally, one section per issue. Add subsections here rather than
 new top-level headings — CIP-0001 fixes the H2 set.
 
-  #19  mandatory client-side effects derivation and mismatch rules
-  #20  security considerations
-
-Those two insert above 'Failure responses' and 'Protocol versioning', which
-are cross-cutting and read last.
-
 The `//slip` authority registration and its versioned grammar belong here
 too — see docs/DECISIONS/0007-action-authority.md. Shapes freeze at #21.
 
@@ -1061,5 +1624,8 @@ This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4
 [RFC 2119]: https://www.rfc-editor.org/rfc/rfc2119
 [RFC 8174]: https://www.rfc-editor.org/rfc/rfc8174
 [RFC 3986]: https://www.rfc-editor.org/rfc/rfc3986
+[RFC 3339]: https://www.rfc-editor.org/rfc/rfc3339
 [CIP-19]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019
 [CIP-129]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0129
+[CIP-170]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0170
+[CIP-186]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0186

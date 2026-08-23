@@ -80,7 +80,7 @@ pnpm typecheck        # tsc --noEmit
 ## Working rules
 
 - Work is driven by GitHub issues (`emmanuel-musau/cardano-slips`), ordered by dependency; respect `Depends on #N` lines. One issue = one branch = one PR. Board: https://github.com/users/emmanuel-musau/projects/1
-- **Two permanent branches.** `main` is published and default — protected against everyone including the owner, and the only branch releases publish from. `dev` is where work happens: the same four checks gate any PR into it, but the owner commits straight to it. Feature branches start from `dev` and target `dev`; only `dev` targets `main`, with a merge commit. `docs/WORKFLOW.md` carries the full model, including the back-merge after each release.
+- **Two permanent branches.** `main` is the published branch — protected against everyone including the owner, and the only branch releases publish from. `dev` is the default and where work happens: the same four checks gate any PR into it, but the owner commits straight to it, and new PRs target it by default. Feature branches start from `dev` and target `dev`; only `dev` targets `main`, with a merge commit. `docs/WORKFLOW.md` carries the full model, including the back-merge after each release.
 - Do not start an issue whose dependencies are open. Do not expand an issue's scope — file a new issue instead.
 - Branch names are `<type>/<purpose>`: the type prefix, a slash, then the purpose in kebab-case — `chore/pnpm-workspace`, `feat/ada-delta`, `fix/mismatch-block`. No issue numbers, no other punctuation. Types: `feat`, `fix`, `chore`, `docs`, `test`, `spec`, `infra`. The purpose is one or two words naming the thing, not the sentence; the issue link lives in the commit trailer and the PR.
 - Every change ships with tests in the same PR. See **Testing** below — this is not a soft preference.
@@ -112,7 +112,7 @@ The **hard invariants below each need a test that fails if the invariant is brok
 
 ## Hard invariants (violating these is a bug, whatever the ticket says)
 
-1. `packages/verifier` stays a pure function of (tx CBOR, declared metadata, user addresses). It must not import from `flow`, `server`, or any network layer.
+1. `packages/verifier` stays a pure function of (tx CBOR, declared metadata, user addresses, resolved inputs, protocol parameters). It must not import from `flow`, `server`, or any network layer. All five terms arrive as arguments, never as lookups — an engine that fetches an input's value or a protocol parameter mid-derivation can be made slow, made to fail, or made to answer wrongly by whoever answers.
 2. The client never sends the user's UTxO set to a Slip endpoint (Mode A only in v1).
 3. A metadata/effects mismatch always hard-blocks signing. No override paths, no allowlists.
 4. `signTx` returns a witness set, not a signed tx — witnesses are assembled into the body before `submitTx`.

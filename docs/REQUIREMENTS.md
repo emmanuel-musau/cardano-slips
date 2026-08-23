@@ -38,14 +38,14 @@ The client records `BLAKE2b-256(canonical-cbor(tx_body))` — the transaction id
 
 ## 4. The effects engine — the security model
 
-The server's metadata is a claim; the transaction is the truth. Before any signature request the client independently derives from the tx CBOR:
+The server's metadata is a claim; the transaction is the truth. Before any signature request the client independently derives — from the tx CBOR, the values of the inputs it spends and the protocol parameters in force, all supplied as arguments and never fetched mid-derivation:
 
 - net ADA delta for the user's addresses, and the exact fee
 - net native-asset deltas per policy/asset
 - certificates (delegate → pool, register/deregister + deposit), withdrawals
 - mint/burn, validity interval (as wall-clock expiry)
 
-Derived effects are compared against declared metadata. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
+Derived effects are compared against what the endpoint declared in the partial intent — never against the title, description or message, which are words a schema cannot check and arithmetic cannot contradict. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
 
 ## 5. Identity layer
 
