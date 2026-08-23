@@ -222,7 +222,7 @@ tests, you are changing the security model, and that needs an ADR in
 Settled decisions live in `docs/DECISIONS/` as ADRs. Do not relitigate one in a
 PR thread; write a new ADR that supersedes it. If a ticket turns out to depend
 on a decision nobody has made, say so on the issue and let the decision become
-its own small spike rather than a judgement call buried in an implementation
+its own small decision ticket rather than a judgement call buried in an implementation
 PR.
 
 ## Reporting a security problem

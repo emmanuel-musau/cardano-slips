@@ -91,7 +91,7 @@ Then compares derived effects against declared metadata and returns `match | mis
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
 | `test/fixtures/` | ~50 known-good transactions with expected outputs. Regression safety. Seeded from CIP-0186's published vectors for Conway tx-body extraction and commit computation, so those behaviours are checked against an oracle three wallets already agree on. |
-| `test/adversarial/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
+| `test/attacks/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
 
 Deliberately consumable standalone: a wallet or an explorer should be able to use `verifier` without adopting the rest of the protocol. That reusability is an argument in the CIP.
 
