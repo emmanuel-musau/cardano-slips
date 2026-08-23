@@ -1,6 +1,6 @@
 {
   "name": "@cardano-slips/verifier",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The security engine for Cardano Slips: decodes transaction CBOR, derives what it actually does, and compares that against what the endpoint declared",
   "keywords": [
     "cardano",
