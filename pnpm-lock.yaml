@@ -53,6 +53,16 @@ importers:
 
   packages/core: {}
 
+  packages/verifier:
+    dependencies:
+      '@cardano-slips/core':
+        specifier: workspace:^
+        version: link:../core
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
 packages:
 
   '@babel/helper-string-parser@7.29.7':
