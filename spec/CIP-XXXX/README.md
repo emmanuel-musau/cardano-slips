@@ -1106,6 +1106,295 @@ conforming gate from a plausible one are published as behaviour:
 table of declared intents, derived effects and the verdict each pair MUST
 produce. An implementation can run it without reading a line of ours.
 
+### Security considerations
+
+A Slip asks a person to sign a transaction that someone else asked for. That is
+the risk this protocol introduces, and this section states what answers it: what
+each party is trusted for, what an attacker in each position can attempt, and —
+as plainly as the rest — what this document does not defend against.
+
+#### What is trusted
+
+| Party | Trusted for | Not trusted for |
+|---|---|---|
+| the endpoint | nothing | anything at all. Every field it returns is a claim, and the only one this protocol acts on is the intent, which is checked against the transaction rather than believed. |
+| the client | everything — it derives the effects, runs the comparison and holds the block | nothing, and there is no way to write this cell honestly. A client an attacker controls has already won, and no rule in this document reaches below it. |
+| the wallet | holding the keys, reporting the addresses and the network it is on, and signing what it is given | saying what a transaction does. A wallet renders its own summary; nothing here depends on it. |
+| the transport | establishing which origin answered | saying who is behind that origin. See [Publisher identity](#publisher-identity). |
+
+**A client MUST resolve a Slip over `https:`, and MUST refuse any other scheme.**
+It MAY additionally admit `http:` on a loopback host, for development, and MUST
+NOT admit it anywhere else. Every guarantee in this document rests on knowing
+which origin answered; over cleartext there is no answer to that question, and
+the intent, the addresses inside it, and the metadata it is judged against are
+all rewritable in flight by whoever carries them.
+
+**A client MUST NOT follow a redirect to another origin** — not at
+`/slips.json`, not at discovery, not at `POST` — and MUST fail with
+`MALFORMED_RESPONSE` where one is returned. A cross-origin redirect is the same
+indirection [Linked actions](#linked-actions) forbids in an `href` and
+[`slips.json`](#domain-mapping) cannot express, arriving by a third route. A
+client MAY follow a same-origin redirect, and MUST bound how many it follows.
+
+**A client MUST NOT execute anything an endpoint returns.** These payloads are
+data. `description`, `message` and `reason.message` are plain text and MUST be
+rendered as text, as the fields that define them already require; `icon` is an
+image. A client that interpreted any of them as markup would be handing every
+publisher script execution inside a page that holds a wallet connection.
+
+**A client MUST bound what it reads.** Every array in this protocol has a
+maximum length and every string a maximum size, so a conforming response has a
+computable ceiling; a non-conforming one does not, and a response body with no
+end is a client that never renders anything. A client MUST impose a limit on the
+size of a response it will read and on how long it will wait for one, and MUST
+report exceeding either as `UNREACHABLE` — nothing usable was received, and the
+same request may well succeed later.
+
+#### A malicious endpoint
+
+**In this version the endpoint does not build the transaction; the client
+does.** What an endpoint controls is the intent it returns and the words around
+it. That narrows what it can attempt, and it does not make the gate optional:
+the derivation runs over the bytes the wallet is about to be handed, so it
+catches a divergence introduced anywhere between the intent and those bytes —
+by the endpoint, by the client's own balancer, by the library underneath it, or
+by anything that touched the transaction after it was built. A gate watching
+only the endpoint would be watching one of the four.
+
+| An endpoint attempts | What refuses it |
+|---|---|
+| an output to an address the person never saw | nothing, and nothing should: the client renders every address and amount it derived, and that is the Slip working. |
+| a payment the intent does not declare | `output.undeclared`. Every output the body pays is declared or is change to an address the wallet controls. |
+| more, or larger, payments to an address it did declare | `output.missing`, `output.undeclared`, `output.lovelace`, `output.assets`. The amounts are exact and the count is exact. |
+| a native asset slipped into a declared output | `output.assets`, over base units, against a declaration that cannot state decimals. |
+| a delegation to a pool or DRep other than the one shown | `certificate.target`. |
+| a certificate the intent never declared — a delegation riding along with a payment | `certificate.undeclared`. |
+| a certificate reordered so the ledger applies it differently | `certificate.order`. |
+| a declared certificate or withdrawal quietly absent from the transaction that reaches the wallet | `certificate.missing`, `withdrawal.missing`. What was declared has to be there too: a gate watching only for additions would pass a delegation that never delegates. |
+| a certificate acting on someone else's stake credential | `certificate.credential`. This version has no field that could name a credential, so there is no claim to fail — only an effect nothing could have declared. |
+| a withdrawal the person did not ask for, or from another account | `withdrawal.undeclared`, `withdrawal.account`. |
+| a mint, a burn, a script, a vote, a proposal, a donation, collateral, a reference input, a required signer | `mint.undeclared` and `body.unsupported`. This version cannot describe any of them to a person, so a transaction carrying one is blocked rather than rendered. |
+| a fee inflated into an undeclared payment | `fee.excessive`, bounded by the protocol parameters plus one change output's minimum ADA. |
+| a transaction left submittable for hours, or not submittable yet | `interval.beyond-declared` and `interval.not-yet-valid`, against the `validUntil` rules in [Balancing](#balancing). |
+
+What is left to a malicious endpoint is the one thing no arithmetic reaches: an
+intent that is exactly what it declares and still not what the person wanted.
+That is why the derived effects are rendered rather than merely computed. This
+protocol guarantees that a person is shown what a transaction does before they
+sign it. It does not guarantee that what it does is a good idea, and no protocol
+can.
+
+**What an endpoint learns.** Discovery is anonymous by construction: the same
+bytes go to everyone, credentials are forbidden at both ends, and nothing about
+the person takes part. The build request discloses one payment address and a
+network — what a counterparty learns from any transaction — and, through the
+request itself, whatever the network layer discloses: an address at the IP
+layer, a time, a user agent. An `icon` served from the publisher's own host
+discloses the same at render time, which is a cost of rendering a card and worth
+knowing rather than hiding. What an endpoint never learns is what the wallet
+holds; that is [Balancing](#balancing), and in this version there is no request
+in which it could ask.
+
+#### Metadata that lies
+
+Two things in this protocol are called metadata and only one of them is
+compared.
+
+`title`, `description`, `label` and `message` are sentences a publisher wrote.
+Nothing checks them, because nothing can: a schema cannot read a sentence, and
+arithmetic cannot contradict one. The intent is the declaration — a shape whose
+every field is an integer count, an address, a pool id or a DRep id — and it is
+what the transaction is held to.
+
+Three rules follow, and each is stated where it belongs; they are gathered here
+because they only work together:
+
+- A client MUST render the effects it derived, and MUST NOT render the
+  publisher's words in their place or present them as a summary of the
+  transaction ([Deriving the effects](#deriving-the-effects)).
+- Any mismatch hard-blocks the signature, with no override, no allowlist and no
+  confirmation that lets a determined person through ([Blocking](#blocking)).
+- A mismatch MUST NOT be answered by rebuilding. An endpoint that returns a
+  different intent to every `POST` cannot grind its way past the gate, because
+  each transaction is compared against the intent it was built from
+  ([Blocking](#blocking)).
+
+The last one is the one an implementation gets wrong by being helpful. A retry
+that eventually succeeds is indistinguishable, from the person's side, from a
+transaction that was fine all along.
+
+#### Replay
+
+Four different things can be replayed here and they have four different answers.
+
+**The link is meant to be replayed.** It is public, it is reshared, and every
+person who opens it gets their own intent built against their own unspent
+outputs. A Slip URL therefore has to survive being reshared, and a publisher
+MUST NOT place a secret in one: everything in the path and the query reaches
+every reader, every link unfurler, every referrer log and every browser
+history. An endpoint
+MUST NOT authenticate by anything a client is forbidden to send either — a
+client sends no cookies and no `Authorization` header at any step, so an
+endpoint that authorises by one is unusable rather than protected.
+
+**A partial intent replays harmlessly.** It names no inputs, carries no
+signature and commits nothing; anyone who obtains one and acts on it spends
+their own funds. This is why `INTENT_EXPIRED` is transient and why the rebuild
+path is a fresh `POST` rather than a stored artefact.
+
+**An unsigned transaction is not a bearer instrument.** It spends specific
+inputs of one wallet, and nobody without that wallet's keys can complete it.
+
+**A signed transaction is.** Once submitted it cannot be replayed — the ledger
+consumes its inputs, and on an eUTxO ledger the input set is the anti-replay
+device this protocol does not have to invent. The exposure is the interval
+before submission: a signed transaction that has not been submitted may be
+submitted by anyone who obtains it, at any moment until its validity interval
+ends, and the person who signed it cannot recall it — they can only spend one of
+its inputs first. That is what the interval rules are for. A client MUST NOT set
+an interval ending after `validUntil` and SHOULD set a shorter one; it MUST NOT
+ask for a signature over an interval that has already expired; and it MUST NOT
+retain a signed transaction beyond the submission it was signed for.
+
+#### Origin spoofing
+
+**The origin is the only identity this protocol establishes on its own.**
+Everything in a Slip stays on it: a linked action's `href` must resolve there, a
+`slips.json` rule cannot name another host, and a redirect may not leave it. So
+the party a person is dealing with when they act on a Slip is the origin the
+link is on, and **a client MUST show that origin where the person can see it at
+the moment they act** — not only in a place they would have to go looking.
+
+**A client MUST NOT render a publisher-supplied string in place of the origin.**
+`title` may claim any name at all; it is the attacker's own field, and a client
+that displays it as the source of a Slip has let the attacker write the answer
+to the only question the transport settled.
+
+**A link preview is not evidence.** The card an unfurler renders is built from
+`title`, `description` and `icon` — publisher-controlled fields, fetched by
+machines that never run the comparison and never see a transaction. A preview
+shows what a publisher said, and this document treats it that way everywhere.
+
+What none of this answers is *which* origin. `linktap.example` and a lookalike
+registered an hour ago are both origins serving honest Slips that pay their own
+addresses, and no derivation can separate them: the transaction really does pay
+the address the intent declared. [CIP-13]'s security considerations raise this
+as the hijacked link; the structural half of the answer is above, and the rest
+is the person recognising a name. A client SHOULD render domain names in the
+form its platform judges safe — the treatment browsers already give
+internationalised names — and what remains after that is the gap the identity
+layer exists to narrow.
+
+#### Server-balanced builds, and what they disclose
+
+Version 1 keeps the wallet's unspent outputs away from the endpoint
+structurally, not as a policy: the build request is a closed object of two
+fields, an endpoint MUST reject a body carrying any other member, and there is
+no shape in this version through which a UTxO set could travel.
+`build: "server"` names the mode where that changes, and reserves it without
+defining it.
+
+What the mode discloses is not one more field. A wallet's unspent output set is
+a picture of everything the person holds — every asset, every quantity, and,
+through the addresses that hold them, which of those holdings belong together —
+handed to a party this protocol assumes is dishonest, kept for as long as they
+like, and impossible to withdraw afterwards. A signature can be refused after
+the fact. A disclosure cannot.
+
+Two requirements therefore bind now, before the mode exists:
+
+- **An endpoint that balances server-side MUST declare `build: "server"` in its
+  discovery response**, and an endpoint MUST NOT ask for a wallet's unspent
+  outputs under any other declaration. The declaration is what makes the
+  disclosure visible before it happens, and it is read by a client that has not
+  agreed to it.
+- **A client MUST NOT disclose the wallet's unspent outputs without first
+  telling the person what is disclosed and to whom, and obtaining their
+  agreement for that endpoint on that occasion.** The agreement MUST NOT be
+  remembered as a default, and MUST NOT be inferred from an agreement given to
+  another publisher. A version 1 client satisfies this by refusing entirely: it
+  MUST NOT `POST` to a Slip declaring `build: "server"` and MUST fail with
+  `UNSUPPORTED_BUILD_MODE`, which is the strongest form the warning can take.
+
+Nothing about the mode touches [The comparison](#the-comparison). A
+server-balanced transaction faces the same derivation and the same block, and
+every rule there applies unchanged — an endpoint that selected the inputs still
+cannot pay a stranger, inflate a fee or mint an asset without being refused.
+What changes is only what the endpoint was told before it built, and that is
+precisely the part no later check can undo.
+
+#### Publisher identity
+
+The comparison proves what a transaction does. It says nothing about who
+published the link, and the two questions are independent: a transaction whose
+effects match its declaration exactly may still come from someone the person
+would not have dealt with had they known who they were.
+
+Without any identity mechanism, what a person has is the origin, rendered under
+the rules above. That is a real claim and a weak one — it proves someone
+controls a domain, not who they are.
+
+A publisher MAY bind that origin to an attested identity. [CIP-170] is the
+mechanism this proposal expects: a KERI attestation anchors a digest of a
+publisher's own document in the issuer's key event log and publishes a reference
+to it in transaction metadata under label `170`, and through an ACDC credential
+chain the identifier resolves to a legally recognised entity, valid only within
+the window the attestation states. What CIP-170 does not supply is the half a
+client needs first — it anchors a digest of arbitrary data, so it defines no
+publisher payload, and it answers no question of the form "given this origin,
+which identifier should I trust". A binding from an origin to an identifier has
+to be specified next to it, and the ecosystem's existing pattern for a runtime
+trust anchor is an origin-anchored document under `/.well-known/`, as
+[CIP-186] uses.
+
+**This version defines neither that payload nor its resolution.** What it fixes
+is how such a layer may behave, because the shape of the mistake is already
+visible:
+
+- **An attestation MUST NOT relax any rule in [The
+  comparison](#the-comparison).** No attested publisher, at any level of
+  assurance, gets a widened tolerance, a skipped check, or a way through a
+  block. An identity that can relax the gate is an allowlist, and an allowlist
+  is the registry this protocol exists in order not to need.
+- **A failure to resolve an attestation MUST NOT block a Slip, and MUST NOT
+  render as verified.** Absent, malformed, expired, revoked and valid are five
+  different states; only the last is verified, and a client MUST NOT resolve an
+  ambiguity in favour of it.
+- **A client MUST NOT require an attestation in order to render a Slip.** Most
+  publishers will have none, and a protocol that renders only attested ones has
+  chosen the registry by another route.
+- **An attestation is rendered alongside the origin, never in place of the
+  derived effects.** Knowing who is asking does not tell a person what they are
+  signing, and the moment a badge starts standing in for the arithmetic, the
+  badge is what an attacker buys.
+
+The two mechanisms answer different halves and neither substitutes for the
+other. Effects without identity leaves a person approving a transaction they can
+read from a party they cannot; identity without effects is a list of parties
+whose transactions nobody checks.
+
+#### What this document does not defend against
+
+- **A person persuaded to sign a transaction that does exactly what it says.**
+  The gate proves the transaction matches the declaration. Nothing here says the
+  declaration is a good idea, and an honest Slip paying an attacker's address is
+  an honest Slip.
+- **A compromised client.** The derivation, the comparison and the block all run
+  in the client. Where that is the attacker's code, nothing in this document
+  reaches below it. How a client is delivered and kept intact is a property of
+  that client, not of this protocol.
+- **A compromised or hostile wallet.** It holds the keys, and it reports the
+  addresses the derivation treats as the person's own.
+- **Key theft, malware, and a person who approves a connection to a page they
+  should not have opened.** All of these precede the first `GET`.
+- **A publisher who takes payment and does not deliver.** This protocol makes a
+  payment legible before it is signed. It does not make the counterparty
+  trustworthy, and it has no dispute, refund or escrow mechanism — nothing here
+  ever holds anyone's funds.
+- **A lookalike domain**, to the extent the person does not read the origin. See
+  [Origin spoofing](#origin-spoofing) and [Publisher
+  identity](#publisher-identity).
+
 ### Failure responses
 
 A request that cannot be answered fails with a non-2xx status and a body of the
@@ -1284,11 +1573,6 @@ exists to close.
 Filled incrementally, one section per issue. Add subsections here rather than
 new top-level headings — CIP-0001 fixes the H2 set.
 
-  #20  security considerations
-
-That one inserts above 'Failure responses' and 'Protocol versioning', which
-are cross-cutting and read last.
-
 The `//slip` authority registration and its versioned grammar belong here
 too — see docs/DECISIONS/0007-action-authority.md. Shapes freeze at #21.
 
@@ -1343,3 +1627,5 @@ This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4
 [RFC 3339]: https://www.rfc-editor.org/rfc/rfc3339
 [CIP-19]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019
 [CIP-129]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0129
+[CIP-170]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0170
+[CIP-186]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0186
