@@ -45,7 +45,7 @@ The server's metadata is a claim; the transaction is the truth. Before any signa
 - certificates (delegate → pool, register/deregister + deposit), withdrawals
 - mint/burn, validity interval (as wall-clock expiry)
 
-Derived effects are compared against declared metadata. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
+Derived effects are compared against what the endpoint declared in the partial intent — never against the title, description or message, which are words a schema cannot check and arithmetic cannot contradict. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
 
 ## 5. Identity layer
 
