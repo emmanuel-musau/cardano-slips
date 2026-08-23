@@ -14,7 +14,7 @@ That is why this needs no gatekeeping registry: the server's metadata is a claim
 
 1. A dApp hosts a **Slip** endpoint. `GET` describes the intent (title, icon, parameters); `POST` returns a *partial* transaction covering only the dApp's side.
 2. Anyone shares the **link**. `slips.json` lets a human URL front a technical endpoint.
-3. A **client** — the interstitial page, a wallet, a bot — resolves the link, balances the transaction locally against the user's own UTxOs (the endpoint never sees them), derives the exact effects, shows them, and hands off to the wallet over CIP-30.
+3. A **client** — the slip page, a wallet, a bot — resolves the link, balances the transaction locally against the user's own UTxOs (the endpoint never sees them), derives the exact effects, shows them, and hands off to the wallet over CIP-30.
 
 Holds no user funds. No custody, no relayer, no treasury validator. The blast radius of a bug is a failed transaction, not a drained wallet.
 
@@ -27,7 +27,7 @@ Holds no user funds. No custody, no relayer, no treasury validator. The blast ra
 | `@cardano-slips/verifier` | derive what the transaction really does, and block signing if the metadata lies |
 | `@cardano-slips/flow` | run the user through it — Slip UI + CIP-30 wallet orchestration |
 
-Plus `apps/interstitial` (hosted, self-hostable fallback page) and `examples/adalink` (reference integration: USDM/USDCx payment Slips).
+Plus `apps/page` (hosted, self-hostable fallback page) and `examples/adalink` (reference integration: USDM/USDCx payment Slips).
 
 ## Documentation
 

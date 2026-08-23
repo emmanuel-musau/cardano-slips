@@ -5,7 +5,7 @@
 
 ## Context
 
-This project is built by two part-time people at ~4.5 person-days per week over three months, with long gaps between sessions on any given package. It also produces a CIP that outside implementers will read. Decisions made in Month 1 — the CBOR decode approach, the error taxonomy, whether CIP-0170 ships at all — will be questioned in Month 3, by us, with no memory of why they went the way they did.
+This project is built by two part-time people at ~4.5 person-days per week over three months, with long gaps between sessions on any given package. It also produces a CIP that outside implementers will read. Decisions made in Month 1 — the CBOR decode approach, the error codes, whether CIP-0170 ships at all — will be questioned in Month 3, by us, with no memory of why they went the way they did.
 
 Backlog rules already say a ticket must never require a decision that hasn't been made, and that open design questions become their own spike tickets. Those spikes need somewhere to deposit their answer.
 

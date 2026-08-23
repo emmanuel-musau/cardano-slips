@@ -6,7 +6,9 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **slips.json** — a CORS-enabled file at a domain root mapping human URLs to technical endpoints (`/delegate/**` → `/api/slips/delegate/**`), so a shared link stays readable.
 
-**Adversarial corpus** — transactions whose declared metadata contradicts their real effects, with evidence that 100% are blocked before signature. The artefact that proves the security claim is real rather than asserted.
+**Slip page** — the Tier-1 client: the page a Slip link opens. We host one; anyone can host their own. It runs the whole flow over CIP-30 and needs no cooperation from a wallet. Lives at `apps/page`.
+
+**Attack examples** — transactions whose declared metadata contradicts what they really do, with evidence that 100% of them are blocked before signing. This is what turns the security claim from something we assert into something anyone can check.
 
 **Balancing** — selecting inputs, computing change, and setting the fee so a transaction is valid. On eUTxO somebody must do it; we do it client-side (see ADR-0002).
 
@@ -35,8 +37,6 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 **Determinism** — on Cardano a transaction body fully determines its own effects and fee before submission. The property the entire security model rests on, and the one an account-model chain cannot copy.
 
 **eUTxO** — Cardano's extended unspent-transaction-output ledger model. Source of both the input-selection constraint and the determinism advantage.
-
-**Interstitial** — the Tier-1 client: a hosted, self-hostable page that runs the whole flow using only CIP-30, requiring no wallet cooperation.
 
 **Message tag** — a registered transaction metadata label identifying transactions produced through our integration, so real usage can be measured on-chain.
 

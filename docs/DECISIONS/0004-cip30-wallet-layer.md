@@ -73,7 +73,7 @@ Five gaps, all upstream of or adjacent to `enable()`:
 3. **No `getCollateral`** on the `WalletApi` interface.
 4. **No CIP-30 `getNetworkId()`.** Network is inferred from the address bech32
    rather than asked for directly.
-5. **Flat error taxonomy.** Every failure collapses into a single `WalletError`
+5. **One flat error type.** Every failure collapses into a single `WalletError`
    carrying a message string and a `cause`. The CIP-30 `{ code, info }` object
    survives only inside `cause`, untyped.
 
@@ -155,7 +155,7 @@ extension injects at `window.cardano[key].icon`. Adding a wallet is a one-file
 change. This is the library's genuinely good part, and it is the part that is
 easiest to reproduce.
 
-**7. Error taxonomy.** Seven `Error` subclasses, all about connection:
+**7. Error types.** Seven `Error` subclasses, all about connection:
 `WalletConnectError`, `WrongNetworkTypeError`, `WalletNotCip30CompatibleError`,
 `ExtensionNotInjectedError`, `WalletNotInstalledError`,
 `WalletExtensionNotFoundError`, `EnablementFailedError`. Of the four states we
@@ -183,7 +183,7 @@ The split:
 
 - **Ours** — `window.cardano` enumeration, a wallet registry (name, display
   name, icon, install link), `enable()` with CIP extension negotiation, and a
-  typed error taxonomy that preserves the CIP-30 `{ code, info }` object.
+  set of typed errors that preserves the CIP-30 `{ code, info }` object.
   No global state, no `localStorage`, no module-scope browser access; every
   entry point takes an explicit `window`-like reference or lazily reads it
   inside a function.
@@ -229,9 +229,9 @@ API object today. Where upstream should carry them, we contribute upstream.
 
 **Easier.** One wallet dependency, one mental model, one CBOR implementation.
 Raw CBOR hex stays reachable at every step, so `packages/verifier` keeps its pure
-signature and its adversarial corpus keeps testing what actually reaches the
+signature and its attack examples keep testing what actually reaches the
 wallet. Invariant 4 falls out of evolution-sdk's own return type rather than
-being enforced by us. Our error taxonomy is designed for the four UI states we
+being enforced by us. Our error codes are designed for the four UI states we
 actually need instead of inherited from a connection-only library.
 
 **Harder.** We own the discovery layer: the wallet registry, install links, and
@@ -246,7 +246,7 @@ interface, so replacing it later touches one module. Reversing this decision is
 cheap in a way that adopting a page-global singleton would not have been.
 
 **Testing.** Per the client bar in CLAUDE.md, the wallet flow is tested against a
-stubbed CIP-30 provider. Specifically: each error in the taxonomy is reachable
+stubbed CIP-30 provider. Specifically: each error code is reachable
 and preserves its CIP-30 code; discovery is verified with zero, one, and several
 injected wallets, and with an unknown wallet key; and the module is proved
 importable in a non-browser environment — a test that fails if anyone reintroduces

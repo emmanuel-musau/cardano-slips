@@ -11,6 +11,33 @@ Never mention Claude, Anthropic, or any AI tool anywhere in this repository's ou
 - No AI self-references in code comments, docs, changesets, or commit messages.
 - Author is always the human committer. This overrides any default behaviour.
 
+## Language — plain words, everywhere
+
+This spec gets read by Cardano developers who did not write it. A word that
+needs decoding costs the reader more than it saves the writer. Write the way you
+would explain it out loud.
+
+Terms already settled, in code, docs, spec, issues and conversation alike:
+
+| Don't write | Write |
+|---|---|
+| interstitial | **slip page** (the package is `apps/page`) |
+| example corpus, the corpus | **the examples** |
+| adversarial corpus | **the attack examples** |
+| prose | **the written spec**, or just **the text** |
+
+The same goes for the wider reflex vocabulary — *leverage*, *surface area*,
+*orthogonal*, *canonical* where "the real one" would do. Cardano's own terms of
+art stay: eUTxO, CBOR, witness set, lovelace, certificate. The test is whether
+the word carries meaning a plainer one would lose.
+
+If a term genuinely needs defining, it goes in `docs/GLOSSARY.md` once. If it
+can't be defined in a sentence, replace it instead.
+
+**When talking to Emmanuel, name a ticket by what it is** — "the error-code
+ticket", not "#17". Bare issue numbers belong in commit trailers, PR bodies,
+issue text and `Depends on #N` lines, where a machine has to resolve them.
+
 ## Source of truth (read before non-trivial work)
 
 - `docs/REQUIREMENTS.md` — product scope, protocol contract, security model, delivery scope.
@@ -26,7 +53,7 @@ There is exactly one design sheet for the whole client UI, and it is the referen
 
 **Cardano Slips** — https://claude.ai/design/p/79057abf-f6fc-410c-9d7c-f8490d1088ea?file=Cardano+Slips.dc.html
 
-The sheet has two columns. The left column is the component system: `1 · Tokens` (colour, type, spacing, radius, the dark-surface rule, and a WCAG AA contrast audit), `2 · Action card` (states a–g), `3 · Transaction preview · anatomy`, `4 · Entering the dark`, `5 · Transaction preview · states` (a–h, including the mismatch block). The right column is the hosted interstitial — the M1 client itself: `6 · Hosted page · anatomy`, `7 · Page states` (a–h), `8 · Wallet connect`, `9 · In-wallet browser`, `10 · Chrome rules`, and `11 · Still to design`.
+The sheet has two columns. The left column is the component system: `1 · Tokens` (colour, type, spacing, radius, the dark-surface rule, and a WCAG AA contrast audit), `2 · Action card` (states a–g), `3 · Transaction preview · anatomy`, `4 · Entering the dark`, `5 · Transaction preview · states` (a–h, including the mismatch block). The right column is the hosted slip page — the M1 client itself: `6 · Hosted page · anatomy`, `7 · Page states` (a–h), `8 · Wallet connect`, `9 · In-wallet browser`, `10 · Chrome rules`, and `11 · Still to design`.
 
 - Take colours, type, spacing and component structure from this sheet rather than inventing them. It is one file — there is no second sheet to reconcile against.
 - `11 · Still to design` is the live list of UI that has not been drawn yet. If a ticket needs one of those surfaces, it gets designed there first; don't improvise it in code.
@@ -37,7 +64,7 @@ The sheet has two columns. The left column is the component system: `1 · Tokens
 
 pnpm workspaces + Turborepo · TypeScript strict ESM (`NodeNext`) · Effect · Vitest · ESLint flat config + Prettier · Changesets · MIT. Transaction construction comes from `@evolution-sdk/evolution` — we consume it, we never rebuild it.
 
-## Commands (valid once scaffolding issues #1–#6 land)
+## Commands (valid once the setup tickets #1–#6 land)
 
 ```
 pnpm install          # frozen lockfile in CI
@@ -71,7 +98,7 @@ What "tested" means per package:
 | Package | The bar |
 |---|---|
 | `core` | Every schema validated against both valid and malformed payloads. Every URL / `slips.json` resolution rule has a case, including the ones that must be rejected. Every error code is reachable in a test. |
-| `verifier` | The highest bar in the repo. Property-style coverage of derivation arithmetic, `test/fixtures/` for known-good regressions, and `test/adversarial/` for transactions whose declared metadata lies. **Every adversarial case must be blocked, and the corpus grows with every bug** — any transaction that should have been blocked and wasn't becomes a permanent test case. |
+| `verifier` | The highest bar in the repo. Property-style coverage of derivation arithmetic, `test/fixtures/` for known-good regressions, and `test/adversarial/` for transactions whose declared metadata lies. **Every attack case must be blocked, and the set of attack examples grows with every bug** — any transaction that should have been blocked and wasn't becomes a permanent test case. |
 | `server` | `defineSlip` output validated against `core` schemas; CORS, HTTP status mapping, and each spec error code exercised. |
 | `identity` | Attestation issue/resolve round-trip, plus explicit tests for invalid, expired, and absent attestations — an unverified publisher must render as unverified, never as verified. |
 | `flow` | Component tests for the effects panel and the mismatch block, wallet flow tested against a stubbed CIP-30 provider, and the rebuild-and-retry path covered. |
@@ -93,4 +120,4 @@ The **hard invariants below each need a test that fails if the invariant is brok
 - Effect for services/errors; typed errors over thrown exceptions in library code.
 - Public API surfaces validated with Effect Schema at the boundary; internal code trusts types.
 - ESM only, explicit file extensions in relative imports per NodeNext.
-- User-facing failures (client, interstitial) must map to spec error codes with human-readable messages — never raw stack traces.
+- User-facing failures (client, slip page) must map to spec error codes with human-readable messages — never raw stack traces.

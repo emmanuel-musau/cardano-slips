@@ -101,7 +101,7 @@ describe("the CIP preamble", () => {
 
   it("declares itself a solution to CPS-0016", () => {
     // ADR-0007: the CIP answers CPS-16's third open question, and says so in
-    // the preamble the way CIP-99 does rather than only in prose.
+    // the preamble the way CIP-99 does rather than only in the text.
     const solutionTo = JSON.stringify(preamble["Solution To"] ?? [])
     expect(solutionTo).toContain("CPS-0016")
   })
@@ -154,7 +154,7 @@ describe("the CIP draft", () => {
   })
 
   it("drafts the sections this issue owns", () => {
-    // #14 delivers Abstract and Motivation as prose. The rest are stubs until
+    // #14 delivers Abstract and Motivation as written sections. The rest are stubs until
     // #15–#21, so this asserts content only for the two that are due.
     const drafted = (heading: string): string => {
       const start = source.indexOf(`## ${heading}`)

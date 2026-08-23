@@ -15,7 +15,7 @@ normatively and rejects any attempt to report that state with a non-2xx status.
 It does not say what a genuine failure looks like — the endpoint that is down,
 the parameter that was rejected, the deadline that passed between discovery and
 submission. Every ticket from #17 onward produces one of those, and `server`,
-`flow` and the interstitial each need to render them. `CLAUDE.md` already
+`flow` and the slip page each need to render them. `CLAUDE.md` already
 requires that user-facing failures map to spec error codes with human-readable
 messages and never to raw stack traces, which is a rule with nothing behind it
 until the codes exist.
@@ -111,7 +111,7 @@ minor change. There is no negotiation — no version in the request, no
 one URL per major, exactly as it already publishes one URL per network. A client
 MUST read `version` before validating anything else, and on a major it does not
 implement MUST fail with `UNSUPPORTED_VERSION`, render no part of the response
-as actionable, and not `POST`.
+as something the user can act on, and not `POST`.
 
 ## Alternatives considered
 
@@ -159,7 +159,7 @@ second. Two sources for one fact is one source too many.
 
 **Every later ticket inherits a fixed vocabulary.** `server` maps thrown errors
 onto eight codes and eight statuses; `core` decodes one more schema; `flow` and
-the interstitial switch on three classes rather than on prose. #17 in particular
+the slip page switch on three classes rather than on wording. #17 in particular
 needs no version field in the POST body, because the URL already fixes the
 version — one decision it no longer has to make.
 
@@ -172,7 +172,7 @@ affordable.
 **Publishers carry real obligations on the failure path.** CORS headers and
 `no-store` on non-2xx responses, statuses that match codes, and messages written
 for a person rather than piped from an exception. These are the things
-implementations get wrong, so the corpus under `spec/examples/error` includes a
+implementations get wrong, so the examples under `spec/examples/error` include a
 payload per endpoint code and two payloads that satisfy both schemas and still
 violate the `message` rules — a stack trace and an internal hostname — which no
 validator can catch.

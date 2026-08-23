@@ -52,7 +52,7 @@ architecture is organised around.
 protocol vocabulary and are not renamed anywhere they carry that meaning:
 *derived effects*, *the effects panel*, *the effects model*, *effects
 derivation*, *client-side balancing*, and *client* as the role defined in
-REQUIREMENTS §2 all stand. In prose, a backticked `` `verifier` `` is the
+REQUIREMENTS §2 all stand. In writing, a backticked `` `verifier` `` is the
 package; unbackticked "effects" is the concept it computes.
 
 ## Alternatives considered

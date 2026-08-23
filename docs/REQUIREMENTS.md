@@ -14,7 +14,7 @@ Three deliberately separate things:
 
 - **Slip** — an HTTP endpoint hosted by the dApp. `GET` describes an intent (metadata); `POST` returns a **partial transaction** describing only the dApp's side.
 - **Link** — a shareable URL pointing at a Slip, optionally fronted by a human marketing URL via `slips.json`.
-- **Client** — anything that renders the link and drives the wallet handoff. M1 client: the interstitial web page (desktop, CIP-30).
+- **Client** — anything that renders the link and drives the wallet handoff. M1 client: the slip page (desktop, CIP-30).
 
 ## 3. Protocol contract (v1)
 
@@ -45,7 +45,7 @@ The server's metadata is a claim; the transaction is the truth. Before any signa
 - certificates (delegate → pool, register/deregister + deposit), withdrawals
 - mint/burn, validity interval (as wall-clock expiry)
 
-Derived effects are compared against declared metadata. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **adversarial corpus** (transactions whose metadata lies) with a proven 100% block rate is the artefact that makes this claim credible.
+Derived effects are compared against declared metadata. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
 
 ## 5. Identity layer
 
@@ -63,11 +63,11 @@ Tier 1 is in M1 unconditionally. Tier 2 carries an explicit go/no-go at end of M
 
 ## 6. M1 scope (mainnet in 3 months)
 
-**In:** spec + CIP draft; `core`; `server` with one adapter (Next.js); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable interstitial; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to the Month 1 go/no-go); AdaLink USDM/USDCx payment Slip live on mainnet; public adversarial corpus.
+**In:** spec + CIP draft; `core`; `server` with one adapter (Next.js); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to the Month 1 go/no-go); AdaLink USDM/USDCx payment Slip live on mainnet; public attack examples.
 
 **Deferred (roadmap — do not build in M1):** mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); additional framework adapters; additional Slip types.
 
-On mobile, a shared link opened in a phone browser reaches a wallet through CIP-158 `//browse` — Active, with VESPR and Begin as implementors — which lands the interstitial in the wallet's in-app browser where CIP-30 is injected and the desktop flow runs unchanged. Wallet URI handlers are unreliable in practice, so that entry is verified per wallet rather than assumed (#98), and the link always remains openable in the phone's own browser: the mobile story degrades to the desktop flow and never depends on a wallet's URI handler. CIP-186 is a separate case — the transport a *native mobile app* would use to be a client — and cannot carry the interstitial, because its source-app attestation requires an installed app. See `docs/ECOSYSTEM.md` §3.
+On mobile, a shared link opened in a phone browser reaches a wallet through CIP-158 `//browse` — Active, with VESPR and Begin as implementors — which lands the slip page in the wallet's in-app browser where CIP-30 is injected and the desktop flow runs unchanged. Wallet URI handlers are unreliable in practice, so that entry is verified per wallet rather than assumed (#98), and the link always remains openable in the phone's own browser: the mobile story degrades to the desktop flow and never depends on a wallet's URI handler. CIP-186 is a separate case — the transport a *native mobile app* would use to be a client — and cannot carry the slip page, because its source-app attestation requires an installed app. See `docs/ECOSYSTEM.md` §3.
 
 ## 7. Reference integration — AdaLink
 
@@ -77,7 +77,7 @@ Stablecoin payment Slip: recipient, amount, USDM/USDCx choice; parameterised tip
 
 - Four packages published to npm under `@cardano-slips` with release notes and a fresh-install smoke test.
 - Developer documentation: quickstart, `slips.json` and client integration guides, effects-model explainer, self-host walkthrough.
-- Public adversarial corpus with a 100% block-rate report, plus a wallet compatibility matrix run on preprod.
+- Public attack examples with a 100% block-rate report, plus a wallet compatibility matrix run on preprod.
 - CIP PR to `cardano-foundation/CIPs` — submitted after mainnet, documenting a running implementation.
 - Usage measured from external wallets only; transactions we generate ourselves are recorded and never counted.
 

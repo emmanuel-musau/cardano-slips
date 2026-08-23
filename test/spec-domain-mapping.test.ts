@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest"
  * path-absolute reference, so another host is unrepresentable rather than
  * forbidden. There is no origin comparison for an implementation to skip.
  *
- * A shape test proves very little about a rewriting algorithm, so the corpus
+ * A shape test proves very little about a rewriting algorithm, so the spec
  * also publishes a resolution table — rule sets, input paths, expected results
  * — and this file runs it against a reference resolver of the specified
  * algorithm. That is a weaker claim than the schema tests make: it shows the
@@ -59,7 +59,7 @@ type Rejection = {
 
 /**
  * `absolute-api-path.json` is the first case for the same reason
- * `utxos-in-the-body.json` leads the build corpus: it is the payload the whole
+ * `utxos-in-the-body.json` leads the build examples: it is the payload the whole
  * mechanism exists to make unexpressible, and it fails on the grammar rather
  * than on a rule someone has to remember to run.
  */
@@ -90,7 +90,7 @@ const ruleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegE
 ]
 
 describe("the slips.json schema", () => {
-  it("accepts every payload the corpus says is conforming", () => {
+  it("accepts every payload the examples say is conforming", () => {
     const rejected = fixtures("valid")
       .map((file) => ({ file, errors: errorsFor(fixture("valid", file)) }))
       .filter(({ errors }) => errors.length > 0)
@@ -247,7 +247,7 @@ describe("the published resolution table", () => {
   })
 
   it("covers the cases that separate this from a naive rewriter", () => {
-    // Each of these is a place an implementation written from the prose alone
+    // Each of these is a place an implementation written from the written spec alone
     // would plausibly differ, so each has to be in the published table rather
     // than only in someone's head.
     const names = resolutionCases.map((entry) => entry.name)
@@ -328,7 +328,7 @@ describe("the CIP text and the schema", () => {
     expect(mapping).toMatch(/MUST NOT match the result against the rules again/)
   })
 
-  it("illustrates the file with a payload from the corpus", () => {
+  it("illustrates the file with a payload from the examples", () => {
     // Like the build request, this shape has no `type` to name it by, so it
     // travels inside an ```http block rather than a ```json one and the check
     // that keeps examples honest has to live here. An example nothing
@@ -341,7 +341,7 @@ describe("the CIP text and the schema", () => {
     const held = fixtures("valid").map((file) => fixture("valid", file))
     for (const body of bodies) {
       expect(errorsFor(body), "an example in the CIP fails its own schema").toEqual([])
-      expect(held, "an example in the CIP is not in the corpus").toContainEqual(body)
+      expect(held, "an example in the CIP is not in the examples").toContainEqual(body)
     }
   })
 

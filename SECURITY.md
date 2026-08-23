@@ -16,7 +16,7 @@ If you cannot use GitHub advisories for some reason, say so in a public issue
 
 Cardano Slips turns a shared URL into a signable transaction. It holds no
 funds, custodies nothing, operates no relayer, and runs no registry that the
-protocol depends on. dApps host their own endpoints; the interstitial is
+protocol depends on. dApps host their own endpoints; the slip page is
 self-hostable; the SDK is a library that runs on the user's machine.
 
 So the interesting attack is not theft from a service we run — there isn't one.
@@ -48,7 +48,7 @@ Roughly in order of how much we want to hear about it:
    payload the schema should reject.
 5. **Attestation handling in `identity`** — an absent, invalid, or expired
    CIP-0170 attestation rendering as verified.
-6. **Signing and submission in `flow` / `apps/interstitial`** — a
+6. **Signing and submission in `flow` / `apps/page`** — a
    witness set assembled into a body other than the one displayed, a
    rebuild-and-retry that changes effects without re-showing them, or a
    submitted transaction that differs from the approved one.
@@ -111,7 +111,7 @@ than leave it ambiguous.
 ## Every valid report becomes a permanent test
 
 A transaction that should have been blocked and wasn't is added to the
-adversarial corpus in `packages/verifier` as a regression test, and it stays
+attack examples in `packages/verifier` as a regression test, and it stays
 there. That is the most durable form the fix can take — it means the same class
 of transaction can never quietly start passing again.
 

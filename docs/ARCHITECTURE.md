@@ -17,7 +17,7 @@ cardano-slips/
 │   │   ├── README.md          the CIP: //slip authority, GET/POST shapes,
 │   │   │                      partial-intent format, error codes
 │   │   └── schemas/           JSON Schema for every payload, consumed by core
-│   └── examples/              canonical request/response pairs
+│   └── examples/              the request/response pairs the spec is written from
 ├── packages/
 │   ├── core/                  types, URL resolution, slips.json, validation
 │   ├── verifier/              CBOR decode → deltas. The security engine.
@@ -25,7 +25,7 @@ cardano-slips/
 │   ├── identity/              publisher attestation: domain manifest + CIP-0170
 │   └── flow/                  React components + CIP-30 orchestration
 ├── apps/
-│   ├── interstitial/          hosted + self-hostable fallback page
+│   ├── page/                  the slip page, hosted + self-hostable
 │   └── docs/                  docs site + the Slip tester
 ├── examples/
 │   └── adalink/               reference integration: USDM/USDCx payment Slip
@@ -54,7 +54,7 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 | `types.ts` | `Slip`, `Parameter`, `PartialIntent`, `DerivedEffects` — what a third-party implementer reads first |
 | `url.ts` | Parse, resolve, validate Slip URLs; the human URL → technical endpoint indirection |
 | `slips-json.ts` | Domain mapping rules, so `linktap.example/pay/corner-store` resolves to `/api/slips/pay` |
-| `errors.ts` | Typed error taxonomy — every failure mode the UI must render has a code here |
+| `errors.ts` | The typed error codes — every failure mode the UI must render has a code here |
 
 Zero runtime dependencies is the goal.
 
@@ -82,7 +82,7 @@ Decodes balanced transaction CBOR and derives, independently of anything the end
 
 Then compares derived effects against declared metadata and returns `match | mismatch(reasons[])`. Undeclared effects — an extra output, an unexpected certificate — are always a mismatch.
 
-**This package is a pure function of (tx CBOR, declared metadata, user addresses).** It performs no I/O and imports nothing from `flow`, `server`, or any network layer. That purity is what makes the adversarial corpus a meaningful proof: the corpus exercises the exact code path that runs before a real signature. If the engine had side effects or network calls, "we blocked 100% of lying transactions" would be a claim about a system rather than a property of a function.
+**This package is a pure function of (tx CBOR, declared metadata, user addresses).** It performs no I/O and imports nothing from `flow`, `server`, or any network layer. That purity is what makes the attack examples a meaningful proof: they exercise the exact code path that runs before a real signature. If the engine had side effects or network calls, "we blocked 100% of lying transactions" would be a claim about a system rather than a property of a function.
 
 | Module | Owns |
 |---|---|
@@ -91,7 +91,7 @@ Then compares derived effects against declared metadata and returns `match | mis
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
 | `test/fixtures/` | ~50 known-good transactions with expected outputs. Regression safety. Seeded from CIP-0186's published vectors for Conway tx-body extraction and commit computation, so those behaviours are checked against an oracle three wallets already agree on. |
-| `test/adversarial/` | **The proof artefact.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
+| `test/adversarial/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
 
 Deliberately consumable standalone: a wallet or an explorer should be able to use `verifier` without adopting the rest of the protocol. That reusability is an argument in the CIP.
 
@@ -116,7 +116,7 @@ CIP-30 orchestration plus React components. Wallet discovery/enable, change addr
 
 Must survive being dropped into a third-party page: no fixed positioning, no assumption it owns the page, self-contained styles that tolerate an inherited font stack.
 
-### `apps/interstitial`
+### `apps/page`
 Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the whole flow with zero wallet cooperation beyond CIP-30. Also owns OG/Twitter preview metadata, since the unfurl is the first impression of a shared link.
 
 ### `apps/docs`
@@ -135,7 +135,7 @@ core  ←  server
          │  evolution-sdk
          └→ identity
 
-      interstitial  →  (flow, core)
+      page          →  (flow, core)
       docs          →  (flow, core)
       adalink       →  (server)
 ```
@@ -210,11 +210,11 @@ One flat config at the root — `eslint.config.js` — governs the whole workspa
 | `pnpm format` | Prettier writes across the repo |
 | `pnpm format:check` | Prettier verifies without writing — the CI gate |
 
-Prettier settings mirror evolution-sdk: no semicolons, double quotes, no trailing comma, 120 columns. Markdown is in `.prettierignore` on purpose — `docs/` and `spec/` are hand-authored prose, and a reflowed table buries the actual edit in a review.
+Prettier settings mirror evolution-sdk: no semicolons, double quotes, no trailing comma, 120 columns. Markdown is in `.prettierignore` on purpose — `docs/` and `spec/` are written by hand, and a reflowed table buries the actual edit in a review.
 
 Two rules carry more weight than the rest:
 
-- **`no-console` is an error.** Library code returns typed errors; it does not print. User-facing failures go through the spec error codes with human-readable messages, which is a `flow`/interstitial concern, not a stray log line in `verifier`.
+- **`no-console` is an error.** Library code returns typed errors; it does not print. User-facing failures go through the spec error codes with human-readable messages, which is a `flow` / slip page concern, not a stray log line in `verifier`.
 - **`@typescript-eslint/no-unused-vars` respects a `_` prefix**, so a deliberately discarded binding says so in its name.
 
 Type-aware linting (`recommendedTypeChecked`, which is what catches floating promises) is not enabled yet — it needs real packages with `tsconfig.src.json` inputs to point at. Worth turning on once `core` exists.
@@ -256,10 +256,10 @@ Effects without identity leaves users approving correct transactions from unknow
 
 - **No hard-coded colours outside `tokens.css`.** Lint-enforced where possible.
 - **`verifier` stays pure.** No network calls, no React imports, no wallet references. Ever.
-- **The adversarial corpus grows with every bug.** Any transaction that should have been blocked and wasn't becomes a permanent test case.
+- **The set of attack examples grows with every bug.** Any transaction that should have been blocked and wasn't becomes a permanent test case.
 - **Spec changes are PRs against `spec/` first**, implementation second. The schemas are the contract.
 - **Every package publishes independently** via Changesets. A fix in `verifier` must not force a `flow` release.
 
 ## Deliberate non-architecture
 
-No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the interstitial is self-hostable; the SDK is a library. The blast radius of a bug here is a failed transaction, not a drained wallet.
+No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the slip page is self-hostable; the SDK is a library. The blast radius of a bug here is a failed transaction, not a drained wallet.
