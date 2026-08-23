@@ -12,7 +12,7 @@ Issues: `emmanuel-musau/cardano-slips` · Board: https://github.com/users/emmanu
 
 **Pulling work.** When an issue closes, promote items from the top of `Backlog` into `Ready` — anything whose `Depends on #N` issues are all closed is eligible. Never start an issue with an open dependency; if it seems necessary, the dependency is wrong and should be fixed on the issue.
 
-**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk spikes, the effects engine, balancing/signing, slip page flow, mainnet deploy). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
+**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk decisions, the effects engine, balancing/signing, slip page flow, mainnet deploy). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
 
 **Points.** Fibonacci, capped at 5: `1` ≈ under 2 hours (config-level) · `2` ≈ half a day · `3` ≈ one day · `5` ≈ two days. Nothing is larger. If an issue starts feeling like an 8, stop and split it into new issues rather than absorbing the overrun silently.
 
@@ -95,9 +95,9 @@ An issue is done when:
 
 ## Decisions
 
-Settled decisions live in `docs/DECISIONS/` as ADRs. Do not relitigate one in a PR — write a new ADR that supersedes it. Two ADRs are already ticketed as spikes because they block other work: CBOR decode approach (#33) and CIP-0170 go/no-go (#63).
+Settled decisions live in `docs/DECISIONS/` as ADRs. Do not relitigate one in a PR — write a new ADR that supersedes it. Two ADRs are already ticketed as decisions because they block other work: CBOR decode approach (#33) and CIP-0170 go/no-go (#63).
 
-If a ticket turns out to depend on an unmade decision, stop and make the decision its own small spike issue first. Tickets should never require judgement calls the backlog hasn't already settled.
+If a ticket turns out to depend on an unmade decision, stop and make the decision its own small ticket first. Tickets should never require judgement calls the backlog hasn't already settled.
 
 ## Spec changes
 
