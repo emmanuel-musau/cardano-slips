@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // What `pnpm build` runs, and the only config that writes `dist` — the
+  // paths in the package `exports` map. `stripInternal` keeps anything marked
+  // `@internal` out of the published declarations.
+  "extends": "./tsconfig.src.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "stripInternal": true,
+    "tsBuildInfoFile": ".tsbuildinfo/build.tsbuildinfo"
+  }
+}
