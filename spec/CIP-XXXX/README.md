@@ -827,7 +827,284 @@ The metadata a Slip showed at discovery is words and is never that declaration:
 a claim in a `title` cannot be compared with arithmetic, and a client MUST NOT
 treat one as though it had been.
 
-<!-- #19 inserts effects derivation and the mismatch rules here. -->
+### Deriving the effects
+
+A client MUST derive, from the bytes of the transaction it is about to ask a
+person to sign, what that transaction does. It MUST do so before every signature
+request, including the one that follows a rebuild, and it MUST derive from the
+transaction alone — nothing an endpoint said takes part in the arithmetic.
+
+| Derived | What it is |
+|---|---|
+| `ada` | The net lovelace delta across the addresses the wallet controls: the value of the inputs the body spends, less the value of the outputs that return to it. |
+| `assets` | The same net delta, per `policyId` and `assetName` pair. |
+| `fee` | The fee the body states, exactly. |
+| `outputs` | Every output the body pays, with its address, its lovelace, its assets, and whether the wallet controls the address. |
+| `certificates` | Every certificate, with the type, the pool or DRep it names, the stake credential it acts on, and the deposit or refund the ledger applies to it. |
+| `withdrawals` | Every withdrawal, with its reward account and its amount. |
+| `mint` | Every asset the transaction creates or destroys, signed. |
+| `validFrom`, `validUntil` | The body's validity interval, converted to wall-clock instants. |
+
+**The derivation takes four terms, and none of them is a lookup.** A client MUST
+supply each as an argument:
+
+- **the transaction bytes**, as it will submit them;
+- **the value of every input the body spends.** A body carries references to its
+  inputs, not their contents, and a net delta is unobtainable without them. In
+  the mode specified here the client selected those inputs from its own wallet,
+  so it holds their values already.
+- **the addresses the wallet controls**, including its reward account;
+- **the protocol parameters in force** — the minimum-fee coefficients, the
+  per-byte cost that fixes an output's minimum ADA, the stake deposit and its
+  refund, and the mapping from slot to wall-clock time.
+
+A client MUST NOT fetch any of them while deriving. The derivation is the last
+thing that stands between a person and a signature, and one that reaches the
+network mid-flight can be made slow, made to fail, or made to answer wrongly by
+whoever is in a position to answer. Everything it needs is known before it
+starts, so it is given what it needs and computes; it never asks.
+
+**Whose addresses.** An address is the user's when the connected wallet reports
+it — used, unused, change, and the reward account. A client MUST treat an
+address it cannot confirm as the wallet's as though it belonged to someone else.
+Wallets answer this question incompletely: used addresses arrive a page at a
+time, and unused addresses past the gap are not reported at all. Erring in this
+direction overstates what leaves the wallet and understates what returns, so the
+person is shown a transaction no better than the one they are signing. Erring in
+the other direction would hide a payment to a stranger by mistaking it for
+change.
+
+**A client MUST render the derived effects, and MUST NOT render the endpoint's
+words in their place.** At minimum: the net ADA delta, the fee, each asset
+delta, each certificate with the pool or DRep it names, the amount of any
+withdrawal, any deposit or refund shown separately from what is spent, and the
+wall-clock expiry. A deposit is not a cost — it comes back — and showing it as
+one is wrong, while leaving it out of what a person is about to part with is
+worse.
+
+### The comparison
+
+The intent is the declaration. A `title`, a `description` and a `message` are
+words a publisher chose, and this document never compares them with anything;
+what the endpoint declared in the intent it returned is what the transaction is
+held to.
+
+Every derived effect MUST fall into one of two sets, and a client MUST block the
+signature unless every one of them does:
+
+1. **Declared** — the intent asked for it, and it matches under the rules below.
+2. **Supplied** — it is one of the adjustments this document names as the
+   client's own: the fee, a deposit or refund the ledger fixes, the raise of an
+   output to the ledger's minimum ADA, and change returning to `changeAddress`.
+
+There is no third set. An effect that is neither declared nor supplied is a
+mismatch, whether or not this document has a name for it — which is the property
+that matters, because the effects worth hiding are the ones nobody thought to
+name.
+
+**The comparison is exact, and admits no tolerance anywhere.** Both sides are
+integer counts of base units, so both sides are integers; a comparison that
+allows a margin allows an attacker who works inside the margin, and the margins
+that get proposed — a few lovelace, a percent of the fee — are worth more than
+the transactions this protocol is for. What might otherwise be called a
+tolerance is set 2 above: a closed list of adjustments, each with a stated cause
+and an exact value the client can compute.
+
+Each rule below names the reason a client reports when it fails. The reasons are
+a vocabulary for explaining a block to a person; the failure itself is always
+[`EFFECTS_MISMATCH`](#failure-responses).
+
+#### Matching the outputs
+
+Matching runs by address, because an address is what a person recognises and
+what determines who ends up holding the value.
+
+**Each declared output has exactly one permitted lovelace amount**: the amount
+declared, or the ledger's minimum for that output as encoded where the declared
+amount is below it. That is the floor rule from [Outputs](#outputs) stated as an
+equality — the raise has a computable value, so it never widens what the
+comparison accepts.
+
+For every address the intent declares, all three MUST hold:
+
+- **Count.** The number of outputs the body pays to it equals the number the
+  intent declared. Reported as `output.missing` where the body pays fewer and
+  `output.undeclared` where it pays more.
+- **Lovelace.** The total the body pays to it equals the sum of the permitted
+  amounts. Reported as `output.lovelace`.
+- **Assets.** For every asset named by either side, the total quantity the body
+  pays to it equals the total the intent declared. Reported as `output.assets`.
+
+Where the counts differ, the totals at that address are not compared: one
+difference explains the other, and two reports of the same fact tell a person
+less than one.
+
+**Every body output paying an address the intent does not declare MUST pay an
+address the wallet controls**, and is change. There may be several of them, and
+they need not all pay the same address. Reported as `output.undeclared`, this is
+the rule that closes the whole class: a payment to a stranger that no
+declaration accounts for cannot be built into a transaction this gate passes.
+
+A client MUST NOT return change to an address the intent declares. Sending the
+remainder back to an address that is also a declared recipient would make the
+count and the totals at that address unattributable — some of what arrives there
+was asked for and some of it is the person's own money coming home — and a
+comparison that cannot separate the two is a comparison an endpoint can hide
+behind. A client that meets this after building MUST rebuild to another address
+it controls.
+
+#### Matching the certificates
+
+The body's certificates MUST be the certificates the intent declared: the same
+number, of the same types, in the same order, each naming the same `poolId` or
+`drep`. Reported as `certificate.missing`, `certificate.undeclared`,
+`certificate.target` and `certificate.order`.
+
+Order is part of the comparison because the ledger applies certificates in
+order: a registration that follows the delegation depending on it is a different
+transaction from one that precedes it, and only one of the two does what the
+person was shown.
+
+A client reports the difference by the first of these that applies, so that what
+it says is what happened rather than every rule the difference violated:
+
+1. The counts differ — `certificate.missing` where the body carries fewer,
+   `certificate.undeclared` where it carries more.
+2. The types agree position by position, and a pool or a DRep does not —
+   `certificate.target`.
+3. The same certificates are all present in another order —
+   `certificate.order`.
+4. Otherwise the two sets differ in their contents, reported as
+   `certificate.missing` and `certificate.undeclared` together.
+
+**Every certificate MUST act on a stake credential the connected wallet
+controls**, reported as `certificate.credential`. This version has no field in
+which an endpoint could name a credential, so a certificate acting on someone
+else's is not a claim that failed to match — it is an effect nothing could have
+declared.
+
+The deposit a registration carries and the refund a deregistration returns are
+supplied, never compared. The ledger fixes both from a protocol parameter
+whatever anyone declared, and [Certificates](#certificates) is where this
+document says an endpoint may not state them.
+
+#### Matching the withdrawal
+
+Where the intent set `withdrawRewards` to `true`, the body MUST carry exactly
+one withdrawal and it MUST be from the wallet's own reward account. Where the
+intent did not, the body MUST carry none. Reported as `withdrawal.missing`,
+`withdrawal.undeclared` and `withdrawal.account`.
+
+The amount is not compared, because nothing declares it and the ledger admits
+only one value: the whole balance of the account. The client renders the figure
+it withdrew, as [Rewards](#rewards) requires.
+
+#### Effects nothing can declare
+
+Version 1 defines no field for a mint or a burn, a reference input, collateral,
+a required signer, a vote, a governance proposal, a treasury donation, or a
+script of any kind. A transaction carrying one is not a transaction with an
+undeclared field; it is a transaction doing something this version cannot
+describe to a person. A client MUST block, reporting `mint.undeclared` for a
+mint or burn and `body.unsupported` for the rest.
+
+**A client MUST refuse to derive effects from a transaction it cannot read
+completely.** A body member it does not model is not a member it may skip: the
+skipped member is precisely the undeclared effect this section exists to catch,
+and an era that adds one MUST reach a client as a refusal rather than as
+silence. This obligation is on the decoder, and it is the one place where a
+lenient implementation defeats every rule above it.
+
+#### The fee and the client's own adjustments
+
+| Supplied | Rule | Shown to the person as |
+|---|---|---|
+| the fee | Bounded below by what the protocol parameters require for this transaction, and above by the ceiling below. | a cost |
+| a deposit | Exactly the protocol parameter. | a cost that comes back, marked refundable |
+| a refund | Exactly the protocol parameter. | a return |
+| the raise to an output's minimum | Exactly the ledger's minimum for that output, and never more. | an effect of its own, with its cause |
+| change | To `changeAddress`, at an address the wallet controls. | part of the net delta, not a payment |
+
+Nothing declares the fee, so there is nothing to compare it against — but an
+unbounded fee is an undeclared payment under another name, and the person pays
+it either way. A client MUST block, reporting `fee.excessive`, where the fee
+exceeds:
+
+> the minimum fee the protocol parameters require for the transaction as built,
+> plus the minimum ADA an output to `changeAddress` would require.
+
+The first term is what this transaction costs to submit. The second is the only
+legitimate reason to exceed it: where the remainder after paying everything is
+too small to make a change output, it cannot be returned to the person and the
+balancer adds it to the fee instead. Beyond that sum, no rule of the ledger
+explains the difference.
+
+#### The validity interval
+
+A client MUST convert the body's interval to wall-clock instants and MUST block
+where either end is wrong:
+
+- an end later than `validUntil`, reported as `interval.beyond-declared`. The
+  obligation not to set one is in [Balancing](#balancing); this is what proves
+  it was kept.
+- a start later than the current time, reported as `interval.not-yet-valid`. A
+  transaction that cannot be submitted yet is one the person cannot act on, and
+  nothing in this version has a reason to build one.
+
+The conversion needs the network's slot-to-time mapping, which is why it is one
+of the four terms above. A client that assumes a constant slot length will show
+an expiry that drifts from the real one, and the person reading "expires in four
+minutes" is reading the client's arithmetic, not the ledger's.
+
+### Blocking
+
+A client that finds any mismatch MUST fail with `EFFECTS_MISMATCH`, and MUST NOT
+ask the wallet for a signature. The code is terminal in the sense
+[Failure responses](#failure-responses) gives the word: this transaction will
+not be signed, and no repetition of anything changes that. In particular the
+rebuild path — the one [Balancing](#balancing) defines for an expired interval —
+MUST NOT be used in answer to a mismatch. Rebuilding until the gate passes is
+the same thing as not having a gate.
+
+**There is no override.** No allowlist of publishers, no verified badge that
+relaxes the rule, no setting, no confirmation that lets a determined person
+through. A mismatch reached that person because the transaction and the
+declaration disagree, and no property of the publisher makes them agree. This
+document says so rather than leaving it to implementations because the override
+is the first thing anyone under commercial pressure asks for, and a protocol
+whose central guarantee is optional in practice does not have it.
+
+A client MUST show what was declared, what the transaction does, and which of
+the two it refused to reconcile, in plain language, and MUST NOT show the
+endpoint's `message` as an alternative account of the same transaction. The
+person does not need to be told which rule fired; they need to be able to see
+the difference the client saw.
+
+| Reason | Raised when |
+|---|---|
+| `output.missing` | The body pays fewer outputs to a declared address than the intent declared. |
+| `output.undeclared` | The body pays an output the intent did not declare, to an address the wallet does not control, or more outputs to a declared address than were declared. |
+| `output.lovelace` | The lovelace the body pays to an address is not the sum of the permitted amounts. |
+| `output.assets` | An asset total the body pays to an address is not the total declared. |
+| `certificate.missing` | A declared certificate is absent from the body. |
+| `certificate.undeclared` | The body carries a certificate the intent did not declare. |
+| `certificate.order` | The declared certificates are all present, in an order the intent did not ask for. |
+| `certificate.target` | A certificate names a pool or a DRep other than the declared one. |
+| `certificate.credential` | A certificate acts on a stake credential the wallet does not control. |
+| `withdrawal.missing` | `withdrawRewards` was declared and the body withdraws nothing. |
+| `withdrawal.undeclared` | The body withdraws where the intent did not declare it, or withdraws more than once. |
+| `withdrawal.account` | A withdrawal names a reward account the wallet does not control. |
+| `mint.undeclared` | The body mints or burns. Nothing in this version can declare it. |
+| `body.unsupported` | The body carries a member this version cannot describe: a reference input, collateral, a required signer, a vote, a proposal, a donation, or a script. |
+| `fee.excessive` | The fee exceeds the minimum for this transaction plus one change output's minimum ADA. |
+| `interval.beyond-declared` | The transaction stays valid past `validUntil`. |
+| `interval.not-yet-valid` | The transaction cannot be submitted until after the present moment. |
+
+A JSON Schema proves nothing about a comparison, so the cases that separate a
+conforming gate from a plausible one are published as behaviour:
+[`../examples/effects/verdicts.json`](../examples/effects/verdicts.json) is a
+table of declared intents, derived effects and the verdict each pair MUST
+produce. An implementation can run it without reading a line of ours.
 
 ### Failure responses
 
@@ -881,6 +1158,7 @@ failure retryable is an endpoint able to keep a client asking.
 | `UNSUPPORTED_VERSION` | terminal | — | client | The response is in a major version this client does not implement. |
 | `UNSUPPORTED_BUILD_MODE` | terminal | — | client | The Slip declares a `build` mode this client does not implement. |
 | `CANNOT_BALANCE` | terminal | — | client | The intent cannot be built into a valid transaction, for a reason other than funds. |
+| `EFFECTS_MISMATCH` | terminal | — | client | The effects derived from the transaction contradict the intent the endpoint declared. |
 | `RATE_LIMITED` | transient | 429 | endpoint | The endpoint is deliberately refusing for now. `Retry-After` SHOULD be set. |
 | `UPSTREAM_FAILURE` | transient | 502 | endpoint | A service the endpoint depends on failed. |
 | `INTERNAL_ERROR` | transient | 500 | endpoint | The endpoint failed and cannot say more than that. |
@@ -943,10 +1221,12 @@ newer one. A response from a later major version never reaches this rule,
 because the version check precedes it — see [Protocol
 versioning](#protocol-versioning).
 
-Conditions arising after a transaction exists — derived effects contradicting
-declared metadata, a refused signature, a rejected submission — are named where
-those steps are specified. They are client conditions in this same vocabulary
-and never travel over HTTP.
+Conditions arising after a transaction exists — a refused signature, a rejected
+submission — are named where those steps are specified. They are client
+conditions in this same vocabulary and never travel over HTTP, and so is
+`EFFECTS_MISMATCH`: the rules that raise it are in
+[The comparison](#the-comparison), and the reason it can never be answered by
+retrying is in [Blocking](#blocking).
 
 ```json
 {
@@ -1004,10 +1284,9 @@ exists to close.
 Filled incrementally, one section per issue. Add subsections here rather than
 new top-level headings — CIP-0001 fixes the H2 set.
 
-  #19  mandatory client-side effects derivation and mismatch rules
   #20  security considerations
 
-Those two insert above 'Failure responses' and 'Protocol versioning', which
+That one inserts above 'Failure responses' and 'Protocol versioning', which
 are cross-cutting and read last.
 
 The `//slip` authority registration and its versioned grammar belong here
@@ -1061,5 +1340,6 @@ This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4
 [RFC 2119]: https://www.rfc-editor.org/rfc/rfc2119
 [RFC 8174]: https://www.rfc-editor.org/rfc/rfc8174
 [RFC 3986]: https://www.rfc-editor.org/rfc/rfc3986
+[RFC 3339]: https://www.rfc-editor.org/rfc/rfc3339
 [CIP-19]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019
 [CIP-129]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0129
