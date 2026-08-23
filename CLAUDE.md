@@ -24,6 +24,9 @@ Terms already settled, in code, docs, spec, issues and conversation alike:
 | interstitial | **slip page** (the package is `apps/page`) |
 | example corpus, the corpus | **the examples** |
 | adversarial corpus | **the attack examples** |
+| adversarial (as a label) | **attack** — `test/attacks/`, an attack case |
+| adversary | **attacker**, or name who it is: the endpoint |
+| spike (the ticket type) | **decision ticket**, titled `Decide: …` |
 | prose | **the written spec**, or just **the text** |
 
 The same goes for the wider reflex vocabulary — *leverage*, *surface area*,
@@ -99,7 +102,7 @@ What "tested" means per package:
 | Package | The bar |
 |---|---|
 | `core` | Every schema validated against both valid and malformed payloads. Every URL / `slips.json` resolution rule has a case, including the ones that must be rejected. Every error code is reachable in a test. |
-| `verifier` | The highest bar in the repo. Property-style coverage of derivation arithmetic, `test/fixtures/` for known-good regressions, and `test/adversarial/` for transactions whose declared metadata lies. **Every attack case must be blocked, and the set of attack examples grows with every bug** — any transaction that should have been blocked and wasn't becomes a permanent test case. |
+| `verifier` | The highest bar in the repo. Property-style coverage of derivation arithmetic, `test/fixtures/` for known-good regressions, and `test/attacks/` for transactions whose declared metadata lies. **Every attack case must be blocked, and the set of attack examples grows with every bug** — any transaction that should have been blocked and wasn't becomes a permanent test case. |
 | `server` | `defineSlip` output validated against `core` schemas; CORS, HTTP status mapping, and each spec error code exercised. |
 | `identity` | Attestation issue/resolve round-trip, plus explicit tests for invalid, expired, and absent attestations — an unverified publisher must render as unverified, never as verified. |
 | `flow` | Component tests for the effects panel and the mismatch block, wallet flow tested against a stubbed CIP-30 provider, and the rebuild-and-retry path covered. |

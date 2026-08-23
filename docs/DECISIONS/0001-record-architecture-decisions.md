@@ -7,13 +7,13 @@
 
 This project is built by two part-time people at ~4.5 person-days per week over three months, with long gaps between sessions on any given package. It also produces a CIP that outside implementers will read. Decisions made in Month 1 — the CBOR decode approach, the error codes, whether CIP-0170 ships at all — will be questioned in Month 3, by us, with no memory of why they went the way they did.
 
-Backlog rules already say a ticket must never require a decision that hasn't been made, and that open design questions become their own spike tickets. Those spikes need somewhere to deposit their answer.
+Backlog rules already say a ticket must never require a decision that hasn't been made, and that open design questions become their own decision tickets. Those tickets need somewhere to deposit their answer.
 
 ## Decision
 
 Record consequential decisions as ADRs in `docs/DECISIONS/`, numbered sequentially, using `0000-template.md`. A decision recorded here is settled: it is not reopened in code review. Changing one means writing a new ADR that supersedes it.
 
-Spike tickets are not done until their ADR is written.
+A decision ticket is not done until its ADR is written.
 
 ## Alternatives considered
 
@@ -25,4 +25,4 @@ Spike tickets are not done until their ADR is written.
 
 ## Consequences
 
-Each spike ticket carries a small documentation cost. In exchange, the CIP submission and the test evidence can both point at a written trail of reasoning, and reviewers asking "why not Mode B?" or "why this CBOR library?" get an answer that does not depend on anyone's recall.
+Each decision ticket carries a small documentation cost. In exchange, the CIP submission and the test evidence can both point at a written trail of reasoning, and reviewers asking "why not Mode B?" or "why this CBOR library?" get an answer that does not depend on anyone's recall.
