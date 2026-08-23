@@ -90,7 +90,7 @@ Then compares derived effects against declared metadata and returns `match | mis
 | `derive.ts` | Diffs inputs against outputs for the user's addresses → ADA delta, per-policy asset deltas, exact fee, certificates, withdrawals, mint/burn, validity interval |
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
-| `test/fixtures/` | ~50 known-good transactions with expected outputs. Regression safety. Seeded from CIP-0186's published vectors for Conway tx-body extraction and commit computation, so those behaviours are checked against an oracle three wallets already agree on. |
+| `test/fixtures/` | ~50 known-good mainnet transactions with expected outputs. Regression safety. Every fixture's derived commit must equal its known transaction id, and CML cross-checks the derived fields as a second opinion (ADR-0010). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |
 | `test/attacks/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
 
 Deliberately consumable standalone: a wallet or an explorer should be able to use `verifier` without adopting the rest of the protocol. That reusability is an argument in the CIP.
