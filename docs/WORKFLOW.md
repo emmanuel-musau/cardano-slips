@@ -30,9 +30,37 @@ The first three commits go in this order, and the third is the one people skip:
 
 Do not skip commit three. Discovering a broken ESM resolution chain in week six, with the effects engine half-written on top of it, costs days.
 
+## Branches
+
+Two branches are permanent.
+
+**`main` is the published branch.** It is the default branch, so it is what a
+visitor sees, and it is what releases publish from. It is protected against
+everyone, the owner included: a pull request, four green checks, and a code
+owner review, with no admin bypass. Never push to `main` directly.
+
+**`dev` is where work happens.** The same four checks are required on any pull
+request into it, so a contribution is gated exactly as it would be on `main`.
+The repository owner is exempt and commits straight to `dev` — that is what it
+is for. CI runs on every push there, so a break surfaces on the commit that
+caused it rather than at merge time. `release.yml` never triggers from `dev`.
+
+`dev` merges into `main` with a **merge commit**, so `main` keeps one commit per
+ticket rather than one per release. Everything else squashes.
+
+After a release, **merge `main` back into `dev`** — see Releases below. Skip it
+and `dev` silently drifts behind by the version bumps and changelogs.
+
 ## Branch, commit, PR
 
-One issue = one branch = one PR.
+One issue = one branch = one PR. Feature branches start from `dev` and target
+`dev`; only `dev` targets `main`. Note that GitHub bases a new pull request on
+`main` by default, so a branch meant for `dev` needs its base changed —
+`gh pr create --base dev` avoids the trip through the web UI.
+
+The owner may commit small work straight to `dev` without a branch: docs, typo
+fixes, comments, chores. Anything with acceptance criteria still gets its issue,
+its branch and its pull request, because that is what ticks the criteria off.
 
 ```
 git switch -c feat/verifier-scaffold
@@ -50,7 +78,7 @@ Refs #36
 
 **Commit and PR text must never reference AI tooling** — no `Co-Authored-By` trailers for assistants, no "generated with" footers. The author is the human committer. See `CLAUDE.md`.
 
-**PRs** state what changed and why, link the issue (`Closes #36`), and tick that issue's acceptance criteria. `main` is protected: PR required, CI green required, squash merge, head branch auto-deleted. Never push to `main` directly.
+**PRs** state what changed and why, link the issue (`Closes #36`), and tick that issue's acceptance criteria. Both permanent branches require the four checks; `main` additionally requires a code owner review and exempts nobody.
 
 ## Definition of done
 
@@ -78,6 +106,19 @@ Once the CIP draft is frozen (#21), request/response shapes are a versioned cont
 ## Releases
 
 Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Four packages ship publicly: `core`, `server`, `verifier`, `flow`.
+
+Releasing runs in this order, and the last step is the one that gets forgotten:
+
+1. Open the `dev` -> `main` pull request and merge it with a merge commit.
+2. `release.yml` fires on the push to `main` and opens the Changesets version PR.
+3. Merge the version PR. That push publishes to npm.
+4. **Merge `main` back into `dev`.** `main` now carries version bumps and
+   changelogs that `dev` does not. Miss this and every later `dev` -> `main`
+   pull request drags a stale diff behind it.
+
+```
+git switch dev && git merge main && git push
+```
 
 ## Environments
 

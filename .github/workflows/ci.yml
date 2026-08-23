@@ -2,8 +2,13 @@ name: CI
 
 on:
   pull_request:
+  # `dev` is the working branch and takes commits directly, so it needs the
+  # same four checks main gets. Without it a direct push runs nothing and a
+  # break sits unnoticed until the dev -> main pull request goes red with a
+  # pile of commits to bisect. Release is deliberately not here: publishing
+  # triggers on main only, in release.yml.
   push:
-    branches: [main]
+    branches: [main, dev]
 
 # Nothing here writes. Publishing lives in release.yml with its own, narrower
 # grant — the only place in this repository that can write outside it.
@@ -12,10 +17,12 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Superseded PR runs are wasted compute — cancel them. Pushes to main are
-  # not cancelled: main's run history is the record of what was actually
-  # verified before each merge, and a cancelled run leaves a hole in it.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # Superseded PR runs are wasted compute — cancel them, and cancel superseded
+  # `dev` runs too: several quick commits in a row is the normal way to work
+  # there, and only the last one's result matters. Pushes to main are never
+  # cancelled: main's run history is the record of what was actually verified
+  # before each merge, and a cancelled run leaves a hole in it.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref_name == 'dev' }}
 
 jobs:
   # The job id is what the Actions run graph puts after "Matrix:".
