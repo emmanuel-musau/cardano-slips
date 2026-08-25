@@ -4,4 +4,5 @@
  */
 export * from "./types.js"
 export * from "./intent.js"
+export * from "./slips-json.js"
 export * from "./errors.js"
