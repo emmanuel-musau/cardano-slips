@@ -1,32 +1,19 @@
 import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-// Named rather than default: ajv is CommonJS, and its default export only
-// resolves to the class under `esModuleInterop`, which the base tsconfig does
-// not enable. The named class is the same object and typechecks as one.
+// Named, not default: ajv is CommonJS and its default export only resolves to
+// the class under `esModuleInterop`, which the base tsconfig does not enable.
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js"
 import { describe, expect, it } from "vitest"
 
 /**
- * The POST build contract and the partial intent (#17).
+ * The POST build contract and the partial intent (#17) — the shape the mismatch
+ * gate is held to, so a field that can express a quantity ambiguously is a hole
+ * in the gate rather than a documentation defect.
  *
- * This is the shape the mismatch gate is eventually held to. Everything the
- * publisher declares here is compared, in #19, against effects derived from the
- * transaction body the client builds out of it — so a field that can express a
- * quantity ambiguously, or a value the endpoint has no business declaring at
- * all, is not a documentation defect. It is a hole in the gate.
- *
- * Three properties get the most attention below, because each one has already
- * cost this ecosystem something:
- *
- *   - Quantities are integer base units in decimal strings. Mishandled decimals
- *     on an amount is the most repeated bug in the `web+cardano:` family
- *     (docs/ECOSYSTEM.md §1), and a JSON number would reintroduce it through
- *     float parsing even if every publisher behaved.
- *   - The endpoint declares only what it chooses. Anything the ledger or the
- *     wallet determines — a fee, a deposit, a stake credential, a reward
- *     balance, a key hash — is supplied by the client, so there is no field in
- *     which an endpoint could state it wrongly.
- *   - Nothing about the person travels except one address they chose.
+ * Three properties carry the weight: quantities are integer base units in
+ * decimal strings; the endpoint declares only what it chooses, never what the
+ * ledger or wallet determines; and nothing about the person travels except one
+ * address they chose.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -74,10 +61,9 @@ type Rejection = {
 }
 
 /**
- * A body carrying the user's unspent outputs is the first case on purpose. It
- * is the one payload this protocol exists to make unsendable, and the schema
- * refuses it for the same reason it refuses any undeclared member — which is
- * the point: the privacy property is structural, not a rule someone remembered.
+ * The unspent-outputs body is first on purpose: the one payload this protocol
+ * exists to make unsendable, refused by the same keyword as any undeclared
+ * member. The privacy property is structural, not a rule someone remembered.
  */
 const requestRejections: ReadonlyArray<Rejection> = [
   { file: "utxos-in-the-body.json", keyword: "additionalProperties", instancePath: "", param: "utxos" },
@@ -111,11 +97,7 @@ const intentRejections: ReadonlyArray<Rejection> = [
   { file: "message-too-long.json", keyword: "maxLength", instancePath: "/message" }
 ]
 
-/**
- * Rules a JSON Schema cannot express. Two need context the payload does not
- * carry — the wall clock, and the network the Slip declared — and two judge
- * what a value says rather than what shape it is.
- */
+/** Rules needing the wall clock, the declared network, or a judgement about what a value says. */
 const requestRuleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegExp }> = [
   { file: "address-network-disagrees.json", rule: /the network its own address encodes/ }
 ]
@@ -148,9 +130,7 @@ describe("the build request", () => {
   })
 
   it("asks for two fields and nothing that describes the person", () => {
-    // The whole privacy claim in one assertion. Mode A exists so that an
-    // endpoint cannot see what the person holds; a third field here, whatever
-    // it was called, would be the place that claim started leaking.
+    // The whole privacy claim in one assertion: a third field here is where it would start leaking.
     expect(Object.keys(requestSchema["properties"] as Record<string, unknown>).sort()).toEqual([
       "changeAddress",
       "network"
@@ -206,9 +186,7 @@ describe("the partial intent", () => {
   })
 
   it("does something on chain, or is not an intent", () => {
-    // An intent with no outputs, no certificates and no withdrawal asks a
-    // person to pay a fee for nothing. It is the one whole-object rule the
-    // schema can express, so it is expressed here rather than left to a client.
+    // Otherwise the intent asks a person to pay a fee for nothing.
     const intent = (intentSchema["$defs"] as Record<string, Record<string, unknown>>)["intent"]
     const alternatives = (intent["anyOf"] as Array<{ required?: Array<string> }>).flatMap((one) => one.required ?? [])
     expect(alternatives.sort()).toEqual(["certificates", "outputs", "withdrawRewards"])
@@ -231,9 +209,7 @@ describe("quantities", () => {
   }
 
   it("are integer base units in decimal strings, everywhere in the examples", () => {
-    // The most repeated bug in the web+cardano family, pinned. A JSON number
-    // would carry the same value and lose it: 9007199254740993 lovelace does
-    // not survive a double, and "12.5" is not a quantity of anything.
+    // 9007199254740993 lovelace does not survive a double, and "12.5" is not a quantity of anything.
     const offenders: Array<string> = []
     for (const file of fixtures(partial, "valid")) {
       for (const [path, value] of quantities(fixture(partial, "valid", file))) {
@@ -246,9 +222,7 @@ describe("quantities", () => {
   })
 
   it("carry no decimals field for a publisher to set", () => {
-    // Declaring decimals would let an endpoint show 1200 base units as
-    // "0.0012" while the gate compared 1200 against 1200 and passed. The
-    // client resolves decimals from on-chain metadata or shows base units.
+    // Otherwise an endpoint shows 1200 base units as "0.0012" while the gate compares 1200 against 1200 and passes.
     expect(JSON.stringify(intentSchema)).not.toMatch(/"decimals"/)
     expect(source).toMatch(/MUST NOT infer\s+decimals/)
   })
@@ -281,12 +255,9 @@ describe("what an endpoint may not declare", () => {
   })
 
   it("gives an endpoint no way to ask for a required signer", () => {
-    // Dropped from version 1 rather than specified: no script runs in a Mode A
-    // transaction — the inputs are ordinary wallet UTxOs, there is no mint, and
-    // the certificates act on a key-based credential — so nothing can read the
-    // signers a publisher named, and a later transaction cannot read them
-    // either. Pinned because it is the kind of field a future sweep adds back
-    // on the assumption it was an oversight.
+    // Dropped from version 1: no script runs in a Mode A transaction, so nothing
+    // could read the signers a publisher named. Pinned against a future sweep
+    // adding it back as an oversight.
     expect(Object.keys(defs["intent"]["properties"] as Record<string, unknown>)).not.toContain("requiredSigners")
     expect(defs).not.toHaveProperty("signerRole")
     expect(source).toMatch(/Required signers, and why there are none/)
@@ -381,10 +352,7 @@ describe("the CIP text and the schemas", () => {
   })
 
   it("illustrates the request with a body from the examples", () => {
-    // The one payload in this specification with no `type` to name it by, so
-    // it travels inside an ```http block rather than a ```json one. It is held
-    // to the examples all the same: an example nothing validates teaches whatever
-    // its author last typed.
+    // No `type` to name it by, so it travels in an ```http block — held to the examples all the same.
     const bodies = [...source.matchAll(/```http\nPOST[\s\S]*?\n\n(\{[\s\S]*?)\n```/g)].map(
       (match) => JSON.parse(match[1]) as unknown
     )
@@ -454,10 +422,8 @@ describe("the obligations this step puts on both parties", () => {
 
 describe("build modes", () => {
   it("reserves the field a server-balanced Slip would declare", () => {
-    // ADR-0002 defers Mode B and requires the field be reserved. Reserving it
-    // in words alone would not do: a client MUST reject an undefined member,
-    // so an endpoint sending it would be malformed rather than unsupported,
-    // and Mode B would cost a major version it should not.
+    // Reserving it in words alone would not do: a client MUST reject an undefined
+    // member, so Mode B would cost a major version it should not.
     const declared = (discoverySchema["properties"] as Record<string, Record<string, unknown>>)["build"]
     expect(declared).toBeDefined()
     expect((discoverySchema["$defs"] as Record<string, Record<string, unknown>>)["buildMode"]["enum"]).toEqual([

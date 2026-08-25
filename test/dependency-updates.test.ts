@@ -4,14 +4,8 @@ import { describe, expect, it } from "vitest"
 import { parse } from "yaml"
 
 /**
- * Invariants for automated dependency updates. `.github/dependabot.yml` is a
- * file GitHub reads and nothing in this repository executes, so a typo in it
- * fails silently — as no pull requests, or as the wrong ones. These assertions
- * are the only thing standing between a broken key and a quarter of drift.
- *
- * They also pin the two properties issue #11 asked for and that are easy to
- * lose in a later edit: updates arrive grouped and weekly, and nothing merges
- * without a human and green CI.
+ * `.github/dependabot.yml` is read by GitHub and executed by nothing here, so a
+ * typo in it fails silently — as no pull requests, or as the wrong ones.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -46,17 +40,14 @@ describe("the dependabot configuration", () => {
   })
 
   it("covers npm and GitHub Actions", () => {
-    // Actions are the other thing that rots. `release.yml` publishes to npm on
-    // a pinned major; an unmaintained action there is a supply-chain problem,
-    // not a stale version number.
+    // `release.yml` publishes to npm on a pinned major, so an unmaintained action
+    // there is a supply-chain problem rather than a stale version number.
     expect([...updates.map(ecosystemOf)].sort()).toEqual(["github-actions", "npm"])
   })
 
   it("updates the whole pnpm workspace from a single root entry", () => {
-    // Splitting one pnpm workspace across several `directory` entries produces
-    // PRs that edit a package manifest and leave the root `pnpm-lock.yaml`
-    // alone (dependabot-core#11135), which then fails `pnpm install
-    // --frozen-lockfile` in CI. One entry at the root is the working shape.
+    // Several `directory` entries produce PRs that edit a manifest and leave the
+    // root lockfile alone (dependabot-core#11135), failing `--frozen-lockfile` in CI.
     const npm = updates.filter((update) => ecosystemOf(update) === "npm")
     expect(npm).toHaveLength(1)
     expect(npm[0]?.directory).toBe("/")
@@ -98,10 +89,8 @@ describe("the dependabot configuration", () => {
   })
 
   it("asks for no cooldown on actions, where the key is not supported", () => {
-    // GitHub rejects `cooldown` for the github-actions ecosystem, and a
-    // rejected key invalidates the entire file rather than the one entry — the
-    // npm updates would stop with it, silently. Actions keep GitHub's own
-    // three-day default instead.
+    // GitHub rejects `cooldown` for github-actions, and a rejected key invalidates
+    // the whole file rather than the one entry.
     const actions = updates.find((update) => ecosystemOf(update) === "github-actions")
     expect(actions?.cooldown).toBeUndefined()
   })
@@ -125,11 +114,8 @@ describe("nothing merges a dependency update on its own", () => {
   })
 
   it("enables auto-merge nowhere", () => {
-    // Auto-merge cannot be expressed in dependabot.yml; it takes a workflow
-    // calling `gh pr merge --auto` or an action that does. Merging a
-    // dependency update is a human decision taken after CI is green — issue
-    // #11's second acceptance criterion, kept honest here rather than in a
-    // comment.
+    // Auto-merge takes a workflow calling `gh pr merge --auto`; merging an update
+    // stays a human decision taken after CI is green.
     const enabling = workflows
       .filter(({ text }) => /--auto\b|enable-pull-request-automerge|automerge/i.test(text))
       .map(({ file }) => file)
@@ -146,9 +132,7 @@ describe("nothing merges a dependency update on its own", () => {
     expect(ci.on).toHaveProperty("pull_request")
     expect(ci.on?.pull_request ?? null).toBeNull()
 
-    // And the changeset gate is not waived for them: a bump that touches a
-    // package still needs a changeset pushed onto the branch before it can
-    // merge. CLAUDE.md admits no exception, so neither does this.
+    // The changeset gate is not waived for them either.
     expect(ci.jobs?.changeset?.if ?? "").not.toMatch(/dependabot/i)
   })
 })

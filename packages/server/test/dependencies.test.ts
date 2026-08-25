@@ -4,24 +4,16 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * The dependency rule, over the real code.
+ * `server` never imports `flow` or `verifier`: a dApp adding a Slip endpoint
+ * gets a request handler, not a React tree and not a CBOR decoder.
  *
- * `docs/ARCHITECTURE.md` states it in one line: `server` never imports `flow`
- * or `verifier`. What that buys is small and easy to lose — a dApp that adds a
- * Slip endpoint installs one package and gets a request handler, not a React
- * tree it will never render and not a CBOR decoder it has no use for.
+ * Both wrong imports look reasonable from inside a pull request. Reaching for
+ * `verifier` to check an intent before returning it has a real argument behind
+ * it and is still wrong — the comparison runs in the client, over the bytes the
+ * wallet is handed, so an endpoint running it would be checking its own work.
  *
- * It is easy to lose because both wrong imports look reasonable from inside a
- * pull request. Reaching for `verifier` to check an intent before returning it
- * is a tempting mistake with a real argument behind it, and it is still the
- * wrong package: the comparison that matters runs in the client, over the
- * bytes the wallet is about to be handed, and an endpoint that ran it too
- * would be checking its own work. Reaching for `flow` is the more ordinary
- * accident — a shared type, pulled in by a path nobody looked at.
- *
- * So the scan reads the sources rather than trusting the manifest. A
- * dependency can be undeclared and still imported, and the import is what
- * ends up in a consumer's install.
+ * The scan reads the sources rather than the manifest: a dependency can be
+ * undeclared and imported all the same.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
@@ -31,12 +23,10 @@ const sourceRoot = join(packageRoot, "src")
 const forbiddenPackages = ["@cardano-slips/flow", "@cardano-slips/verifier"]
 
 /**
- * The runtime dependencies `server` is allowed to carry. Widening it is a
- * judgement rather than something a test can settle, so it is recorded here
- * and CODEOWNERS routes the edit for review. A framework is deliberately
- * absent: the Next.js adapter arrives with its own issue, and it arrives as a
- * peer dependency — a publisher already has their framework, and a second copy
- * of it in their tree is a bug we would have shipped them.
+ * What `server` may carry. Widening it is a judgement a test cannot settle, so
+ * it is recorded here and CODEOWNERS routes the edit. A framework is absent on
+ * purpose: the Next.js adapter arrives as a peer dependency, because a second
+ * copy of a publisher's framework is a bug we would have shipped them.
  */
 const allowedDependencies = ["@cardano-slips/core", "effect"]
 
@@ -68,11 +58,7 @@ const sources = sourceFiles().map((path) => ({
   tree: ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.ES2022, true)
 }))
 
-/**
- * Every module specifier a file names — static imports, `export … from`,
- * `import()`, and `require()`. Regex over the text would miss the last two and
- * trip over the word "import" in a comment, of which this package has several.
- */
+/** Every module specifier a file names. Regex would miss `import()` and trip over the word in a comment. */
 function moduleSpecifiers(tree: ts.SourceFile): string[] {
   const found: string[] = []
   const step = (node: ts.Node): void => {
@@ -109,9 +95,7 @@ describe("the packages server may never reach for", () => {
   })
 
   it("imports neither of them anywhere in the sources", () => {
-    // The manifest is the promise; this is the code. A dependency can be
-    // undeclared and imported all the same, and the import is what reaches a
-    // consumer's install.
+    // The manifest is the promise; this is the code.
     const crossings = imported.filter(({ specifier }) => forbiddenPackages.includes(packageOf(specifier)))
     expect(crossings).toEqual([])
   })

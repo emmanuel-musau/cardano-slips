@@ -3,18 +3,10 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The decision records, read as a set.
- *
- * ADR-0008 renamed the protocol and decided, in writing, that earlier records
- * are left alone: an ADR says what was decided on the day it was decided, and
- * rewriting one to match today's vocabulary destroys the only thing it is for.
- *
- * The cost of that rule is that a reader meets `@cardano-actions/verifier` in
- * ADR-0005 and `.well-known/cardano-actions.json` in ADR-0006 with nothing to
- * tell them those names moved. ADR-0008 carries the mapping, and these tests
- * keep it complete: a stale name that appears in a record and not in the table
- * is a reader left guessing, and a stale name outside the records is a live
- * document that never got swept.
+ * ADR-0008 renamed the protocol and left earlier records alone: an ADR says what
+ * was decided on the day it was decided. The cost is that a reader meets the old
+ * names with nothing to tell them they moved, so ADR-0008 carries a mapping and
+ * these tests keep it complete.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -34,7 +26,6 @@ describe("the rename record", () => {
 
   it("reads every stale name it left behind", () => {
     // The table is the whole compensation for not editing the earlier records.
-    // A name missing from it is a name a reader has to guess at.
     const table = rename.slice(rename.indexOf("| Written in an earlier ADR |"))
     expect(table.length).toBeGreaterThan(0)
     const missing = stale.filter((name) => !table.includes(name))
@@ -68,9 +59,8 @@ describe("the documents that are not records", () => {
   })
 
   it("spells the publisher manifest the same way everywhere it is named", () => {
-    // Three current documents name the file — REQUIREMENTS, ARCHITECTURE and
-    // the glossary — and a filename that drifts between them is the defect the
-    // rename left in ADR-0006 happening again, in the documents people read.
+    // A filename drifting between them is the ADR-0006 defect happening again,
+    // in the documents people actually read.
     const naming = current.filter((path) => /well-known\/[a-z0-9-]+\.json/.test(read(path)))
     expect(naming.length).toBeGreaterThan(1)
     const wrong = naming

@@ -43,5 +43,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+  },
+  "dependencies": {
+    "effect": "^3.22.1"
   }
 }
