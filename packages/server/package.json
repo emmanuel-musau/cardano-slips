@@ -1,6 +1,6 @@
 {
   "name": "@cardano-slips/server",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The publisher side of Cardano Slips: defineSlip handlers validated against the core schemas before a response leaves the server, plus one framework adapter",
   "keywords": [
     "cardano",
