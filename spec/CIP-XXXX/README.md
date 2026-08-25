@@ -1,6 +1,6 @@
 ---
 CIP: "?"
-Title: Cardano Slips
+Title: Endpoint-Built Transaction Requests
 Category: Wallets
 Status: Proposed
 Authors:
@@ -27,7 +27,7 @@ transaction* carrying only the publisher's side of it. A client resolves the
 link, balances the transaction locally against the user's own unspent outputs
 — the endpoint never receives them — derives the transaction's exact effects
 from its body, and refuses to request a signature if those effects contradict
-the metadata the endpoint declared.
+the intent the endpoint declared.
 
 Because an eUTxO transaction fully determines its own effects and fee before
 submission, that comparison is arithmetic over the transaction body rather than
@@ -35,13 +35,14 @@ a simulation of it. A client can therefore establish what a transaction does
 without trusting its publisher, and no registry of approved publishers is
 required.
 
-This proposal also registers the `//slip` authority under [CIP-13], defines a
-`slips.json` mapping from human-readable paths to endpoints, and specifies the
-unavailable and failure states a client must render.
+This proposal defines a `slips.json` mapping from human-readable paths to
+endpoints, specifies the unavailable and failure states a client must render,
+and registers the `//slip` authority under [CIP-13] for platforms where a link
+cannot reach a client on its own. Nothing here depends on that authority: the
+protocol runs over ordinary links and the wallet interface wallets already
+expose.
 
 ## Motivation: Why is this CIP necessary?
-
-<!-- #14 drafts this; #21 finalises it against the frozen v1 shapes. -->
 
 [CPS-16] asks, as its third open question, what new authorities or protocols
 could be built to leverage Cardano URIs. This proposal is one answer.
@@ -77,8 +78,8 @@ existing authorities do not carry: the user is asked to sign something a third
 party constructed. [CIP-13]'s own security considerations raise the related
 concern of links that misrepresent where they lead. This proposal answers both
 by making client-side derivation of a transaction's effects mandatory, and a
-contradiction between derived effects and declared metadata a hard block on
-signing.
+contradiction between those effects and what the endpoint declared a hard block
+on signing.
 
 ## Specification
 
@@ -223,6 +224,74 @@ Cache-Control: public, max-age=300
   ]
 }
 ```
+
+### The `//slip` URI authority
+
+Everything specified in this document happens over ordinary `https:` links. A
+Slip is a URL; a client fetches it, and neither the person sharing it nor the
+person opening it needs anything they do not already have. **No requirement in
+this document depends on the authority registered here, and a conforming
+implementation never has to parse a `web+cardano:` URI at all.**
+
+What the authority is for is the case where a link cannot reach a client:
+a phone browser with no wallet connection to offer, a QR code scanned by a
+camera that hands what it read straight to a wallet. [CIP-13] defines the
+`web+cardano:` scheme for exactly that hand-off, and [CPS-16] requires every
+extension of it to register a unique authority. This registers `slip`.
+
+```
+web+cardano://slip/v1?uri=<percent-encoded absolute https URL of the Slip>
+```
+
+```
+web+cardano://slip/v1?uri=https%3A%2F%2Flinktap.example%2Fdelegate%2FPOOL1
+```
+
+The grammar is [CIP-158]'s, which is Active and implemented: a fixed authority
+token, a version as the first path segment, and the payload as a percent-encoded
+query value. Nothing here is new, and that is deliberate — a handler that already
+parses `web+cardano://browse/v1?uri=...` parses this by changing one token.
+
+- **The authority token is fixed, and a variable MUST NOT follow `//`.** What
+  follows `//` is the URI authority under [RFC 3986] §3.2, so a handler reading a
+  value there is reading it as a host. The `web+cardano:` family paid for this
+  rule once already: one wallet shipped `web+cardano:<address>` and another
+  shipped `web+cardano://<address>`, and payment links did not work across both
+  for a year.
+- **The version is in the path from the first release.** `/v1` is the major
+  version of this document, and it carries the same number as `version` in every
+  response. A URI whose path segment names a major version the handler does not
+  implement MUST be refused, and MUST NOT be fetched.
+- **`uri` is REQUIRED, and this version defines no other query parameter.** A
+  handler MUST reject a URI carrying one, for the reason every shape in this
+  document rejects an undeclared member: it is either a version the handler has
+  not been told about or a payload it has misidentified.
+- **The value MUST be a single absolute `https:` URL, percent-encoded.** A
+  handler MUST refuse any other scheme, and MUST NOT accept a relative reference
+  — there is nothing here for one to be relative to.
+
+**A handler resolves the target exactly as any other client resolves a link.**
+The URI carries a link and confers nothing on it: `slips.json` still applies,
+discovery still applies, the effects are still derived from the transaction body,
+and the comparison still blocks the signature where they disagree. A handler
+that treated a Slip as pre-approved because it arrived in a URI would have
+inverted the protocol —
+the URI is the one part of it an attacker can write in full, into a QR code, onto
+a poster.
+
+**The origin is still what the person is dealing with.** A `web+cardano:` URI
+hides the URL it carries behind percent-encoding, so a handler MUST render the
+resolved origin under [Origin spoofing](#origin-spoofing) before anything can be
+signed, and MUST NOT render any part of the URI in its place.
+
+Registration is the whole of what this section asks of a wallet, and it asks it
+of no wallet in particular. Where a wallet implements the authority, a shared
+link reaches it directly. Where none does — which is what [CIP-13]'s record
+since 2020 should lead anyone to plan for — a person on a phone opens the same
+link in a browser, or reaches a wallet's in-app browser through [CIP-158]
+`//browse`, and the flow this document specifies runs there unchanged over
+CIP-30. That is why no criterion in [Path to Active](#acceptance-criteria) asks
+a wallet to implement this authority, and why none may be added that does.
 
 ### Discovery
 
@@ -1549,6 +1618,32 @@ be added to a shape compatibly, and a change that cannot be ignored is not a
 minor change. Every change to a shape is therefore a new major version, and the
 number stays a single integer.
 
+**These are the shapes version 1 defines, and there are no others.** Every
+payload this protocol carries is one of them, and each is governed by a schema
+under [`schemas/`](./schemas):
+
+| Shape | Specified in | Schema |
+|---|---|---|
+| the domain mapping | [Domain mapping](#domain-mapping) | [`slips-json.schema.json`](./schemas/slips-json.schema.json) |
+| the discovery response | [The discovery response](#the-discovery-response) | [`slip-get-response.schema.json`](./schemas/slip-get-response.schema.json) |
+| the build request | [Building the transaction](#building-the-transaction) | [`slip-post-request.schema.json`](./schemas/slip-post-request.schema.json) |
+| the partial intent | [The partial intent](#the-partial-intent) | [`slip-partial-intent.schema.json`](./schemas/slip-partial-intent.schema.json) |
+| a failure, as an endpoint may send it | [Failure responses](#failure-responses) | [`slip-error-response-endpoint.schema.json`](./schemas/slip-error-response-endpoint.schema.json) |
+| a failure, as a client must read it | [Failure responses](#failure-responses) | [`slip-error-response.schema.json`](./schemas/slip-error-response.schema.json) |
+
+Six vocabularies are closed alongside them, and each is closed in the same
+sense: a value outside it is not an extension but a payload a conforming
+implementation rejects. They are the networks, the parameter types, the
+certificate types, the build modes, the [failure codes](#failure-responses),
+and the [reasons a client reports a block](#blocking).
+
+Adding a field, removing one, widening a vocabulary, or changing what any of
+them means is version 2. There is no compatible change to make here, and that
+is the trade this document took deliberately: a client rejects what it does not
+recognise, so nothing can be slipped into a shape between versions — and an
+effect that reached a person through a field their client did not model is the
+one failure this whole protocol exists to prevent.
+
 **One URL speaks one major version.** There is no negotiation. A client sends no
 version, and an endpoint MUST NOT vary the response body by request header:
 discovery is required to return the same bytes to every requester, and a
@@ -1569,50 +1664,269 @@ happens to recognise, from a response it has admitted it does not understand, is
 precisely the gap between what is shown and what is signed that this protocol
 exists to close.
 
-<!--
-Filled incrementally, one section per issue. Add subsections here rather than
-new top-level headings — CIP-0001 fixes the H2 set.
-
-The `//slip` authority registration and its versioned grammar belong here
-too — see docs/DECISIONS/0007-action-authority.md. Shapes freeze at #21.
-
-Two rules the ecosystem has already paid for (docs/ECOSYSTEM.md §1):
-
-  - Quantities are integer base units, never decimals-adjusted, typed as
-    strings. Display decimals travel separately and are never authoritative.
-    Mishandled decimals on `amount` is the most repeated bug in the
-    web+cardano family. Applies to #17 and to the mismatch rules in #19.
-  - The authority follows CIP-158's shipped shape —
-    `web+cardano://browse/v1?uri=...`: fixed authority token, /v1 path
-    segment, query payload. Never a variable directly after `//`.
--->
-
 ## Rationale: How does this CIP achieve its goals?
 
-<!--
-Written at #21, once the shapes are frozen. Must cover: why client-side
-balancing is the only v1 mode (docs/DECISIONS/0002); why effects derivation
-replaces a publisher registry; how this relates to CIP-13, CIP-99 and CIP-157;
-and how it answers CPS-16. Unresolved questions belong here as an
-`### Open Questions` subsection, not as a top-level heading.
--->
+This proposal makes one claim: a person can be shown what a transaction does
+before they sign it, without trusting whoever published the link that produced
+it. Every decision below follows from that claim, and each is stated with the
+cost it carries — the ones that were expensive are the ones worth recording.
+
+### Why derived effects replace a registry of publishers
+
+A protocol where a third party builds the transaction has to answer how the
+person knows what they are signing. There are only two answers. Either the
+client establishes **who** published the link, or it establishes **what** the
+transaction does.
+
+Establishing who takes the shape of a list: an allowlist of approved endpoints,
+a verified badge, a review queue, a client that warns on anything outside it.
+Every version of it has the same three properties. Someone has to run it, which
+makes the protocol depend on a party that can stop paying for it. Someone has to
+be turned down by it, which makes permission the default and a public good into
+a gate. And it answers the wrong question anyway: an approved publisher who
+changes one line of their endpoint is still approved, and the list has no way to
+notice.
+
+Establishing what is available here in a way it is not on every ledger. An
+eUTxO transaction names its inputs, its outputs, its fee, its certificates, its
+withdrawals, its mint and its validity interval, and the ledger's rules are
+deterministic — the transaction that will be submitted is the transaction that
+was built, and its effects are fixed before it is signed rather than settled by
+the state it meets on arrival. Deriving them is arithmetic over the body, not a
+simulation of it, and arithmetic needs no permission from anybody.
+
+So the client derives, compares against what the endpoint declared, and blocks
+where the two disagree. What that buys is the thing a registry cannot: the
+guarantee holds for a publisher nobody has ever heard of, on their first day,
+with no application to make and nobody to approve them — and it holds against a
+publisher who was approved and has since changed their mind.
+
+The cost is a real one and it is paid by clients. A conforming client must
+decode a transaction body completely, model every member an era defines, and
+refuse the ones it cannot read; a lenient decoder defeats every rule in [The
+comparison](#the-comparison), because the member it skipped is exactly the
+undeclared effect. That obligation is why this document says so much about
+decoding and so little about trust.
+
+### Why the client balances, and the endpoint never sees a UTxO
+
+Balancing a transaction requires the wallet's unspent outputs. Whoever balances
+therefore holds them, and that single fact decided the shape of the build
+request.
+
+A UTxO set is not one more field of telemetry. It is every asset the person
+holds, every quantity, and — through the addresses holding them — which of those
+holdings belong together, handed to a party this document assumes is dishonest
+and cannot be recovered afterwards. A signature can be refused after the fact; a
+disclosure cannot.
+
+So version 1 balances in the client, and the build request is a closed object of
+two fields with no shape through which a UTxO set could travel. The property is
+structural rather than promised, which is the only form of it worth having: an
+endpoint cannot ask, a client cannot answer, and a conforming implementation of
+either has nowhere to put the data.
+
+Three costs come with it, and all three are accepted. A client has to carry
+transaction-building code, which is more than a link handler would otherwise
+need. A publisher cannot express an intent that depends on selecting particular
+inputs, which is most script-driven work. And a publisher cannot subsidise a
+fee, because the transaction is assembled on the other side of the wire.
+
+`build: "server"` names the mode where that changes and reserves it without
+defining it, so that the disclosure is declared before it happens and a client
+that has not agreed to it can refuse — which a version 1 client does, with
+`UNSUPPORTED_BUILD_MODE`.
+
+### Why the intent is the declaration, and the words never are
+
+The obvious design compares the transaction against the metadata the card
+showed. It cannot be done. A `title`, a `description` and a `message` are
+sentences a publisher wrote; a schema cannot read a sentence and arithmetic
+cannot contradict one, and a comparison that pretends otherwise is a check that
+passes whatever the words say.
+
+What `POST` returns is therefore a shape whose every field is an integer count
+of base units, an address, a pool id or a DRep id — a declaration in the same
+terms as the thing derived from the transaction. The words are still rendered,
+still bounded, still plain text. They are just never what the transaction is
+held to, and [Metadata that lies](#metadata-that-lies) says so where a reviewer
+will look for it.
+
+The same reasoning removed every field an endpoint could have stated and the
+ledger determines anyway: the fee, a deposit, a refund, a stake credential, a
+reward balance. A declared value that is right is redundant; one that is wrong
+is a figure shown to a person who had no way to check it. Not having the field
+is stronger than validating it.
+
+### Why the comparison admits no tolerance
+
+Both sides are integer counts of base units, so a margin is not an engineering
+allowance — it is a budget, and an attacker who works inside it is inside every
+transaction this protocol carries. The margins that get proposed, a few lovelace
+or a percent of the fee, are worth more than most of the payments in scope.
+
+What a tolerance is usually reaching for is the fee, the ledger's minimum ADA on
+an output, and a deposit — three quantities the endpoint genuinely cannot
+predict. Each is answered as an exact value with a stated cause rather than as
+slack: the raise to an output's minimum is computed, a deposit is a protocol
+parameter, and the fee is bounded by the minimum for the transaction as built
+plus one change output's minimum ADA, which is the only reason a balancer
+legitimately exceeds the minimum. The result is a comparison that is strict
+everywhere and still describes real transactions.
+
+### Why a client rejects what it does not recognise
+
+Every shape here forbids undeclared members, and this document has no minor
+versions as a consequence. That is not tidiness. A protocol that ignores
+unknown fields is a protocol in which a field can carry an effect no comparison
+covers, to a client that renders everything around it and never mentions it —
+which is the whole failure, arriving through the extension mechanism rather than
+around it.
+
+The price is that every change costs a major version and one URL speaks one
+version. A publisher supporting two publishes two URLs, exactly as they already
+publish one per network. That is a real burden on publishers, taken knowingly in
+exchange for a client that can never be handed something it will silently pass
+over.
+
+### Where this sits among the existing proposals
+
+| Proposal | Standing | Relationship |
+|---|---|---|
+| [CIP-13] | Proposed since 2020, `Implementors: N/A` | Defines the scheme this registers an authority under. Its security considerations name the hijacked link; the origin rules and the ban on cross-origin `href`, mapping and redirect are the answer. |
+| [CPS-16] | Open problem statement | This proposal answers its third open question and registers a unique authority as it requires. |
+| [CIP-99] | Active, five wallet implementors | The precedent. A wallet already `POST`s to a project's server from a link and reads a structured JSON reply — that shape is accepted. What CIP-99 does not do is return a transaction the person authorises: its server builds, signs, submits and pays. This adds exactly that, and takes CIP-99's route to Active with it. |
+| [CIP-157] | Open PR since 2024-06 | A static payment shape fixed in the URI. Not extended: attaching arbitrary intents to four query parameters inherits the stall without gaining anything, and CPS-16 prefers a discrete CIP. |
+| [CIP-158] | Active, implemented | The grammar of `//slip` is CIP-158's, unchanged. It is also the mobile entry point that needs nothing from this proposal: `//browse` lands a link in the wallet's in-app browser, where CIP-30 is injected and this flow runs as it does on a desktop. |
+| [CIP-186] | Merged, three converging implementations | The transport a native mobile client would use. It cannot carry a hosted page — its source-app check requires an installed app with a bundle id — so it is a future client of this protocol, not a competitor. Its commit binding over the transaction body and its append-only witness merge are patterns worth following. |
+| [CIP-170] | Proposed | The identity half. It anchors a digest and resolves an identifier; it defines no publisher payload and no origin-to-identifier binding, so this document specifies how such a layer may behave rather than pretending it exists. |
+| CIP-30 | The interface wallets already expose | The whole of what this protocol asks of a wallet: report the network and the addresses, sign a body, return a witness set. No wallet has to change for a conforming client to work. |
+
+### How this answers CPS-16
+
+CPS-16 asks what new authorities or protocols could be built on Cardano URIs,
+and observes that each existing one fixes a single transaction shape in the URI
+itself. The pattern it describes is the cost: every new kind of shareable
+action is a new CIP and a new round of persuading each wallet separately, and
+the support matrices for the authorities that took that route show what it
+yields.
+
+This proposal is the general case of that pattern. One authority, one endpoint
+contract, and the transaction's shape carried in a response rather than in the
+URI — so a new kind of Slip is a publisher writing an endpoint, not an
+ecosystem writing a standard. The reason it can be general and still safe is
+that the client checks the transaction rather than the URI, which is the part
+CPS-16's existing extensions get for free by having no room to lie in.
+
+### Future work
+
+Everything below was considered and deliberately left out of version 1. Each is
+recorded with what it would cost, because a reader's fair question about an
+absent feature is whether it was missed or refused.
+
+- **Server-balanced builds.** `build: "server"` is reserved and undefined. What
+  is missing is the request shape, and the consent rule that must bind before
+  one exists: a client discloses a UTxO set only after telling the person what
+  is disclosed and to whom, per endpoint, per occasion, never remembered. Both
+  requirements are already normative in [Server-balanced builds, and what they
+  disclose](#server-balanced-builds-and-what-they-disclose).
+- **Publisher identity.** [CIP-170] supplies attestation and leaves the half a
+  client needs first — a publisher payload, and a binding from an origin to an
+  identifier. The ecosystem's existing pattern for a runtime trust anchor is an
+  origin-anchored document under `/.well-known/`. The four rules such a layer
+  must obey are fixed in [Publisher identity](#publisher-identity), and the
+  first of them is that it may never relax the comparison.
+- **Script actions, and required signers with them.** A transaction spending
+  from a script address, minting, or carrying a script certificate can express
+  intents this version cannot, and required signers become meaningful the moment
+  something can read them. Both need declaration shapes, and the comparison
+  needs rules for effects a script produces. A new major version.
+- **Mint and burn.** Version 1 blocks them rather than describing them, because
+  a mint declared in terms a person can check is a shape nobody has written yet.
+- **Parameter types carrying Cardano validation** — an address, an asset amount
+  with its decimals. Absent because their validation rules would be specified
+  before an implementation exists to check them against, and a wrong rule about
+  decimals is the most expensive kind in this family.
+- **Asset display decimals.** Deliberately unavailable to a publisher, and the
+  reason is in [The partial intent](#the-partial-intent). Resolving them from
+  on-chain metadata is a client concern and belongs in a client's own
+  specification, never in a field an endpoint fills.
+- **A CIP-186 transport.** A native mobile client would reach a wallet through
+  CIP-186 rather than CIP-30. Nothing in this document prevents it; the
+  derivation and the comparison are transport-independent, and the work is a
+  client's, not this protocol's.
+- **Fee subsidy.** A publisher cannot pay a person's fee in a client-balanced
+  transaction. Whether a version could, without handing the endpoint the input
+  selection, is genuinely open.
 
 ## Path to Active
 
 ### Acceptance Criteria
 
-<!--
-Written at #21, under one hard constraint: no criterion may require a wallet
-to implement a URI authority. That criterion is what has held CIP-13 at
-Proposed since 2020 and CIP-157 open since 2024 (docs/ECOSYSTEM.md §1). M1
-runs on ordinary https:// links and CIP-30, so these criteria are met by
-publishers, our own client and the reference integration. CIP-99 is the
-template: reference server, real use case, wallet co-author.
--->
+- [ ] **Two independent implementations of the comparison** produce the verdict
+      this document requires for every case in
+      [`../examples/effects/verdicts.json`](../examples/effects/verdicts.json),
+      including every case that MUST block. Independent means written from this
+      document rather than from each other's code.
+- [ ] **A conforming client and a conforming Slip endpoint**, both open source
+      under an OSI-approved licence, each passing every payload in
+      [`../examples/`](../examples): every `valid/` accepted, every `invalid/`
+      rejected, every `invalid/rule/` rejected after it has passed its schema.
+- [ ] **At least two publishers unaffiliated with the authors** operate a Slip
+      endpoint on mainnet, and their Slips complete end to end from a shared
+      link.
+- [ ] **The full flow — discovery, build, balance, derive, compare, sign,
+      submit — verified against at least three CIP-30 wallets on mainnet,
+      requiring no change to any of them**, with the results published per
+      wallet and per version.
+- [ ] **A published set of attack transactions, every one blocked**, and a
+      report saying so. The set is permanent and grows: any transaction that
+      should have been blocked and was not becomes a case in it.
+- [ ] **The `//slip` authority registered** in CPS-16's list of authorities.
+      Registration is a list entry, not an implementation, and nothing else
+      here depends on it.
+
+**No criterion above asks a wallet to implement a URI authority, and none may
+be added that does.** That is a deliberate constraint rather than an oversight,
+and the record it is drawn from is specific: [CIP-13] has been `Status:
+Proposed` with `Implementors: N/A` since 2020, [CIP-157] has been an open pull
+request since June 2024, and a third authority proposal was closed by the
+editors in May 2026 after two years without a specification. In every case the
+work was finished and the criterion that was never met was somebody else's
+adoption.
+
+Everything above is instead met by the parties who have a reason to act: the
+publishers who want to be paid, the client that renders the Slip, and the
+implementers who can run the examples without asking anyone's permission.
+Wallets appear once, as the thing the client is verified against — through
+CIP-30, which they already expose, and which no conforming client asks them to
+change.
 
 ### Implementation Plan
 
-<!-- Written at #21. -->
+- [ ] **Reference implementations**, published to npm under an OSI-approved
+      licence and versioned together: the schemas and link resolution, the
+      derivation and comparison engine, an endpoint framework, and a client.
+      The comparison engine is the one that matters — it is what an implementer
+      checks their own against.
+- [ ] **The conformance examples published with this CIP**, runnable by an
+      implementation that has read none of our code. They are already in
+      [`../examples/`](../examples) with a directory per shape and a stated
+      reason for every rejection case.
+- [ ] **A hosted client and a self-hostable one**, so that a publisher who wants
+      to run nothing still has a working Slip and a publisher who wants to run
+      everything can.
+- [ ] **A reference integration on mainnet** — a stablecoin payment Slip behind
+      a human URL, on preprod first — as the concrete use case [CIP-99] had and
+      [CIP-157] did not.
+- [ ] **A wallet co-author**, sought through the CPS-16 discussion and the
+      editors' wallet contact list. This is the ingredient CIP-99 had and every
+      stalled URI proposal lacked. It is in the plan and not in the criteria,
+      because it is the one item no amount of our own work can guarantee.
+- [ ] **This CIP submitted after the implementation runs on mainnet**,
+      documenting behaviour that already works rather than behaviour that is
+      intended. Deltas found between the two are reconciled in the text before
+      submission.
 
 ## Copyright
 
@@ -1620,6 +1934,7 @@ This CIP is licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4
 
 [CIP-13]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0013
 [CIP-99]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0099
+[CIP-158]: https://github.com/cardano-foundation/CIPs/tree/master/CIP-0158
 [CPS-16]: https://github.com/cardano-foundation/CIPs/tree/master/CPS-0016
 [RFC 2119]: https://www.rfc-editor.org/rfc/rfc2119
 [RFC 8174]: https://www.rfc-editor.org/rfc/rfc8174

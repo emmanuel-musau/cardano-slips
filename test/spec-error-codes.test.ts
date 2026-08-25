@@ -420,7 +420,7 @@ describe("the CIP's cross-references", () => {
     // #15 wrote two sentences deferring to "the error codeTable" in words,
     // because there was no section to link to yet. Both are links now, and a
     // CIP that cross-references itself can start rotting quietly as sections
-    // are renamed on the way to the freeze.
+    // are renamed on the way to a complete draft.
     const slug = (heading: string): string =>
       heading
         .toLowerCase()
