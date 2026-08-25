@@ -4,7 +4,14 @@
   // Root configs every package inherits. A change here must invalidate every
   // cached task, or a tightened compiler flag silently never re-runs.
   // The lockfile and pnpm-workspace.yaml are hashed by turbo already.
-  "globalDependencies": ["tsconfig.base.json", ".npmrc"],
+  //
+  // `spec/**` is global because the examples are read from outside the package
+  // that reads them: `core` decodes every payload under `spec/examples` to
+  // prove its schemas and the CIP's agree, and turbo's per-package inputs
+  // cannot reach up out of the package directory. Without it, an edit to a
+  // schema or an example would be answered with a cached pass over the version
+  // nothing read — the same false green the `format:check` note below refuses.
+  "globalDependencies": ["tsconfig.base.json", ".npmrc", "spec/**"],
 
   "tasks": {
     "build": {

@@ -8,4 +8,5 @@
  * resolution, `slips.json` mapping, and the error codes
  * (docs/ARCHITECTURE.md).
  */
-export {}
+export * from "./types.js"
+export * from "./errors.js"
