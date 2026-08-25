@@ -1,0 +1,53 @@
+{
+  "name": "@cardano-slips/server",
+  "version": "0.0.0",
+  "description": "The publisher side of Cardano Slips: defineSlip handlers validated against the core schemas before a response leaves the server, plus one framework adapter",
+  "keywords": [
+    "cardano",
+    "cardano-slips",
+    "endpoint",
+    "nextjs",
+    "transaction"
+  ],
+  "homepage": "https://github.com/emmanuel-musau/cardano-slips/tree/main/packages/server#readme",
+  "bugs": "https://github.com/emmanuel-musau/cardano-slips/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmanuel-musau/cardano-slips.git",
+    "directory": "packages/server"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+  },
+  "dependencies": {
+    "@cardano-slips/core": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}
