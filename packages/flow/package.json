@@ -1,0 +1,62 @@
+{
+  "name": "@cardano-slips/flow",
+  "version": "0.0.0",
+  "description": "The client side of Cardano Slips: CIP-30 orchestration, local balancing, and the React components that render a Slip and block a signature when its effects disagree",
+  "keywords": [
+    "cardano",
+    "cardano-slips",
+    "cip-30",
+    "react",
+    "wallet"
+  ],
+  "homepage": "https://github.com/emmanuel-musau/cardano-slips/tree/main/packages/flow#readme",
+  "bugs": "https://github.com/emmanuel-musau/cardano-slips/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmanuel-musau/cardano-slips.git",
+    "directory": "packages/flow"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@cardano-slips/core": "workspace:^",
+    "@cardano-slips/verifier": "workspace:^"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.18",
+    "happy-dom": "^20.11.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^6.0.3"
+  }
+}

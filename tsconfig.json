@@ -8,6 +8,7 @@
   "include": [],
   "references": [
     { "path": "packages/core/tsconfig.src.json" },
+    { "path": "packages/flow/tsconfig.src.json" },
     { "path": "packages/server/tsconfig.src.json" },
     { "path": "packages/verifier/tsconfig.src.json" }
   ]
