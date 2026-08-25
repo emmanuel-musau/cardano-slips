@@ -1,6 +1,6 @@
 {
   "name": "@cardano-slips/flow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "The client side of Cardano Slips: CIP-30 orchestration, local balancing, and the React components that render a Slip and block a signature when its effects disagree",
   "keywords": [
     "cardano",
