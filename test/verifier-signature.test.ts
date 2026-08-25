@@ -4,23 +4,13 @@ import { describe, expect, it } from "vitest"
 
 /**
  * The verifier's stated signature, and the four places that state it (#107).
+ * Two terms were found after the fact — resolved inputs by the CBOR decode
+ * proof (ADR-0010), protocol parameters by the effects section — and both times
+ * the term was fixed in one document and left stale in the others.
  *
- * `verifier` is a pure function, and which arguments it takes is the whole of
- * hard invariant 1. Two of the terms were found after the fact: resolved inputs
- * by the CBOR decode proof (ADR-0010), and protocol parameters by the effects
- * section of the spec, which cannot bound a fee, check the raise of an output to
- * the ledger minimum, tell a deposit from a spend, or show an expiry as a time
- * without them. Both times the term was discovered in one document and left
- * stale in the others, which is exactly the drift this file exists to catch.
- *
- * The stakes are not documentation tidiness. A term that reaches an
- * implementation as "and whatever else you need" gets fetched at the moment it
- * is wanted — mid-derivation, over the network, from a service that can be
- * slow, absent or hostile — and the check that stands between a person and a
- * signature acquires a dependency that can make it fail open.
- *
- * This asserts the statements agree. The no-I/O test over the real code lands
- * with the package; a comment is not a guarantee, and neither is a sentence.
+ * A term reaching an implementation as "whatever else you need" gets fetched
+ * mid-derivation, from a service that can be slow, absent or hostile, and the
+ * check between a person and a signature acquires a way to fail open.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -67,9 +57,8 @@ describe("the signature the docs state", () => {
 })
 
 describe("what derivation itself takes", () => {
-  // Four of the five: the declared metadata takes no part in the arithmetic,
-  // only in the comparison that follows it. An implementation handed the
-  // publisher's claims while deriving is one that can be tempted to use them.
+  // Four of the five: declared metadata takes no part in the arithmetic, only in
+  // the comparison after it.
   const derivation = [
     "the transaction bytes",
     "the value of every input the body spends",

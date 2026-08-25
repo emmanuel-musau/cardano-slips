@@ -1,8 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // Repo-level tests. They belong to no package, so nothing else would
-  // typecheck them — `pnpm typecheck` runs this through `//#typecheck:repo`.
+  // Repo-level tests belong to no package, so nothing else would typecheck them.
   "extends": "../tsconfig.test.json",
   "include": ["."]
 }

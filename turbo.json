@@ -1,10 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
 
-  // Root configs every package inherits. A change here must invalidate every
-  // cached task, or a tightened compiler flag silently never re-runs.
-  // The lockfile and pnpm-workspace.yaml are hashed by turbo already.
-  "globalDependencies": ["tsconfig.base.json", ".npmrc"],
+  // A change here must invalidate every cached task. `spec/**` is global
+  // because `core` reads the examples from outside its own directory, and
+  // turbo's per-package inputs cannot reach up out of the package.
+  "globalDependencies": ["tsconfig.base.json", ".npmrc", "spec/**"],
 
   "tasks": {
     "build": {
@@ -12,9 +12,8 @@
       "outputs": ["dist/**"]
     },
 
-    // `^build` is not optional here: NodeNext resolves a workspace dependency
-    // through its emitted .d.ts, so typechecking `flow` requires `core` to
-    // have been built. Same reason `test` waits on it.
+    // NodeNext resolves a workspace dependency through its emitted .d.ts, so
+    // `^build` is not optional. Same reason `test` waits on it.
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": []
@@ -30,11 +29,7 @@
       "outputs": []
     },
 
-    // Root-level sources are in no workspace package, so `turbo run lint`
-    // would skip them entirely — eslint.config.js and vitest.config.ts would
-    // go unlinted, and CI would be green having checked nothing. These two
-    // `//#` tasks run against the repo root and are invoked by `pnpm lint`
-    // alongside the per-package task.
+    // Root-level sources are in no package, so `turbo run lint` would skip them.
     "//#lint:root": {
       "inputs": ["eslint.config.js", "test/**", "*.ts", "*.js", "*.mjs", "*.cjs"],
       "outputs": []
@@ -46,22 +41,15 @@
       "outputs": []
     },
 
-    // Repo-level invariants (test/), in no workspace package — same reason
-    // `//#lint:root` exists. `turbo run test` alone would never run them.
-    // `spec/**` is an input because the CIP structure is asserted in
-    // test/spec-skeleton.test.ts: without it turbo serves a cached pass over a
-    // draft it never read, which is the same false green the format:check note
-    // below refuses. Anything else these tests read from disk belongs here too.
+    // Same reason as `//#lint:root`. Anything these tests read from disk
+    // belongs in `inputs`, or turbo serves a cached pass over what it never read.
     "//#test:repo": {
       "inputs": ["test/**", "spec/**", "vitest.config.ts", ".changeset/config.json", "*/*/package.json"],
       "outputs": []
     },
 
-    // Deliberately uncached. Prettier reads the whole tree — every md, json,
-    // yaml and source file in and out of the packages — and an `inputs` glob
-    // that drifts out of sync with that would serve a cached pass for files
-    // it never looked at. A false green on formatting is worse than the
-    // second this takes.
+    // Uncached: Prettier reads the whole tree, and an `inputs` glob that drifted
+    // out of sync would serve a cached pass over files it never looked at.
     "//#format:check": {
       "cache": false,
       "outputs": []

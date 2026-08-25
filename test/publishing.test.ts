@@ -3,11 +3,9 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * Invariants that decide what reaches npm. They are deliberately written
- * against the workspace as it exists on disk, so they start passing over an
- * empty `packages/` and turn real the moment a package lands — a scaffolded
- * package that cannot be published, or that would break an install, fails
- * here rather than at `changeset publish` on main.
+ * What reaches npm. Written against the workspace on disk, so a scaffolded
+ * package that cannot be published fails here rather than at `changeset
+ * publish` on main.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -16,11 +14,8 @@ const root = join(import.meta.dirname, "..")
 const workspaceRoots = ["packages", "apps", "examples"] as const
 
 /**
- * The packages that ship to npm — docs/DECISIONS/0005-package-names.md and
- * docs/WORKFLOW.md. `identity` is absent on purpose: `flow` consumes it, but
- * whether it exists at all is CIP-0170's go/no-go (#63). It stays private
- * until that decision lands, and the PR that flips it is the PR that adds it
- * to this list.
+ * The packages that ship to npm (ADR-0005). `identity` is absent on purpose:
+ * whether it exists at all is CIP-0170's go/no-go (#63).
  */
 const publishable = ["@cardano-slips/core", "@cardano-slips/server", "@cardano-slips/verifier", "@cardano-slips/flow"]
 
@@ -85,15 +80,12 @@ describe("what reaches npm", () => {
 })
 
 describe("every published package", () => {
-  // Written as one assertion over a collected report rather than `it.each`:
-  // `packages/` is empty until #22, and `it.each([])` is an empty suite, which
-  // Vitest fails outright. This shape passes vacuously today and names every
-  // offending package at once later.
+  // One assertion over a collected report rather than `it.each`, which Vitest
+  // fails outright when the list is empty.
   it("is publishable as configured", () => {
     const misconfigured = published.flatMap((pkg) => {
       const problems: string[] = []
-      // Scoped packages default to `restricted`, npm's paid product; without
-      // this the first publish fails with a 402.
+      // Scoped packages default to `restricted`, so the first publish 402s without this.
       if (pkg.manifest.publishConfig?.access !== "public") {
         problems.push('publishConfig.access must be "public"')
       }
@@ -108,9 +100,8 @@ describe("every published package", () => {
   })
 
   it("does not depend on an unpublished workspace package", () => {
-    // `pnpm publish` rewrites `workspace:^` into a real version range. If the
-    // target was never published, `npm install` of this package fails hunting
-    // for something that does not exist on the registry.
+    // `pnpm publish` rewrites `workspace:^` into a real range, which a consumer's
+    // install then hunts for on the registry.
     const broken = published.flatMap((pkg) => {
       const shipped = {
         ...pkg.manifest.dependencies,

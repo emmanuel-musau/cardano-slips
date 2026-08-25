@@ -1,31 +1,21 @@
 import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-// Named rather than default: ajv is CommonJS, and its default export only
-// resolves to the class under `esModuleInterop`, which the base tsconfig does
-// not enable. The named class is the same object and typechecks as one.
+// Named, not default: ajv is CommonJS and its default export only resolves to
+// the class under `esModuleInterop`, which the base tsconfig does not enable.
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js"
 import { describe, expect, it } from "vitest"
 
 /**
- * The `slips.json` domain mapping (#16).
+ * The `slips.json` domain mapping (#16) — the one mechanism that lets one URL
+ * stand for another, which is the hijack CIP-13's security considerations name.
  *
- * This is the one mechanism in the protocol that lets one URL stand for
- * another, which is the hijack CIP-13's own security considerations name. The
- * spec already forbids a cross-origin `href` on a linked action and points here
- * as the sanctioned indirection; the tests below are what make that sentence
- * true rather than merely written.
+ * The safety property is structural: `apiPath` is a path-absolute reference, so
+ * another host is unrepresentable rather than forbidden, and there is no origin
+ * comparison for an implementation to skip.
  *
- * The safety property is structural, not procedural: `apiPath` is a
- * path-absolute reference, so another host is unrepresentable rather than
- * forbidden. There is no origin comparison for an implementation to skip.
- *
- * A shape test proves very little about a rewriting algorithm, so the spec
- * also publishes a resolution table — rule sets, input paths, expected results
- * — and this file runs it against a reference resolver of the specified
- * algorithm. That is a weaker claim than the schema tests make: it shows the
- * table agrees with an implementation of the spec rather than with the spec
- * itself. `core`'s `slips-json.ts` runs the same table, and the day the two
- * disagree is the day one of them is wrong in a way a reader can check.
+ * A shape test proves little about a rewriting algorithm, so the spec publishes
+ * a resolution table and this runs it against a reference resolver.
+ * `core`'s `slips-json.ts` runs the same table.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -57,12 +47,7 @@ type Rejection = {
   readonly param?: string
 }
 
-/**
- * `absolute-api-path.json` is the first case for the same reason
- * `utxos-in-the-body.json` leads the build examples: it is the payload the whole
- * mechanism exists to make unexpressible, and it fails on the grammar rather
- * than on a rule someone has to remember to run.
- */
+/** First case: the payload the mechanism exists to make unexpressible, failing on the grammar. */
 const schemaRejections: ReadonlyArray<Rejection> = [
   { file: "absolute-api-path.json", keyword: "pattern", instancePath: "/rules/0/apiPath" },
   { file: "protocol-relative-api-path.json", keyword: "pattern", instancePath: "/rules/0/apiPath" },
@@ -79,10 +64,7 @@ const schemaRejections: ReadonlyArray<Rejection> = [
   { file: "too-many-rules.json", keyword: "maxItems", instancePath: "/rules" }
 ]
 
-/**
- * Two rules a JSON Schema cannot express, and both are about a relationship
- * between values rather than the shape of one.
- */
+/** Two rules about a relationship between values rather than the shape of one. */
 const ruleRejections: ReadonlyArray<{ readonly file: string; readonly rule: RegExp }> = [
   { file: "wildcard-count-disagrees.json", rule: /the same wildcards, of the same kinds, in the same order/ },
   { file: "wildcard-kind-disagrees.json", rule: /the same wildcards, of the same kinds, in the same order/ },
@@ -116,10 +98,8 @@ describe("the slips.json schema", () => {
   })
 
   it("makes another host unexpressible rather than merely forbidden", () => {
-    // The whole security argument for this mechanism. A rule that has to be
-    // *checked* is a rule an implementation can skip; a grammar that cannot
-    // carry a host has nothing to skip. Every form that could name one —
-    // absolute, protocol-relative, or a bare authority — fails the pattern.
+    // A rule that has to be checked is one an implementation can skip; a grammar
+    // that cannot carry a host has nothing to skip.
     const defs = schema["$defs"] as Record<string, Record<string, unknown>>
     const path = new RegExp(defs["pathTemplate"]["pattern"] as string)
     for (const hostile of [
@@ -133,9 +113,7 @@ describe("the slips.json schema", () => {
   })
 
   it("carries no version, because one origin may front several", () => {
-    // Every other shape in this protocol declares its major version. This one
-    // cannot coherently: it maps paths for a whole origin, and an origin is
-    // free to serve a v1 endpoint at one path and a v2 endpoint at another.
+    // It maps paths for a whole origin, which is free to serve v1 at one path and v2 at another.
     expect(Object.keys(schema["properties"] as Record<string, unknown>)).toEqual(["rules"])
     expect(source).toMatch(/`slips.json` carries no `version`/)
   })
@@ -152,11 +130,8 @@ describe("the rules the schema cannot express", () => {
 })
 
 /**
- * The resolution algorithm as the CIP specifies it.
- *
- * Deliberately literal: it follows the numbered steps in the spec rather than
- * being written the way one would write it for production. Anything clever here
- * would be testing the cleverness instead of the specification.
+ * The resolution algorithm as the CIP specifies it, deliberately literal:
+ * anything clever here would be testing the cleverness instead of the spec.
  */
 const removeDotSegments = (path: string): string => {
   const out: Array<string> = []
@@ -247,9 +222,7 @@ describe("the published resolution table", () => {
   })
 
   it("covers the cases that separate this from a naive rewriter", () => {
-    // Each of these is a place an implementation written from the written spec alone
-    // would plausibly differ, so each has to be in the published table rather
-    // than only in someone's head.
+    // Each is a place two implementations written from the text alone would plausibly differ.
     const names = resolutionCases.map((entry) => entry.name)
     for (const required of [
       "does not re-match its own output",
@@ -315,10 +288,8 @@ describe("the CIP text and the schema", () => {
   })
 
   it("separates an absent mapping from one it could not read", () => {
-    // The distinction Solana's actions.json does not make, and the reason a
-    // network blip must not silently route a person to the human URL: a client
-    // that falls through cannot tell an origin with no mapping from one whose
-    // mapping it failed to fetch.
+    // A client that falls through cannot tell an origin with no mapping from one
+    // whose mapping it failed to fetch.
     expect(mapping).toMatch(/MUST NOT treat it as absent/)
     expect(mapping).toMatch(/UNREACHABLE/)
     expect(mapping).toMatch(/MALFORMED_RESPONSE/)
@@ -329,10 +300,7 @@ describe("the CIP text and the schema", () => {
   })
 
   it("illustrates the file with a payload from the examples", () => {
-    // Like the build request, this shape has no `type` to name it by, so it
-    // travels inside an ```http block rather than a ```json one and the check
-    // that keeps examples honest has to live here. An example nothing
-    // validates teaches whatever its author last typed.
+    // No `type` to name it by, so it travels in an ```http block and the check lives here.
     const bodies = [...mapping.matchAll(/```http\n[\s\S]*?\n\n(\{[\s\S]*?)\n```/g)].map(
       (match) => JSON.parse(match[1]) as unknown
     )

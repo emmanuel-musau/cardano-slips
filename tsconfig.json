@@ -1,9 +1,8 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // Solution config. It owns no sources of its own — it points at the
-  // packages, so `tsc --build` at the root typechecks the whole workspace in
-  // dependency order. Add a reference per package as each one lands.
+  // Solution config, owning no sources: `tsc --build` here typechecks the whole
+  // workspace in dependency order. One reference per package.
   "extends": "./tsconfig.base.json",
   "include": [],
   "references": [

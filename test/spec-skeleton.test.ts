@@ -4,15 +4,10 @@ import { parse } from "yaml"
 import { describe, expect, it } from "vitest"
 
 /**
- * Structural invariants for the CIP draft.
- *
- * The draft is written across seven issues (#14–#21) over several weeks and is
- * eventually submitted as a PR to cardano-foundation/CIPs, where a CIP editor
- * checks it against CIP-0001 before reading a word of the content. Everything
- * asserted here is something that gets a submission bounced: a missing preamble
- * field, an invented top-level heading, template boilerplate left in place.
- *
- * Cheaper to catch on every commit than in public review.
+ * Structural invariants for the CIP draft. A CIP editor checks a submission
+ * against CIP-0001 before reading a word of the content, and everything here is
+ * something that gets one bounced — a missing preamble field, an invented
+ * top-level heading, template boilerplate left in place.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -44,11 +39,7 @@ const requiredHeadings = [
   "Copyright"
 ]
 
-/**
- * Optional H2s, permitted only between 'Path to Active' and 'Copyright'.
- * 'Open Questions' is deliberately absent: it is a CPS-only section, and an
- * unresolved question in a CIP belongs under Rationale.
- */
+/** Permitted only between 'Path to Active' and 'Copyright'. 'Open Questions' is CPS-only. */
 const optionalHeadings = ["Versioning", "References", "Appendices", "Acknowledgements"]
 
 type Preamble = {
@@ -144,9 +135,7 @@ describe("the CIP structure", () => {
 
 describe("the CIP draft", () => {
   it("carries no template boilerplate", () => {
-    // Placeholders that reach a public PR read as a draft nobody proofread.
-    // `CIP: "?"` and the `pull/?` discussion link are excluded on purpose:
-    // both are resolved by the editors when the PR is filed (#71).
+    // `CIP: "?"` and the `pull/?` link are excluded: the editors resolve both when the PR is filed (#71).
     const leftovers = ["John Doe", "john.doe@email.domain", "YYYY-MM-DD"].filter((placeholder) =>
       source.includes(placeholder)
     )
