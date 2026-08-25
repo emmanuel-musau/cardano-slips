@@ -3,4 +3,5 @@
  * this module and nothing else, so moving a file is never a breaking change.
  */
 export * from "./types.js"
+export * from "./intent.js"
 export * from "./errors.js"
