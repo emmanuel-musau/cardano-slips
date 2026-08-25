@@ -6,5 +6,10 @@
   // dependency order. Add a reference per package as each one lands.
   "extends": "./tsconfig.base.json",
   "include": [],
-  "references": [{ "path": "packages/core/tsconfig.src.json" }, { "path": "packages/verifier/tsconfig.src.json" }]
+  "references": [
+    { "path": "packages/core/tsconfig.src.json" },
+    { "path": "packages/flow/tsconfig.src.json" },
+    { "path": "packages/server/tsconfig.src.json" },
+    { "path": "packages/verifier/tsconfig.src.json" }
+  ]
 }
