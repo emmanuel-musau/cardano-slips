@@ -1,6 +1,6 @@
 {
   "name": "@cardano-slips/core",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "The shared contract for Cardano Slips: payload schemas, URL resolution rules, and the error codes",
   "keywords": [
     "cardano",

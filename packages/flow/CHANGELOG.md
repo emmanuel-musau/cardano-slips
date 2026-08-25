@@ -1,5 +1,13 @@
 # @cardano-slips/flow
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies [[`a9c1c59`](https://github.com/emmanuel-musau/cardano-slips/commit/a9c1c59ba4174e4f5be63a0b195e7fd13d7498c9), [`81a35d2`](https://github.com/emmanuel-musau/cardano-slips/commit/81a35d28f7deee739c91ba7f9621619db2704c08), [`b29417c`](https://github.com/emmanuel-musau/cardano-slips/commit/b29417c5055b1edfc0f2a753456889e0267e2190)]:
+  - @cardano-slips/core@0.1.0
+  - @cardano-slips/verifier@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes
