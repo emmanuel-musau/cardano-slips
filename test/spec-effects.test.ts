@@ -1,37 +1,21 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-// Named rather than default: ajv is CommonJS, and its default export only
-// resolves to the class under `esModuleInterop`, which the base tsconfig does
-// not enable. The named class is the same object and typechecks as one.
+// Named, not default: ajv is CommonJS and its default export only resolves to
+// the class under `esModuleInterop`, which the base tsconfig does not enable.
 import { Ajv2020, type ValidateFunction } from "ajv/dist/2020.js"
 import { describe, expect, it } from "vitest"
 
 /**
- * Effects derivation and the mismatch gate (#19).
+ * Effects derivation and the mismatch gate (#19) — a comparison between two
+ * documents and a verdict about a signature, which is the one subject a JSON
+ * Schema cannot reach. The spec publishes a table of declared intent, derived
+ * effects and required verdict; this runs it against a reference comparator
+ * written from the numbered rules. `verifier`'s `compare.ts` runs the same
+ * table, and the day they disagree one is wrong about the spec.
  *
- * This is the section the security model rests on, and it is the one section
- * whose subject a JSON Schema cannot reach. Every other shape in this
- * specification is a document that is either well formed or not; this one is a
- * comparison between two documents and a verdict about a signature. So the spec
- * publishes a table — a declared intent, the effects derived from the
- * transaction built out of it, and the verdict the pair MUST produce — and this
- * file runs that table against a reference comparator written from the numbered
- * rules in the text.
- *
- * The claim that makes is deliberately modest: it shows the table agrees with
- * an implementation of the written rules. `verifier`'s `compare.ts` runs the
- * same table, and the day the two disagree, one of them is wrong about the
- * specification rather than about itself.
- *
- * Three properties get the most attention, because each is load-bearing:
- *
- *   - Every derived effect is either declared or supplied. There is no third
- *     set, so an effect nobody thought to name is a block by default rather
- *     than by whether this file happened to test for it.
- *   - The comparison admits no tolerance. Both sides are integer base units,
- *     and the adjustments that look like tolerances — the raise to an output's
- *     minimum ADA, the fee ceiling — have exact computed values.
- *   - A mismatch has no way out. No retry, no rebuild, no override.
+ * Three load-bearing properties: every derived effect is either declared or
+ * supplied, with no third set; the comparison admits no tolerance; and a
+ * mismatch has no way out.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -96,11 +80,9 @@ type Intent = {
 }
 
 /**
- * The derived effects, as the table renders them. They have no wire format —
- * nothing about them ever travels — so this shape exists only to make the
- * comparison testable, and carries exactly what the comparison reads. The net
- * ADA and asset deltas are absent for that reason: they are rendered to the
- * person, never compared against anything.
+ * The derived effects as the table renders them. Nothing about them travels, so
+ * this carries exactly what the comparison reads — the net ADA and asset deltas
+ * are absent because they are rendered to the person, never compared.
  */
 type Derived = {
   readonly outputs: Array<DerivedOutput>
@@ -135,11 +117,8 @@ type Case = {
 const cases = (readJson(join(root, "spec", "examples", "effects", "verdicts.json")) as { cases: Array<Case> }).cases
 
 /**
- * The comparison as the CIP specifies it.
- *
- * Deliberately literal: it follows the rules in the order the text states them
- * rather than the order one would choose for an implementation. Anything
- * clever here would be testing the cleverness instead of the specification.
+ * The comparison as the CIP specifies it, deliberately literal: anything clever
+ * here would be testing the cleverness instead of the specification.
  */
 const compare = (entry: Case): Array<string> => {
   const reasons = new Set<string>()
@@ -267,9 +246,8 @@ describe("the published comparison table", () => {
   })
 
   it("supplies a ledger minimum for every declared output", () => {
-    // The raise is the one adjustment that changes an amount, and it is only
-    // exact if the minimum comes from the protocol parameters rather than from
-    // whatever the comparator felt like assuming.
+    // The one adjustment that changes an amount, exact only if the minimum comes
+    // from the protocol parameters rather than an assumption.
     const short = cases
       .filter((entry) => entry.parameters.minLovelace.length !== (entry.declared.outputs ?? []).length)
       .map((entry) => entry.name)
@@ -285,9 +263,7 @@ describe("the published comparison table", () => {
   })
 
   it("covers the cases that separate this from a comparator that only checks amounts", () => {
-    // Each of these is a place an implementation written from the text alone
-    // would plausibly differ, so each has to be in the published table rather
-    // than only in someone's head.
+    // Each is a place two implementations written from the text alone would plausibly differ.
     const names = cases.map((entry) => entry.name)
     for (const required of [
       "a token payment whose lovelace the client raised to the ledger minimum",

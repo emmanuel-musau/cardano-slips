@@ -5,41 +5,25 @@ import ts from "typescript"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 /**
- * Hard invariant 1, over the real code.
+ * Hard invariant 1, over the real code: `verifier` is a pure function of (tx
+ * CBOR, declared metadata, user addresses, resolved inputs, protocol
+ * parameters). An engine that fetches mid-derivation can be made slow, made to
+ * fail, or made to answer wrongly by whoever benefits from the wrong answer.
  *
- * `verifier` is a pure function of (tx CBOR, declared metadata, user
- * addresses, resolved inputs, protocol parameters). The repo-level
- * test/verifier-signature.test.ts checks that the four documents which state
- * that signature agree on it; a sentence is not a guarantee, and this file is
- * where the claim meets the sources.
+ * Two checks, because neither alone is enough. The scan reads every source file
+ * and rejects any way in, including a branch no test enters. The trap loads the
+ * module with every route out of the process poisoned.
  *
- * The stakes are the whole security argument. An engine that fetches an
- * input's value or a protocol parameter mid-derivation has put a network call
- * between a person and a signature — one that can be made slow, made to fail,
- * or made to answer wrongly by whoever benefits from the wrong answer. It also
- * costs us the attack examples: "every lying transaction was blocked" is a
- * property of a function, and stops being one the moment the function has
- * somewhere else to look.
- *
- * Two checks, because neither alone is enough. The scan reads every source
- * file and rejects any way in — including a branch no test happens to enter.
- * The trap loads the module with every route out of the process poisoned and
- * proves the code that actually runs takes none of them.
- *
- * It covers I/O and not non-determinism: a clock or a random number is a
- * separate concern, and derivation is handed its validity interval rather than
- * asked to compare it against now.
+ * Non-determinism is a separate concern: derivation is handed its validity
+ * interval rather than asked to compare it against now.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
 const sourceRoot = join(packageRoot, "src")
 
 /**
- * The runtime dependencies `verifier` is allowed to carry, and the only list
- * a widening has to go through. No test can prove a dependency is pure — this
- * is a judgement, recorded, and CODEOWNERS routes any edit to it for review.
- * A CBOR library is deliberately absent: it arrives with the decode ticket,
- * in the pull request that argues for it.
+ * The only list a widening goes through. No test can prove a dependency is
+ * pure, so this is a recorded judgement and CODEOWNERS routes any edit to it.
  */
 const allowedDependencies = ["@cardano-slips/core", "effect"]
 
@@ -99,11 +83,7 @@ function walk(tree: ts.SourceFile, visit: (node: ts.Node) => void): void {
   step(tree)
 }
 
-/**
- * Every module specifier a file names — static imports, `export … from`,
- * `import()`, and `require()`. Regex over the text would miss the last two and
- * trip over the word "import" in a comment.
- */
+/** Every module specifier a file names. Regex would miss `import()` and trip over the word in a comment. */
 function moduleSpecifiers(tree: ts.SourceFile): string[] {
   const found: string[] = []
   walk(tree, (node) => {
@@ -169,14 +149,12 @@ const bareImports = imports.filter(({ what }) => !what.startsWith(".") && !what.
 
 describe("the sources", () => {
   it("has sources to read", () => {
-    // Guards every assertion below from passing over an empty directory. The
-    // package scaffolds with one module; it never has none.
+    // Guards every assertion below from passing over an empty directory.
     expect(sources.length).toBeGreaterThan(0)
   })
 
   it("imports no node builtin", () => {
-    // `node:fs`, `node:net`, `node:http` — and the bare spellings, which
-    // resolve to the same modules and would slip past a `node:` prefix check.
+    // Bare spellings too: they resolve to the same modules and slip past a `node:` prefix check.
     const builtins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]))
     const reaching = bareImports.filter(
       ({ what }) => builtins.has(what.split("/").slice(0, 2).join("/")) || builtins.has(what)
@@ -185,8 +163,7 @@ describe("the sources", () => {
   })
 
   it("imports nothing from flow or server", () => {
-    // The dependency direction from docs/ARCHITECTURE.md, asserted rather
-    // than left to review. `flow` is where the network layer lives.
+    // The dependency direction from docs/ARCHITECTURE.md. `flow` owns the network layer.
     const crossing = imports.filter(({ what }) =>
       forbiddenPackages.some((name) => what === name || what.startsWith(`${name}/`))
     )
@@ -194,8 +171,7 @@ describe("the sources", () => {
   })
 
   it("imports only packages the manifest declares", () => {
-    // A phantom dependency works locally, through whatever the workspace
-    // happens to have installed, and fails on a consumer's clean install.
+    // A phantom dependency works locally and fails on a consumer's clean install.
     const undeclared = bareImports.filter(
       ({ what }) => !declaredDependencies.some((name) => what === name || what.startsWith(`${name}/`))
     )
@@ -203,8 +179,6 @@ describe("the sources", () => {
   })
 
   it("stays inside the package", () => {
-    // A relative import that climbs out of `src` reaches code that is neither
-    // published nor covered by any of this.
     const escaping = imports
       .filter(({ what }) => what.startsWith("."))
       .filter(({ file, what }) => {
@@ -215,8 +189,7 @@ describe("the sources", () => {
   })
 
   it("names no global that can leave the process", () => {
-    // `fetch` needs no import. Neither does `navigator.sendBeacon`, and
-    // `process` is the ambient input a pure function should not be reading.
+    // `fetch` and `navigator.sendBeacon` need no import; `process` is an ambient input.
     expect(globalUses()).toEqual([])
   })
 })
@@ -232,21 +205,14 @@ describe("what the manifest declares", () => {
   })
 })
 
-/**
- * The runtime half. Every builtin that can touch a disk, a socket or another
- * process is replaced with a recorder, so an import the scan somehow missed —
- * one reached through a dependency, say — still shows up here.
- */
+/** The runtime half: every builtin replaced with a recorder, so an import the scan missed still shows up. */
 const io = { reached: [] as string[] }
 
 /**
- * A stand-in for one builtin, built from that builtin's own export names —
- * Vitest resolves a mocked module's named exports against the object the
- * factory returns, so a catch-all proxy would throw on the first import rather
- * than record it, and a throw is evidence nobody sees. Every function becomes
- * a recorder that returns rather than fails, so the caller carries on and the
- * whole list of what it touched survives to the assertion. Non-function
- * exports pass through: a constant is not a way out of the process.
+ * Built from the builtin's own export names: Vitest resolves named exports
+ * against the factory's object, so a catch-all proxy would throw on the first
+ * import instead of recording it. Recorders return rather than fail, so the
+ * caller carries on and the whole list survives to the assertion.
  */
 async function ioTrap(specifier: string, importOriginal: () => Promise<unknown>): Promise<Record<string, unknown>> {
   const actual = (await importOriginal()) as Record<string, unknown>
@@ -265,12 +231,7 @@ async function ioTrap(specifier: string, importOriginal: () => Promise<unknown>)
   return trap
 }
 
-/**
- * `vi.doMock` rather than `vi.mock`: this file reads the sources above with
- * `node:fs`, and a hoisted mock would take that away from it. `doMock` is not
- * hoisted and applies only to imports that come after it, which is exactly the
- * one dynamic import below.
- */
+/** `doMock`, not `mock`: this file reads sources with `node:fs`, and a hoisted mock would take that away. */
 const trapped = [
   "node:fs",
   "node:fs/promises",
@@ -303,17 +264,13 @@ describe("the loaded module", () => {
     // Loading the module is itself a test: a top-level side effect runs here.
     const entry: Record<string, unknown> = await import("../src/index.js")
 
-    // Then every export it offers, so a call is what trips the trap rather
-    // than an import. Arguments are none — the recorders fire before any
-    // function gets far enough to mind.
+    // Then every export, so a call trips the trap rather than an import.
     for (const value of Object.values(entry)) {
       if (typeof value !== "function") continue
       try {
         ;(value as (...arguments_: unknown[]) => unknown)()
       } catch {
-        // Calling with no arguments throws, and that is fine: a recorder logs
-        // before it returns, so what the call reached is already on the list
-        // by the time anything downstream objects to the arguments.
+        // Throwing on bad arguments is fine: the recorder logged before it returned.
       }
     }
   })

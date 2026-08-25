@@ -4,24 +4,14 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * The dependency rules, over the real code.
+ * Two dependency rules, failing in different places. `flow` never imports
+ * `server`: a browser bundle pulling in a request handler would ship a
+ * publisher's server code to everyone who opens a Slip. And React is a peer
+ * dependency, never a dependency — two copies in one page throw from the copy
+ * that did not render, with an error naming neither package.
  *
- * Two of them, and they fail in different places.
- *
- * **`flow` never imports `server`.** The arrow runs the other way in
- * `docs/ARCHITECTURE.md` — `core ← server`, and `flow → verifier` — and a
- * browser bundle that pulled in a request handler would ship a publisher's
- * server code to every person who opens a Slip.
- *
- * **React is a peer dependency, never a dependency.** Two copies of React in
- * one page is the oldest breakage in the ecosystem: hooks throw from the copy
- * that did not render, and the error names neither package. Declaring it as a
- * dependency is how that happens, so the manifest is asserted here rather than
- * reviewed by eye.
- *
- * The import scan reads the sources rather than trusting the manifest. A
- * dependency can be undeclared and still imported, and the import is what
- * ends up in a consumer's install.
+ * The scan reads the sources rather than the manifest: a dependency can be
+ * undeclared and imported all the same.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
@@ -31,17 +21,9 @@ const sourceRoot = join(packageRoot, "src")
 const forbiddenPackages = ["@cardano-slips/server"]
 
 /**
- * The runtime dependencies `flow` is allowed to carry. Widening it is a
- * judgement rather than something a test can settle, so it is recorded here
- * and CODEOWNERS routes the edit for review.
- *
- * `identity` and `@evolution-sdk/evolution` are named because the architecture
- * expects them and they are not declared yet: each arrives in the pull request
- * that first imports it, argued there rather than pre-approved here.
- *
- * React is on the list because a source file may import it; *where* it is
- * declared is a separate question, and the React block below is what holds it
- * to `peerDependencies`.
+ * What `flow` may carry. Widening it is a judgement a test cannot settle, so it
+ * is recorded here and CODEOWNERS routes the edit. React is listed because a
+ * source file may import it; *where* it is declared is the React block below.
  */
 const allowedDependencies = [
   "@cardano-slips/core",
@@ -81,11 +63,7 @@ const sources = sourceFiles().map((path) => ({
   tree: ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.ES2022, true)
 }))
 
-/**
- * Every module specifier a file names — static imports, `export … from`,
- * `import()`, and `require()`. Regex over the text would miss the last two and
- * trip over the word "import" in a comment, of which this package has several.
- */
+/** Every module specifier a file names. Regex would miss `import()` and trip over the word in a comment. */
 function moduleSpecifiers(tree: ts.SourceFile): string[] {
   const found: string[] = []
   const step = (node: ts.Node): void => {
@@ -122,9 +100,7 @@ describe("the package flow may never reach for", () => {
   })
 
   it("imports it nowhere in the sources", () => {
-    // The manifest is the promise; this is the code. A dependency can be
-    // undeclared and imported all the same, and the import is what reaches a
-    // consumer's install.
+    // The manifest is the promise; this is the code.
     const crossings = imported.filter(({ specifier }) => forbiddenPackages.includes(packageOf(specifier)))
     expect(crossings).toEqual([])
   })
@@ -149,10 +125,8 @@ describe("what flow does declare", () => {
 
 describe("React", () => {
   it("is a peer dependency and not a dependency", () => {
-    // The one that breaks a consumer's page rather than our build. Two copies
-    // of React in a tree throw from `useState` with an error that names
-    // neither package, and declaring it as a dependency is how a second copy
-    // gets there.
+    // Breaks a consumer's page rather than our build: declaring React as a
+    // dependency is how a second copy gets into their tree.
     expect(manifest.peerDependencies?.react).toBeDefined()
     expect(manifest.dependencies?.react).toBeUndefined()
     expect(manifest.optionalDependencies?.react).toBeUndefined()

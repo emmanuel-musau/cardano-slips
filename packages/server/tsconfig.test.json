@@ -1,16 +1,12 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // Tests are typechecked, never emitted — the root test config turns off the
-  // declaration/composite settings the base needs for shippable code. The
-  // reference is what lets a test import `../src/index.js`: it resolves
-  // through the sources' emitted declarations, exactly as a consumer will.
+  // Typechecked, never emitted. The reference lets a test import
+  // `../src/index.js` through the emitted declarations, exactly as a consumer will.
   "extends": "../../tsconfig.test.json",
   "include": ["test", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.src.json" }],
   "compilerOptions": {
-    // Alongside the other two build infos rather than loose in the package
-    // root, so `pnpm clean` takes it with the rest.
     "tsBuildInfoFile": ".tsbuildinfo/test.tsbuildinfo"
   }
 }

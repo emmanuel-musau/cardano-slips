@@ -1,11 +1,9 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // The shippable sources. `tsc -b` on this typechecks and emits declarations
-  // to `build/src`, which is what the editor and `pnpm typecheck` use. The
-  // published artefact comes from tsconfig.build.json — keeping the two out
-  // of one directory means a typecheck can never half-overwrite a build that
-  // turbo has already cached as `dist`.
+  // The shippable sources, emitted to `build/src` for the editor and
+  // `pnpm typecheck`. `dist` comes from tsconfig.build.json instead, so a
+  // typecheck can never half-overwrite a build turbo has cached.
   "extends": "../../tsconfig.base.json",
   "include": ["src"],
   "compilerOptions": {

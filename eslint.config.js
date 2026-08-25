@@ -4,8 +4,7 @@ import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   {
-    // Build output and caches. Flat config ignores are global when the object
-    // carries nothing but `ignores`.
+    // Global ignores: flat config treats an object carrying only `ignores` this way.
     ignores: ["**/dist/**", "**/build/**", "**/coverage/**", "**/.turbo/**", "**/.tsbuildinfo/**", "**/node_modules/**"]
   },
 
@@ -19,8 +18,7 @@ export default tseslint.config(
       sourceType: "module"
     },
     rules: {
-      // `_`-prefixed bindings are the documented way to say "deliberately
-      // unused" — a discarded destructure, an interface-mandated parameter.
+      // `_`-prefixed means deliberately unused.
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -30,9 +28,8 @@ export default tseslint.config(
         }
       ],
 
-      // Library code returns typed errors; it does not print. The client and
-      // the interstitial are where a user-facing message belongs, and those
-      // go through the spec error codes, not the console.
+      // Library code returns typed errors; user-facing messages go through the
+      // spec error codes in `flow` and the slip page, not the console.
       "no-console": "error",
 
       "@typescript-eslint/consistent-type-imports": [
@@ -47,6 +44,5 @@ export default tseslint.config(
   },
 
   // Must stay last: switches off every rule Prettier already decides.
-  // Formatting is Prettier's job; ESLint only judges correctness here.
   prettier
 )

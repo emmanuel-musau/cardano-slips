@@ -6,20 +6,10 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * The browser target, proved rather than configured.
- *
- * Every other package in this workspace runs in Node. This one runs in a page
- * next to a wallet, and the difference is spread across four files that agree
- * with each other or silently do not: the JSX transform in
- * `tsconfig.src.json`, React's types instead of Node's, the `happy-dom`
- * environment in `vitest.config.ts`, and the testing-library render that needs
- * all three.
- *
- * A scaffold whose plumbing is broken looks exactly like a scaffold whose
- * plumbing is fine, right up until the first component ticket — where the
- * author is trying to write a mismatch block and instead spends the afternoon
- * on a build. So the toolchain gets exercised here, on a component that does
- * nothing, while there is nothing else to blame.
+ * The browser target, proved rather than configured. Four files have to agree
+ * or silently do not: the JSX transform, React's types instead of Node's, the
+ * happy-dom environment, and the render that needs all three. Exercised here on
+ * a component that does nothing, while there is nothing else to blame.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
@@ -32,9 +22,7 @@ describe("the test environment", () => {
   })
 
   it("renders a component through the automatic JSX runtime", () => {
-    // No `import React` anywhere in this file: that is `jsx: "react-jsx"`
-    // working. If the transform were `preserve` or the classic runtime, this
-    // file would not compile, and if happy-dom were absent it would not run.
+    // No `import React` in this file: that is `jsx: "react-jsx"` working.
     const Slip = ({ label }: { label: string }): React.JSX.Element => <button type="button">{label}</button>
 
     render(<Slip label="Pay 12.00 USDM" />)
@@ -53,10 +41,8 @@ function sourceFiles(directory: string = sourceRoot): string[] {
 
 describe("what ships to a browser", () => {
   it("imports no Node builtin", () => {
-    // `types: []` in the base config keeps Node's globals out of `src`, and
-    // this is the other half: a `node:fs` import typechecks under NodeNext
-    // whether or not the globals are present, and reaches a bundler as an
-    // unresolvable module or a polyfill nobody asked for.
+    // A `node:fs` import typechecks under NodeNext with or without the globals,
+    // and reaches a bundler as an unresolvable module or an unwanted polyfill.
     const builtins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]))
 
     const reached = sourceFiles().flatMap((path) => {

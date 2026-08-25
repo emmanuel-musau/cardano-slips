@@ -125,3 +125,13 @@ The **hard invariants below each need a test that fails if the invariant is brok
 - Public API surfaces validated with Effect Schema at the boundary; internal code trusts types.
 - ESM only, explicit file extensions in relative imports per NodeNext.
 - User-facing failures (client, slip page) must map to spec error codes with human-readable messages — never raw stack traces.
+
+**Comments are minimal.** A comment earns its place by recording a *why* the
+code cannot say: a spec rule the types can't express, a workaround, a footgun, a
+decision that looks wrong until explained. Everything else is noise a reader has
+to skim past.
+
+- One or two lines. If it needs a paragraph, it belongs in `docs/` or an ADR, and the comment links there.
+- Never restate what the line below already says, and never write a comment because the file looks bare without one.
+- A file header is one or two sentences naming what the file is for — not an essay on the security model.
+- Same rule in tests: the test name states the behaviour, so a comment is only for why the case matters or why it is written that way.

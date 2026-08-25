@@ -3,19 +3,13 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The assembled draft, and the shapes version 1 settles on.
+ * The assembled draft: no section left as a stub, the shapes it defines matched
+ * to the schemas it has, the URI grammar matched to CIP-158, and nothing in
+ * Path to Active waiting on a wallet.
  *
- * Everything before this wrote one section at a time. This asserts the
- * properties that only exist once the whole document does: that no section was
- * left as a stub, that the shapes it says it defines are exactly the shapes it
- * has schemas for, that the URI grammar matches the one CIP-158 shipped, and
- * that nothing in Path to Active waits on a wallet.
- *
- * The last of those is the criterion this project is most likely to break by
- * being ambitious. CIP-13 has been Proposed since 2020 because its acceptance
- * rested on adoption its authors could not perform; a criterion added here in
- * good faith — "two wallets handle `web+cardano://slip`" — would buy the same
- * six years. The test is cheap and the failure mode is not recoverable.
+ * That last is the one this project is most likely to break by being ambitious.
+ * CIP-13 has been Proposed since 2020 because its acceptance rested on adoption
+ * its authors could not perform.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -87,9 +81,7 @@ const headings = [...source.matchAll(/^(#{2,4}) (.+)$/gm)].map((match) => ({
 
 describe("the assembled draft", () => {
   it("leaves no section as a stub", () => {
-    // The draft was written across seven issues, each leaving the next one's
-    // heading in place with a note under it. A heading with nothing under it
-    // reaches a reviewer as a section its author forgot.
+    // A heading with nothing under it reaches a reviewer as a section its author forgot.
     const thin = headings
       .map(({ level, text }) => ({ text, length: slice(text, level).trim().length }))
       .filter(({ length }) => length < 200)
@@ -97,9 +89,7 @@ describe("the assembled draft", () => {
   })
 
   it("carries no note to ourselves", () => {
-    // Every stub carried an HTML comment naming the issue that would fill it.
-    // They are invisible in a rendered file and perfectly visible in the diff a
-    // CIP editor reads.
+    // Invisible in a rendered file, perfectly visible in the diff a CIP editor reads.
     expect(source).not.toContain("<!--")
     expect(source).not.toMatch(/#\d\d\b/)
   })
@@ -131,9 +121,7 @@ describe("the shapes version 1 defines", () => {
   })
 
   it("closes its vocabularies as enumerations rather than as sentences", () => {
-    // The section names six vocabularies. Four are enumerated in the schemas,
-    // and a vocabulary that is closed in the text and open in the schema is
-    // closed nowhere — the schemas are normative where the two disagree.
+    // A vocabulary closed in the text and open in the schema is closed nowhere.
     const enumerated = enumerations().map((values) => values.join(","))
     const closed = {
       networks: ["mainnet", "preprod", "preview"],
@@ -146,9 +134,7 @@ describe("the shapes version 1 defines", () => {
       .map(([name]) => name)
     expect(open).toEqual([])
 
-    // The other two are enumerated in the CIP's own tables, and each has its
-    // own test: the failure codes in spec-error-codes, the block reasons in
-    // spec-effects. Here we only assert the section names all six.
+    // The other two are held by spec-error-codes and spec-effects; this only checks the section names all six.
     const versioning = slice("Protocol versioning", 3)
     for (const name of [...Object.keys(closed), "failure codes", "reasons a client reports a block"]) {
       expect(versioning).toContain(name)
@@ -171,9 +157,8 @@ describe("the //slip authority", () => {
   })
 
   it("puts a fixed token after the slashes, never a variable", () => {
-    // RFC 3986 reads what follows // as the authority. One wallet shipped
-    // `web+cardano:<address>` and another `web+cardano://<address>`, and
-    // payment links did not work across both for a year.
+    // One wallet shipped `web+cardano:<address>` and another `web+cardano://<address>`,
+    // and payment links did not work across both for a year.
     for (const line of grammar) {
       expect(line).toMatch(/^web\+cardano:\/\/slip\//)
       expect(/^web\+cardano:\/\/([^/?#]+)/.exec(line)?.[1]).toBe("slip")
@@ -186,9 +171,8 @@ describe("the //slip authority", () => {
   })
 
   it("follows the grammar CIP-158 shipped, and says whose it is", () => {
-    // Fixed token, /v1 segment, percent-encoded query payload. Citing the
-    // Active CIP that already does this makes the registration a conformance
-    // argument rather than a proposal.
+    // Citing the Active CIP that already does this makes the registration a
+    // conformance argument rather than a proposal.
     expect(authority).toContain("[CIP-158]")
     for (const line of grammar) expect(line).toMatch(/^web\+cardano:\/\/slip\/v1\?uri=/)
   })
@@ -206,9 +190,7 @@ describe("the //slip authority", () => {
   })
 
   it("confers nothing on the link it carries", () => {
-    // The URI is the one part of this protocol an attacker writes in full,
-    // onto a poster. A handler that treated it as pre-approved would have
-    // inverted the whole thing.
+    // The one part of this protocol an attacker writes in full, onto a poster.
     expect(authority).toMatch(/comparison still blocks the signature/)
     expect(authority).toMatch(/MUST render the\s+resolved origin/)
   })
@@ -228,8 +210,7 @@ describe("Path to Active", () => {
   })
 
   it("asks no wallet to implement a URI authority", () => {
-    // The hard constraint on this section. A criterion resting on wallet
-    // adoption of `//slip` is the one that cannot be met by anyone who has a
+    // A criterion resting on wallet adoption cannot be met by anyone who has a
     // reason to meet it, and it is what has held CIP-13 for six years.
     const onTheAuthority = criteria.filter((criterion) => criterion.includes("//slip"))
     expect(onTheAuthority.length).toBe(1)
@@ -246,9 +227,7 @@ describe("Path to Active", () => {
   })
 
   it("keeps the one ingredient we cannot supply out of the criteria", () => {
-    // A wallet co-author is what CIP-99 had and every stalled URI proposal
-    // lacked, and no amount of our own work guarantees one. It belongs in the
-    // plan, where it is an intention, not in the criteria, where it is a gate.
+    // It belongs in the plan, where it is an intention, not in the criteria, where it is a gate.
     expect(plan.join(" ")).toContain("co-author")
     expect(criteria.join(" ")).not.toContain("co-author")
   })
@@ -271,9 +250,7 @@ describe("future work", () => {
   })
 
   it("accounts for everything the specification reserves without defining", () => {
-    // Each of these is named in the Specification as deliberately absent. A
-    // reader's fair question is whether it was missed or refused, and this is
-    // the one place that answers it.
+    // Whether each was missed or refused is a fair question, and this answers it.
     for (const reserved of [
       'build: "server"',
       "Publisher identity",

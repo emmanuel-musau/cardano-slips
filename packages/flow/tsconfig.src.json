@@ -1,11 +1,9 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // The shippable sources. `tsc -b` on this typechecks and emits declarations
-  // to `build/src`, which is what the editor and `pnpm typecheck` use. The
-  // published artefact comes from tsconfig.build.json — keeping the two out
-  // of one directory means a typecheck can never half-overwrite a build that
-  // turbo has already cached as `dist`.
+  // The shippable sources, emitted to `build/src` for the editor and
+  // `pnpm typecheck`. `dist` comes from tsconfig.build.json instead, so a
+  // typecheck can never half-overwrite a build turbo has cached.
   "extends": "../../tsconfig.base.json",
   "include": ["src"],
   "compilerOptions": {
@@ -13,15 +11,10 @@
     "outDir": "build/src",
     "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
 
-    // The one package that renders. `react-jsx` compiles JSX through the
-    // automatic runtime, so a component file needs no `import React` and a
-    // consumer is never handed a second copy of React through ours.
+    // Automatic runtime: no `import React` per file, and no second copy of React for consumers.
     "jsx": "react-jsx",
 
-    // The base sets `types: []` to keep ambient globals out. React's types
-    // are opted into here and Node's are not: this code runs in a browser
-    // next to a wallet, and a `process` or a `fs` that typechecks is one an
-    // author can reach for by accident.
+    // React opted in, Node deliberately not: a `process` that typechecks is one an author reaches for.
     "types": ["react"]
   }
 }

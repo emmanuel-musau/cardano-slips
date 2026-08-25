@@ -3,29 +3,16 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The security considerations (#20).
- *
- * CIP-13's own security considerations warn about links that misrepresent
- * where they lead, and this proposal's answer to that warning is the reason it
- * exists. A reviewer reads this section before any other part of the
- * specification, so what it must not do is contradict the rest of the document
- * or invent guarantees the rest does not deliver.
- *
- * That is most of what this file checks. The rules themselves are prose, and a
- * test can only assert that the prose says them; the cross-checks are where it
- * earns its place — every reason and every failure code this section cites is
- * checked against the tables that define them, so a section that drifts from
- * the mechanism it summarises fails here rather than in public review.
+ * The security considerations (#20). A reviewer reads this section first, so it
+ * must not contradict the rest of the document or invent guarantees the rest
+ * does not deliver. The cross-checks are where this earns its place: every
+ * reason and failure code it cites is checked against the table defining it.
  */
 
 const root = join(import.meta.dirname, "..")
 const source = readFileSync(join(root, "spec", "CIP-XXXX", "README.md"), "utf8")
 
-/**
- * The text under a heading, up to the next heading at the same level or
- * higher. Unlike the helper in spec-effects.test.ts this keeps the level-4
- * subsections, because this section is mostly made of them.
- */
+/** Keeps level-4 subsections, unlike the helper in spec-effects.test.ts — this section is mostly made of them. */
 const slice = (heading: string, level: number): string => {
   const marker = `${"#".repeat(level)} ${heading}\n`
   const start = source.indexOf(marker)
@@ -68,9 +55,7 @@ const reasons = (tables(slice("Blocking", 3)).at(-1) ?? []).slice(1).map((row) =
 
 describe("where the section sits", () => {
   it("is a subsection of Specification rather than a heading of its own", () => {
-    // CIP-0001 fixes the H2 set; spec-skeleton.test.ts enforces it. This is
-    // the same rule read from the other side: the section exists, and it
-    // exists as an H3.
+    // The same rule spec-skeleton.test.ts enforces, read from the other side.
     expect(source).toContain("### Security considerations")
     expect(source).not.toMatch(/^## Security considerations$/m)
   })
@@ -291,9 +276,7 @@ describe("publisher identity", () => {
   })
 
   it("describes the CIP-170 hook and what CIP-170 does not supply", () => {
-    // ADR-0006: the CIP anchors a digest of arbitrary data and has no
-    // domain-to-identifier discovery. Claiming otherwise in a public spec is
-    // the mistake that ADR exists to prevent us repeating.
+    // ADR-0006: it anchors a digest of arbitrary data and has no domain-to-identifier discovery.
     expect(identity).toMatch(/\[CIP-170\]/)
     expect(identity).toMatch(/key event log/)
     expect(identity).toMatch(/label `170`/)
