@@ -201,3 +201,105 @@ describe("the types a producer and a consumer share", () => {
     }
   })
 })
+
+describe("the edges of a quantity, an asset and an address", () => {
+  const payment = fixture("valid", "payment.json") as { intent: Record<string, unknown> }
+  const address =
+    "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us"
+
+  const withOutput = (output: Record<string, unknown>): unknown => ({
+    ...payment,
+    intent: { ...payment.intent, outputs: [{ address, lovelace: "0", ...output }] }
+  })
+
+  const asset = (fields: Record<string, unknown>): unknown =>
+    withOutput({
+      assets: [
+        {
+          policyId: "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+          assetName: "5553444d",
+          quantity: "1",
+          ...fields
+        }
+      ]
+    })
+
+  it("takes a twenty-digit quantity and refuses a twenty-first", () => {
+    // The ceiling is the schema's, and a client that widened it would accept
+    // one no producer is held to.
+    expect(Either.isRight(decodePartialIntent(withOutput({ lovelace: "9".repeat(20) })))).toBe(true)
+    expect(Either.isLeft(decodePartialIntent(withOutput({ lovelace: "9".repeat(21) })))).toBe(true)
+  })
+
+  it("refuses a quantity dressed up as one", () => {
+    for (const lovelace of ["012", "+12", "1_000", "١٢", "1 2", "12n"]) {
+      expect(Either.isLeft(decodePartialIntent(withOutput({ lovelace }))), lovelace).toBe(true)
+    }
+  })
+
+  it("reads hex as lowercase and whole bytes, or not at all", () => {
+    expect(Either.isRight(decodePartialIntent(asset({ assetName: "" })))).toBe(true)
+    expect(Either.isRight(decodePartialIntent(asset({ assetName: "ff".repeat(32) })))).toBe(true)
+    for (const assetName of ["FF", "5553444D", "abc", "ff".repeat(33), "0x5553"]) {
+      expect(Either.isLeft(decodePartialIntent(asset({ assetName }))), assetName).toBe(true)
+    }
+  })
+
+  it("holds a policy id to exactly twenty-eight bytes", () => {
+    const hex = "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128"
+    for (const policyId of [hex.slice(0, 54), `${hex}00`, hex.toUpperCase()]) {
+      expect(Either.isLeft(decodePartialIntent(asset({ policyId }))), policyId.slice(0, 12)).toBe(true)
+    }
+  })
+
+  it("refuses an address that is not a bech32 payment address on a Cardano network", () => {
+    for (const bad of [
+      address.toUpperCase(),
+      "stake1uyehkck0lajq8gr28t9uxnuvgcqrc6070x3k9r8048z8y5gh6ffgw",
+      `${address}b`,
+      "addr1",
+      "addr2qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us"
+    ]) {
+      expect(Either.isLeft(decodePartialIntent(withOutput({ address: bad }))), bad.slice(0, 16)).toBe(true)
+    }
+  })
+
+  it("takes a preprod address, because which network it is on is checked elsewhere", () => {
+    const testnet =
+      "addr_test1qp8dslaeg9apk05df6j9ylern3vpxstm8zujhrg8c3fgtc8fv7c0eysjef7k3xwccgmv2j5pa73kra37jz9y68hd52tqdrt8qe"
+    expect(Either.isRight(decodePartialIntent(withOutput({ address: testnet })))).toBe(true)
+  })
+
+  it("bounds an intent at sixteen outputs, sixteen assets and eight certificates", () => {
+    const output = { address, lovelace: "1000000" }
+    const many = (count: number): unknown => ({
+      ...payment,
+      intent: { ...payment.intent, outputs: Array.from({ length: count }, () => output) }
+    })
+    expect(Either.isRight(decodePartialIntent(many(16)))).toBe(true)
+    expect(Either.isLeft(decodePartialIntent(many(17)))).toBe(true)
+
+    const certificates = (count: number): unknown => ({
+      ...payment,
+      intent: {
+        ...payment.intent,
+        certificates: Array.from({ length: count }, () => ({ type: "stakeRegistration" }))
+      }
+    })
+    expect(Either.isRight(decodePartialIntent(certificates(8)))).toBe(true)
+    expect(Either.isLeft(decodePartialIntent(certificates(9)))).toBe(true)
+  })
+
+  it("refuses an empty array where one item is the minimum", () => {
+    expect(Either.isLeft(decodePartialIntent({ ...payment, intent: { ...payment.intent, outputs: [] } }))).toBe(true)
+    expect(Either.isLeft(decodePartialIntent(withOutput({ assets: [] })))).toBe(true)
+  })
+
+  it("refuses a member named after something on Object's prototype", () => {
+    for (const name of ["__proto__", "constructor"]) {
+      const hostile = JSON.parse(`{"${name}": {"admin": true}}`) as Record<string, unknown>
+      expect(Object.keys(hostile), name).toContain(name)
+      expect(Either.isLeft(decodePartialIntent({ ...payment, ...hostile })), name).toBe(true)
+    }
+  })
+})

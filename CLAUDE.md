@@ -28,6 +28,7 @@ Terms already settled, in code, docs, spec, issues and conversation alike:
 | adversary | **attacker**, or name who it is: the endpoint |
 | spike (the ticket type) | **decision ticket**, titled `Decide: …` |
 | prose | **the written spec**, or just **the text** |
+| grammar (one of our own rules) | **the pattern** where it is one regex, or say what cannot be written. `grammar` stays only where we quote CIP-158's URI grammar. |
 
 The same goes for the wider reflex vocabulary — *leverage*, *surface area*,
 *orthogonal*, *canonical* where "the real one" would do. Cardano's own terms of
