@@ -29,7 +29,7 @@ unsendable, and it is rejected by the same keyword that rejects any other
 undeclared member. `slips-json/` is fetched from a fixed filename rather than
 returned by a negotiated endpoint, so there is nothing it could be confused
 with; `absolute-api-path.json` is its equivalent case, the mapping to another
-host that the grammar cannot express.
+host that a path cannot express.
 
 `slips-json/` carries one file outside the three buckets. `resolution.json` is a
 table of rule sets, input paths and expected results: a schema proves almost

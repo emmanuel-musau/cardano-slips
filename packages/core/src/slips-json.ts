@@ -12,7 +12,7 @@ import { Data, Effect, Either, Schema } from "effect"
 import type { ClientErrorCode } from "./errors.js"
 
 /**
- * Path-absolute: the grammar cannot carry a scheme or an authority, so a rule
+ * Path-absolute: there is nowhere to write a scheme or an authority, so a rule
  * that sent a person to another host is unexpressible rather than forbidden. A
  * rule that must be checked is one an implementation can forget.
  */
