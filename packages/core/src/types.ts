@@ -4,8 +4,8 @@
  * examples by `test/get-discovery.test.ts`.
  *
  * Rules needing context a payload does not carry (same-origin `href`, `max`
- * against `min`, placeholders against parameters) are not checked here. See
- * `spec/examples/README.md`.
+ * against `min`, placeholders against parameters) are not checked here: they
+ * need the discovery URL, and live in `url.ts`.
  */
 import { Schema } from "effect"
 
