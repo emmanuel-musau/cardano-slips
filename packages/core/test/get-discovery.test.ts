@@ -117,3 +117,106 @@ describe("the types a producer and a consumer share", () => {
     expect(amount?.max).toBe(500)
   })
 })
+
+describe("metadata built to get past a reader", () => {
+  const payment = fixture("valid", "payment.json") as Record<string, unknown>
+
+  const withAction = (action: unknown): unknown => ({ ...payment, links: { actions: [action] } })
+
+  it("refuses a member named after something on Object's prototype", () => {
+    // `JSON.parse` makes `__proto__` an own property, so it arrives as a member like any other.
+    for (const name of ["__proto__", "constructor", "toString"]) {
+      const hostile = JSON.parse(`{"${name}": {"admin": true}}`) as Record<string, unknown>
+      expect(Object.keys(hostile), name).toContain(name)
+      expect(issues(Either.getOrThrow(Either.flip(decodeSlip({ ...payment, ...hostile }))))).toContainEqual({
+        tag: "Unexpected",
+        path: name
+      })
+    }
+  })
+
+  it("closes a linked action with no reason, and gives a reason with nothing closed", () => {
+    const closed = withAction({ label: "Pay", href: "/api/slips/pay", disabled: true })
+    const stray = withAction({ label: "Pay", href: "/api/slips/pay", reason: { message: "Sold out" } })
+    expect(issues(Either.getOrThrow(Either.flip(decodeSlip(closed))))).toContainEqual({
+      tag: "Refinement",
+      path: "links/actions/0"
+    })
+    expect(issues(Either.getOrThrow(Either.flip(decodeSlip(stray))))).toContainEqual({
+      tag: "Refinement",
+      path: "links/actions/0"
+    })
+  })
+
+  it("bounds a form at eight fields and a select at twenty options", () => {
+    const parameters = Array.from({ length: 9 }, (_, index) => ({
+      name: `p${index}`,
+      label: "Field",
+      type: "text"
+    }))
+    const many = withAction({ label: "Pay", href: "/api/slips/pay", parameters })
+    expect(issues(Either.getOrThrow(Either.flip(decodeSlip(many))))).toContainEqual({
+      tag: "Refinement",
+      path: "links/actions/0/parameters"
+    })
+
+    const options = Array.from({ length: 21 }, (_, index) => ({ label: `O${index}`, value: `${index}` }))
+    const wide = withAction({
+      label: "Pay",
+      href: "/api/slips/pay",
+      parameters: [{ name: "p", label: "Pick", type: "select", options }]
+    })
+    expect(issues(Either.getOrThrow(Either.flip(decodeSlip(wide))))).toContainEqual({
+      tag: "Refinement",
+      path: "links/actions/0/parameters/0/options"
+    })
+  })
+
+  it("bounds every string the card renders", () => {
+    // A response with no ceiling is a card that never finishes drawing.
+    const overlong: ReadonlyArray<[string, unknown]> = [
+      ["title", "t".repeat(121)],
+      ["description", "d".repeat(501)],
+      ["label", "l".repeat(49)],
+      ["icon", `https://linktap.example/${"i".repeat(2049)}.png`]
+    ]
+    for (const [field, value] of overlong) {
+      expect(Either.isLeft(decodeSlip({ ...payment, [field]: value })), field).toBe(true)
+    }
+  })
+
+  it("refuses an icon that is not fetchable over https", () => {
+    for (const icon of [
+      "javascript:alert(1)",
+      "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+      "http://linktap.example/i.png",
+      "//linktap.example/i.png",
+      "https://linktap.example/i con.png"
+    ]) {
+      expect(Either.isLeft(decodeSlip({ ...payment, icon })), icon).toBe(true)
+    }
+  })
+
+  it("refuses an href that is neither path-absolute nor an absolute https URL", () => {
+    for (const href of ["api/slips/pay", "http://linktap.example/api", "/api slips/pay", ""]) {
+      expect(Either.isLeft(decodeSlip(withAction({ label: "Pay", href }))), JSON.stringify(href)).toBe(true)
+    }
+  })
+
+  it("refuses a parameter name a placeholder could not spell", () => {
+    for (const name of ["9amount", "_amount", "amount-2", "amount.2", "", "a".repeat(33)]) {
+      const named = withAction({
+        label: "Pay",
+        href: "/api/slips/pay",
+        parameters: [{ name, label: "Amount", type: "number" }]
+      })
+      expect(Either.isLeft(decodeSlip(named)), JSON.stringify(name)).toBe(true)
+    }
+  })
+
+  it("reads a title carrying markup, because rendering it as text is the client's rule", () => {
+    // Nothing about the string is malformed; a client that ran it would be the defect.
+    const scripted = decodeSlip({ ...payment, title: "<script>alert(1)</script>" })
+    expect(Either.isRight(scripted)).toBe(true)
+  })
+})

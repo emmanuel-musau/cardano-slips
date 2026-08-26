@@ -130,9 +130,16 @@ const issuesFor = (parameter: Parameter, raw: string): Array<ValueIssue> => {
 
 export type ParameterValues = Readonly<Record<string, string>>
 
+/**
+ * Own properties only. The name pattern admits `constructor`, `toString` and
+ * the rest of `Object.prototype`, and a plain object answers for every one of
+ * them — so a parameter nobody filled would substitute a function's source.
+ */
+const supplied = (values: ParameterValues, name: string): string => (Object.hasOwn(values, name) ? values[name] : "")
+
 /** Every one of these MUST be clear before a client sends the request. */
 export const checkValues = (parameters: ReadonlyArray<Parameter>, values: ParameterValues): ReadonlyArray<ValueIssue> =>
-  parameters.flatMap((parameter) => issuesFor(parameter, values[parameter.name] ?? ""))
+  parameters.flatMap((parameter) => issuesFor(parameter, supplied(values, parameter.name)))
 
 /**
  * RFC 3986 unreserved and nothing else. `encodeURIComponent` leaves `!'()*`
@@ -143,7 +150,7 @@ const encodeValue = (value: string): string =>
 
 const fill = (template: string, values: ParameterValues, encode: boolean): string =>
   template.replaceAll(placeholder, (_, name: string) => {
-    const value = values[name] ?? ""
+    const value = supplied(values, name)
     return encode ? encodeValue(value) : value
   })
 
