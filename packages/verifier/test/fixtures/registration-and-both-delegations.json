@@ -1,0 +1,29 @@
+{
+  "name": "registration-and-both-delegations",
+  "transactionId": "3556db6e9b331936793daa4c0261b34f7c0c7ab1b85d17ee5ef1072db7521740",
+  "exercises": [
+    "certificate:StakeDelegation",
+    "certificate:StakeRegistration",
+    "certificate:VoteDelegation",
+    "legacy-output",
+    "validity-interval-end"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858470,
+    "fee": "176281",
+    "totalOutput": "4345127",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": ["stake_registration", "pool_delegation", "vote_delegation"],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "2147483647",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a500d90102818258203a2099e884e1543ea14e64ecd3fc0d36e234aaaadae9b136eec1d4c32b8c0e46000181825839015cbcec5c03015abda124c0e403661cc9b42783da9a5d94c079eb1a6b5cbcec5c03015abda124c0e403661cc9b42783da9a5d94c079eb1a6b1a00424d27021a0002b099031a7fffffff04d901028382008200581c5cbcec5c03015abda124c0e403661cc9b42783da9a5d94c079eb1a6b83098200581c5cbcec5c03015abda124c0e403661cc9b42783da9a5d94c079eb1a6b810283028200581c5cbcec5c03015abda124c0e403661cc9b42783da9a5d94c079eb1a6b581ce6ac159ee8063742eadcb48be45f29d9a67b4158439070032f42d10ca100d9010281825820a432835264e8253b927c69beb9349c898cd31b97bf519d371710e4ee8d228c7b584017336b528afe9a519d496fff17d6b40ad41926a7f736a9cd9fdb60cc6af8e07d025f4a6d04583bec2ec008a71b14e58205d46b9a570804585e44d62166b94304f5f6"
+}

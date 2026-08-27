@@ -122,6 +122,10 @@ opinion in tests: for every fixture, CML's reading of fee, outputs, certificates
 and withdrawals must agree with ours. That gives the independence argument
 without putting WASM in the security path.
 
+> Superseded by [ADR-0012](0012-decode-test-oracle.md). The second opinion is
+> the chain's own reading, recorded in each fixture at collection time; CML is
+> not a dependency of this repository. Everything else in this ADR stands.
+
 **Tests that land with the implementation** (`test/fixtures/`, per the testing
 bar in `CLAUDE.md`):
 

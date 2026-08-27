@@ -1,0 +1,23 @@
+{
+  "name": "native-assets-in-output",
+  "transactionId": "e3e0752466ec794b6326d75c0db8d0d7a52a5c7134310d6c177e90c96d2d2ce2",
+  "exercises": ["legacy-output", "native-assets-in-output"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858481,
+    "fee": "167217",
+    "totalOutput": "1658463",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a300d9010281825820c6f959bb621ad71ac65af267d8c2420de5d980ed2b4d94276d7c09fd4033f8a2010181825839016cab2662301821b6109bface7a10ae365ab523efe8349a1bdf4e07f9293a349f9db78462feee2b0a14ea0128401fa361d36b995dcbd39c45821a00194e5fa1581caa1ea1f35a7b5c24377ee7dfc8316278595e3ab7af9c4b342011b9b3a14541534e454b1a00249f00021a00028d31a100d901028182582047c7b0f55b217b3f62b3046e08eef28c48f1b42d3b1688b695eecadab97f530a584071f9bb1d5faeccfdbcd965d6c860c1313da8e5ad3ba05ba32bb369a4bef97bbf93aeace8276c855687ed3613e44b27832ba6fe0db4ee96a65f0e297353b45500f5f6"
+}

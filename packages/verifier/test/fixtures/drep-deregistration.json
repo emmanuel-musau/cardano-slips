@@ -1,0 +1,23 @@
+{
+  "name": "drep-deregistration",
+  "transactionId": "0e9ce00a220748699f854c90b4e885b2402fb1a28bbf3839e29c050a887d94c4",
+  "exercises": ["certificate:UnregisterDrep", "legacy-output"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13796663,
+    "fee": "180505",
+    "totalOutput": "1004086387",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": ["drep_retire"],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a400d901028182582020b7914deef662dc53fb5172de3e03440f077742d9bf0a0d7b37a720a21bfa3400018182583901d05dcc5b76c10b98d10a75073659d5bfc4faf2a22a80dec7883b1c7a163f23bea54c03c77d5a685ed70a54e13610219ef1ebf167b7a3d6c71a3bd92473021a0002c11904d901028183118200581c328fa977f7283f4e6742c3938f20d49a437416784a408a3b8efc8ce81a1dcd6500a100d901028282582057df385550090dcf698b63af0e09ac8bf39a6eeaa26fd60641df5b1a5a8e19ce5840f8805240c0024db6335e78982ad60d06dc32e013097c2cc02bea7e7165ec87a724cbe52203d404c9e3b3d4f9e2bb1644dc3e7ebdf38e41e1f85d0912205c020e825820a1420957e26c3a36c487ba4c474fb55833d804e83abf90fa0f240c3ba76385925840177547ce39dfc87859fc2de26e1d231d51ab068d55821a71f5eb412c55a4a0455c07d15a63a9b200463f1edc50e745b39c853e44a033e496f72475716d77000af5f6"
+}

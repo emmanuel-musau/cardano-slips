@@ -1,0 +1,23 @@
+{
+  "name": "post-alonzo-output-with-datum-hash",
+  "transactionId": "9c1119e7f12f188d01e514d502ef9e74be5be768415751fed1797cabc815fcba",
+  "exercises": ["datum-hash", "legacy-output", "native-assets-in-output", "script-data-hash"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858124,
+    "fee": "178173",
+    "totalOutput": "1751651707",
+    "outputs": 2,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a400d9010281825820eca3b37e5486520c81c8c028ef8339719b6d70342fa0a8ca14ce53623148006901018283581d71ba158766c1bae60e2117ee8987621441fac66a5e0fb9c7aca58cf20a1a3bdf74205820cd38a0aea80e88e7c3930338af97e40e053bb2890f45a1e8c84dc315066bd8a582583901d0815d4f9e614f8e3d7d73103a4c3a2a7821874023adf3d22646a8c890ada37abe41eb0981b22d7a713d6a22b678744e9f88eccf6d1d671e821a2c88a15ba1581ce5a42a1a1d3d1da71b0449663c32798725888d2eb0843c4dabeca05aa151576f726c644d6f62696c65546f6b656e5802021a0002b7fd0b58207c66ca70036dae5e34cdedc679c475c8eb1c93ca822f711385137a148a9cc89da200d901028182582046d5c7c39932cabfb145a0e6faaba7d0099280683f9520a0d495b42bb3014aa85840d0dcc9d0c16a4ffc9fe44dd4a10f9d0d44cf8bd072a198a0b77688d81cea95caeab13d98863becec1f024dff1e16568659feb75eec9d347ad1ecebb3a6fad30b04d9010281d8799f4108d8799fd8799fd8799fd8799f581cd0815d4f9e614f8e3d7d73103a4c3a2a7821874023adf3d22646a8c8ffd8799fd8799fd8799f581c90ada37abe41eb0981b22d7a713d6a22b678744e9f88eccf6d1d671effffffffd87a80ffd87a80ff1a002625a0d8799fd879801a3b9aca00d8799f1b00000033c957df3efffffff5f6"
+}

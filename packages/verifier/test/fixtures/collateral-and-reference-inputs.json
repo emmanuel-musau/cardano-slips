@@ -1,0 +1,34 @@
+{
+  "name": "collateral-and-reference-inputs",
+  "transactionId": "fac73807c22b0a8bf2897b8856f6697b7a75e10807f3f1244d1bff028fe0c775",
+  "exercises": [
+    "collateral-inputs",
+    "inline-datum",
+    "legacy-output",
+    "native-assets-in-output",
+    "post-alonzo-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash",
+    "validity-interval-end",
+    "validity-interval-start"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858481,
+    "fee": "266918",
+    "totalOutput": "1893959995",
+    "outputs": 2,
+    "inputs": 2,
+    "collateralInputs": 1,
+    "referenceInputs": 1,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": "196177721",
+    "invalidAfter": "196178621",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a900d901028282582042e61517d3c33935d9aa59b07fc9b179250b235e8f732354e2ede0ec9af2a2160082582042e61517d3c33935d9aa59b07fc9b179250b235e8f732354e2ede0ec9af2a216010dd901028182582042e61517d3c33935d9aa59b07fc9b179250b235e8f732354e2ede0ec9af2a2160112d901028182582016ad2d08415d096af6c04a21ae9cfbe896ad7e861029732ce60406022c229212010182a300581d7189829415a9cdfb32a05122b1f0c0f495b80f57b00087bb62116651e801821a001b5bc0a1581c815aca02042ba9188a2ca4f8ce7b276046e2376b4bce56391342299ea14d446a65644f7261636c654e465401028201d81858a2d8799f5840761118feb270b435b622b83ce11be9c108f1a426940d549ee132273e2e9ac71ba698a9d593e8dff5a5712b36aa88a3e1b489d95378bc85dad002a39d5006d007d8799fd8799f199c401920e5ffd8799fd8799fd87a9f1b000001a03dd8c6e0ffd87a80ffd8799fd87a9f1b000001a03de68280ffd87a80ffff43555344ff581c815aca02042ba9188a2ca4f8ce7b276046e2376b4bce56391342299eff82583901e194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff1ba5a4dd8c3b9a1f42933fff0246391d2298ff8b5ad460edb61eb85e1a70c82d7b021a000412a6031a0bb172bd081a0bb16f390ed9010281581ce194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff0b58206f8dfccdec2a8273d5c148d6864e6d4f601691da22fd44f0c58efa1f04f39469a200d901028182582051f4ed3fc62618d6cc2a29f50efb6c8fbf4a6e65a02d90b9eae4a1196bafcb5558403883ae1c5b2050ebee1fc7fcfd1a8331a8c10257400273337f295a075666be9089b8bc92f0cfa59d0bfdc509d328437e78c6ff70922eaa908123ab270ae97a0605a182000082d87980821a000712c81a0a9b0267f5f6"
+}
