@@ -1,0 +1,23 @@
+{
+  "name": "proposal-info-action",
+  "transactionId": "48bab0ca71cc46f2ee421242b14f292b8c8382bda707d03ea662644bed22b893",
+  "exercises": ["legacy-output", "proposal:info", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13715523,
+    "fee": "172189",
+    "totalOutput": "1827811",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "193284188",
+    "votingProcedures": 0,
+    "proposalProcedures": 1
+  },
+  "cbor": "84a500d90102818258202d41957c0b829cb7b7dad2214aeb2286e6b9b74f9eac0007d00a4009336620af000181825839014f4ac1e24970e2f62cb27a6e344ef60e65ea72a09cf8a07781384de7bd8a6ca646f9d7e62d0d64fd424df8afa35892e89f62acecca8cd3fd1a001be3e3021a0002a09d031a0b85485c14d9010281841b000000174876e800581de149d2f64bf237b683e3a3e2b543ca6f18bde2b673716514b4d1cd5348810682783f68747470733a2f2f73747238706f6f6c2e636f6d2f676f7665726e616e63652f323032362d30372d32332d46616269616e7642657267656e2e6a736f6e6c64582095c0bcf2ec42756d6f12f8110d40826021fca29ed82526609efb62d9e79c98ada100d9010281825820bfe19b8f50835157610af36d328a37d254547ab58a79d2226fb13630fa4eea9558403003f048efe1bec50591bae71831f2c1d30447f73e011364991a723e87d057cf406977fd91c6a7b934da80c006567a456b557e0108a0cd7f7c99587248d6010af5f6"
+}

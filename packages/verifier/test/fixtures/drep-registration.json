@@ -1,0 +1,23 @@
+{
+  "name": "drep-registration",
+  "transactionId": "a9f95013b38ee6bb155b48cfb027daf91c8468f6d9a0d9e917d04ad36869289f",
+  "exercises": ["certificate:RegisterDrep", "legacy-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13795211,
+    "fee": "171925",
+    "totalOutput": "33701594",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": ["drep_registration"],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "194985201",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a500d90102818258209b16a684ac30c48678d76744a12f27999ca40e3a93d1575ba4b872e76867540600018182583901f67c13fe62160a4a3632c1b6bf8b642542937ef72cf865d33fb9cc71e1a74e5b5dac6ebf8d9c4932a56de2c3810dda45f9c756dea85901841a02023eda021a00029f95031a0b9f3cf104d901028184108200581c9e90e1e9d025fae5abf970610d80134f2b087a977c178553f60c3ea01a1dcd6500f6a100d9010282825820d457f1163a9b55ad2daf2e22b6be9d941b399494c8c1e07c60a6cd9ba65604bd5840202d29f8b75fc7342b3c5cb3024683e4e34e7cc66a8acaf7534b37ac9e4b523e47f42e47446cc154f54338105c76238d0e20e5706628b7fd5f50448d5a8f690f825820b7b6b0ad9f9220cc149824b8cdd04c755ff9695665efcf582d70fbf7cb85b2365840d079da0be8d4a597dc63a55a84cd8b8706c15a9a593cbdb7c7c68e5d42ab754d347e30f6a7c3eb59b553567faba9e6fa211c99fb07154bd56902c0f83fb3b20ef5f6"
+}

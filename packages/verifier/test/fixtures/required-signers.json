@@ -1,0 +1,31 @@
+{
+  "name": "required-signers",
+  "transactionId": "eb499d2576f19f16b8bca8db899b5e83d0ef99f7f79fdc9f64c44aa6cab72675",
+  "exercises": [
+    "auxiliary-data-hash",
+    "datum-hash",
+    "legacy-output",
+    "required-signers",
+    "script-data-hash",
+    "validity-interval-end",
+    "validity-interval-start"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858518,
+    "fee": "181165",
+    "totalOutput": "30522972",
+    "outputs": 2,
+    "inputs": 3,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": "196178224",
+    "invalidAfter": "196189024",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a800838258205c0457c40f43abc9ae6d9c4a9fd6b141933566d81c5436bce640361bdc61cd8902825820d1ac67f2d2b8fd05d7e3200f23b2a20d718010835df7354b3921e2859a5c058f01825820e0044ce0a0944b1156a9dc87cdb679e26a88262c4bb6e481c3f7abad1d028dc203018283581d712f190e3f01e3b57d70b97006e38bddbe2f056187b3e8817b92970f321a019f9aab5820f35adfaca354e3853dcbd31144225b02d662b0c4568acdb1532febd1109660208258390198d0ea590edc8e80196a43cfcc75ac23ca86ab37a19c0d507ca64e94b08372849b1651d4e9453e4c2bed5a004eda58f250fe03449f818e551a003223b1021a0002c3ad031a0bb19b600758205013310106dd22e701ca46cfe4fd976cfed0fccd6ac7a42a066c42d713b89569081a0bb171300b58202575b9f3a6a2147f1b7c5b71084dfd775242aa4c5a4465fe8925910cda7d57bf0e81581c98d0ea590edc8e80196a43cfcc75ac23ca86ab37a19c0d507ca64e94a2008182582099e00c38e683b6ce1d5ba32e5c320ae1de72eb872e3afbaee0aa59f5f70d425f5840d4397fffbd653739b5e71f9402b607652940da2018a9047e2d0b997fb96592c4fa0999784059bffbfae849340274157f905080dbdb5a213220a7c190e917c906049fd8799f583898d0ea590edc8e80196a43cfcc75ac23ca86ab37a19c0d507ca64e94b08372849b1651d4e9453e4c2bed5a004eda58f250fe03449f818e55d87c9f1ab1f8a955fffffff5a11902a2a1636d7367781a567946693a20547843617274204f726465722052657175657374"
+}

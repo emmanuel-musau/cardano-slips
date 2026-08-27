@@ -1,0 +1,23 @@
+{
+  "name": "payment-post-alonzo-outputs",
+  "transactionId": "63a52a889d3c3ab6727206b010e0c8f9676ff7504caf0e751eabf7884ffd48cc",
+  "exercises": ["post-alonzo-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858547,
+    "fee": "174257",
+    "totalOutput": "31024303015",
+    "outputs": 2,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "1787831819",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a400818258203d273694081d5eeceb7ab4836459b2e43aff31d08b781d9cf9e079bd5afc6c26020182a2005839010befd3bad33dfc7ec9999e3f0a5f7c8d5dfc4de0134d88517a5e7c43033bb18f466224caf35de4ea8c500c37f6d9fea7aff5b2079304e655011a01810b4aa200581d61c9f2b66ea34148b4d3f95c03fed7eac8791a6aa39149681156350501011b0000000737b0405d021a0002a8b1031a6a90260ba100818258200499e1da87cfaed47a0582367634056ee6a552f7fe9370cbeef43a9dc128c45a58408cec5e469f1830f828ddf54c234dcfdcd3d342b0a0c66bb2ed8311a8e3ae3de5799774fd3e581a87800b03365c3a8753ec128bd722f281b3d68104e9f1b7060bf5f6"
+}

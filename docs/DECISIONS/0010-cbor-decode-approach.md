@@ -122,6 +122,10 @@ opinion in tests: for every fixture, CML's reading of fee, outputs, certificates
 and withdrawals must agree with ours. That gives the independence argument
 without putting WASM in the security path.
 
+> Superseded by [ADR-0012](0012-decode-test-oracle.md). The second opinion is
+> the chain's own reading, recorded in each fixture at collection time; CML is
+> not a dependency of this repository. Everything else in this ADR stands.
+
 **Tests that land with the implementation** (`test/fixtures/`, per the testing
 bar in `CLAUDE.md`):
 
@@ -183,7 +187,9 @@ the attack examples are written against it — but that contract is the product,
 not an implementation detail.
 
 **Follow-on work, filed rather than absorbed.** The verifier's stated signature
-needs the resolved-inputs term added; and the fixture set needs its own ticket
-covering the transaction shapes this decision names but the proof did not reach
-— native assets, mint and burn, reference inputs, collateral, and governance
-procedures.
+needs the resolved-inputs term added (#107). The shapes this decision names but
+the proof did not reach — native assets, mint and burn, reference inputs,
+collateral, and governance procedures — are criteria on the existing fixture
+ticket (#40), and the fail-closed rejection tests are criteria on the decode
+ticket (#35), whose round-trip criterion this ADR replaces with the commit
+check.
