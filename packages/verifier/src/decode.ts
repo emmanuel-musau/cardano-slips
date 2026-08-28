@@ -1,15 +1,7 @@
 /**
  * CBOR in, a Conway transaction out, plus the byte range the commit is taken
- * over.
- *
- * Nothing here is skipped. Every body key, certificate type and output shape is
- * either modelled below or refused by name — ADR-0010's fail-closed rule, and
- * the reason an era that adds a field arrives as a refusal rather than as a
- * quietly missing effect.
- *
- * The reader raises internally and the boundary turns that back into an
- * `Either`: a recursive descent parser that threads a result type through every
- * step reads far worse than one that stops where the trouble is.
+ * over. Nothing is skipped: every body key, certificate type and output shape
+ * is modelled or refused by name, per ADR-0010's fail-closed rule.
  */
 import { Either } from "effect"
 
@@ -18,9 +10,7 @@ import { isRefusal, permissive, readOne } from "./cbor.js"
 import type { TransactionDecodeError } from "./decode-error.js"
 import { refuse } from "./decode-error.js"
 
-// ---------------------------------------------------------------------------
 // What a transaction reads as
-// ---------------------------------------------------------------------------
 
 export type TransactionInput = { readonly transactionId: Uint8Array; readonly index: bigint }
 
@@ -158,10 +148,8 @@ export type GovernanceActionKind =
   | "info"
 
 /**
- * The action's kind is named; its arguments are kept as read rather than
- * interpreted. Nothing is dropped — a protocol parameter update is thirty-odd
- * fields whose meaning belongs to the ticket that renders them, and an index
- * outside the seven below is still refused.
+ * The kind is named, the arguments kept as read: their meaning belongs to the
+ * ticket that renders them. An index outside the seven below is still refused.
  */
 export type GovernanceAction = {
   readonly kind: GovernanceActionKind
@@ -210,19 +198,15 @@ export type ExtractedBody = {
 
 /**
  * `bodyBytes` is the body exactly as it arrived. The commit is BLAKE2b-256 over
- * those bytes and never over a re-encode, so that a body encoded in a way we
- * would not have chosen still hashes to the transaction id the chain computes.
+ * those bytes, never a re-encode, so it matches the id the chain computes.
  */
 export type DecodedTransaction = ExtractedBody & { readonly body: TransactionBody }
 
-// ---------------------------------------------------------------------------
 // Reading one value at a time
-// ---------------------------------------------------------------------------
 
 /**
- * The only tags the Conway CDDL puts inside a transaction body: 258 wrapping a
- * set, 24 wrapping bytes that are themselves CBOR (an inline datum, a reference
- * script), and 30 wrapping a rational (a pool margin, a governance threshold).
+ * The only tags the Conway CDDL puts inside a body: 258 a set, 24 bytes that
+ * are themselves CBOR, 30 a rational.
  */
 const bodyTags: ReadonlySet<bigint> = new Set([24n, 30n, 258n])
 const strictBody: ReadOptions = { tags: bodyTags, simpleValues: "modelled" }
@@ -645,9 +629,7 @@ const readProposalProcedure = (value: CborValue): ProposalProcedure => {
   }
 }
 
-// ---------------------------------------------------------------------------
 // The body
-// ---------------------------------------------------------------------------
 
 /** Every integer key the Conway body defines. A key outside this set is era drift and raises. */
 const bodyKeys = new Set([0n, 1n, 2n, 3n, 4n, 5n, 7n, 8n, 9n, 11n, 13n, 14n, 15n, 16n, 17n, 18n, 19n, 20n, 21n, 22n])
@@ -732,14 +714,11 @@ const readBody = (value: CborValue): TransactionBody => {
   }
 }
 
-// ---------------------------------------------------------------------------
 // The public entry point
-// ---------------------------------------------------------------------------
 
 const extract = (bytes: Uint8Array): ExtractedBody => {
-  // Read the envelope permissively: a tag we do not model inside a witness set
-  // is not an effect, and refusing it would reject a valid transaction for
-  // nothing. Only the body is read strictly, and that happens below.
+  // Permissive here: an unmodelled tag inside a witness set is not an effect,
+  // and refusing it would reject a valid transaction. Only the body is strict.
   const envelope = readOne(bytes, 0, permissive)
   if (envelope.span.end !== bytes.length) {
     throw refuse(
@@ -793,11 +772,8 @@ const boundary = <A>(read: () => A): Either.Either<A, TransactionDecodeError> =>
 }
 
 /**
- * Where the body is, without asking what it says.
- *
- * Separate from `decodeTransaction` because the commit is defined on extraction
- * alone: CIP-0186 pins the rule against a body of `a0`, which is a well-formed
- * map and not a transaction the ledger would accept.
+ * Where the body is, without asking what it says. Separate from
+ * `decodeTransaction` because CIP-0186 defines the commit on extraction alone.
  */
 export const extractTransactionBody = (bytes: Uint8Array): Either.Either<ExtractedBody, TransactionDecodeError> =>
   boundary(() => extract(bytes))

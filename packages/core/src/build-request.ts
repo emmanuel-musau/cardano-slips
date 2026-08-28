@@ -1,12 +1,7 @@
 /**
  * The body a client sends with `POST` — the executable form of
- * `spec/CIP-XXXX/schemas/slip-post-request.schema.json`, held to the same
- * examples by `test/build-request.test.ts`.
- *
- * Two fields, and the closed object is the point: an endpoint learns one
- * address and the network it is on, and nothing else about the person. A
- * client's unspent outputs are rejected here by the same rule that rejects any
- * other undeclared member.
+ * `spec/CIP-XXXX/schemas/slip-post-request.schema.json`. The closed object is
+ * the point: an endpoint learns an address and a network, nothing else.
  */
 import { Schema } from "effect"
 

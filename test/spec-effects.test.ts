@@ -6,16 +6,9 @@ import { Ajv2020, type ValidateFunction } from "ajv/dist/2020.js"
 import { describe, expect, it } from "vitest"
 
 /**
- * Effects derivation and the mismatch gate (#19) — a comparison between two
- * documents and a verdict about a signature, which is the one subject a JSON
- * Schema cannot reach. The spec publishes a table of declared intent, derived
- * effects and required verdict; this runs it against a reference comparator
- * written from the numbered rules. `verifier`'s `compare.ts` runs the same
- * table, and the day they disagree one is wrong about the spec.
- *
- * Three load-bearing properties: every derived effect is either declared or
- * supplied, with no third set; the comparison admits no tolerance; and a
- * mismatch has no way out.
+ * Effects derivation and the mismatch gate (#19). The spec publishes a table of
+ * declared intent, derived effects and required verdict; this runs it against a
+ * reference comparator, and `verifier`'s `compare.ts` runs the same table.
  */
 
 const root = join(import.meta.dirname, "..")

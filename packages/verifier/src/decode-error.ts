@@ -1,10 +1,7 @@
 /**
- * Why a transaction was refused, and where in the bytes it happened.
- *
- * Every reason here is a rule from ADR-0010 that raises rather than skips. A
- * decoder that tolerates what it does not understand derives effects from a
- * transaction it only partly read, and an effect it never saw is an effect the
- * user never sees either.
+ * Why a transaction was refused, and where in the bytes it happened. Every
+ * reason raises rather than skips (ADR-0010): an effect the decoder never saw
+ * is an effect the user never sees either.
  */
 import { Data } from "effect"
 

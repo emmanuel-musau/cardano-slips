@@ -1,11 +1,8 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // For the editor, and nothing else. `../tsconfig.test.json` cannot be
-  // referenced from the package's solution file — a referenced project must be
-  // composite and a composite project must emit — so tsserver finds no project
-  // for a test file and falls back to defaults without `@types/node`. This sits
-  // where tsserver looks first. `pnpm typecheck` still runs the config above.
+  // For the editor only: tsserver looks here first, and without it a test file
+  // resolves to no project and loses `@types/node`. See docs/ARCHITECTURE.md.
   "extends": "../tsconfig.test.json",
   "include": ["**/*.ts", "**/*.tsx"]
 }

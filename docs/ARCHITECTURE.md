@@ -157,7 +157,7 @@ Enforce the direction in review. The moment `verifier` imports from `flow`, the 
 
 Root `tsconfig.json` is a solution file: `include: []` plus one reference per package, so `tsc --build` at the root walks the workspace in dependency order. Add the reference when the package lands.
 
-Each package carries the same four files, mirroring evolution-sdk:
+Each package carries the same four files, mirroring evolution-sdk, plus one editor shim:
 
 | File | Role |
 |---|---|
@@ -165,6 +165,7 @@ Each package carries the same four files, mirroring evolution-sdk:
 | `tsconfig.src.json` | the sources: `include: ["src"]`, `rootDir: "src"`, `outDir: "build/src"`, own `tsBuildInfoFile` |
 | `tsconfig.build.json` | extends `tsconfig.src.json`, adds `outDir: "dist"` and `stripInternal` — what `pnpm build` runs, and the only config that writes `dist` |
 | `tsconfig.test.json` | extends the **root** `tsconfig.test.json`, `include`s the tests, references `tsconfig.src.json` |
+| `test/tsconfig.json` | editor shim. A referenced project must be composite and a composite project must emit, so `tsconfig.test.json` cannot hang off the solution file — tsserver then finds no project for a test file and falls back to defaults without `@types/node`. This is where tsserver looks first. `pnpm typecheck` still runs the config above. |
 
 ```jsonc
 // packages/core/tsconfig.src.json

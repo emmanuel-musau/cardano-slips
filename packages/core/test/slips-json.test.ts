@@ -16,10 +16,9 @@ import {
 } from "../src/index.js"
 
 /**
- * The domain mapping: the file, the fetch, and the resolution. Unlike the other
- * two shapes, every rule here is visible in the payload, so `invalid/rule/` is
- * rejected by this decoder rather than deferred — the JSON Schema is what cannot
- * see them, not the client.
+ * The domain mapping: the file, the fetch, and the resolution. Every rule here
+ * is visible in the payload, so `invalid/rule/` is rejected by this decoder
+ * rather than deferred — the JSON Schema is what cannot see them, not a client.
  */
 
 const examples = join(import.meta.dirname, "..", "..", "..", "spec", "examples", "slips-json")

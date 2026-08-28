@@ -1,9 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
 
-  // A change here must invalidate every cached task. `spec/**` is global
-  // because `core` reads the examples from outside its own directory, and
-  // turbo's per-package inputs cannot reach up out of the package.
+  // `spec/**` is global because `core` reads the examples from outside its own
+  // directory, and per-package inputs cannot reach up out of the package.
   "globalDependencies": ["tsconfig.base.json", ".npmrc", "spec/**"],
 
   "tasks": {

@@ -2,34 +2,24 @@ name: CI
 
 on:
   pull_request:
-  # `dev` is the working branch and takes commits directly, so it needs the
-  # same four checks main gets. Without it a direct push runs nothing and a
-  # break sits unnoticed until the dev -> main pull request goes red with a
-  # pile of commits to bisect. Release is deliberately not here: publishing
-  # triggers on main only, in release.yml.
+  # `dev` takes commits directly, so a break there has to surface on the commit
+  # that caused it rather than at merge time.
   push:
     branches: [main, dev]
 
-# Nothing here writes. Publishing lives in release.yml with its own, narrower
-# grant — the only place in this repository that can write outside it.
 permissions:
   contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Superseded PR runs are wasted compute — cancel them, and cancel superseded
-  # `dev` runs too: several quick commits in a row is the normal way to work
-  # there, and only the last one's result matters. Pushes to main are never
-  # cancelled: main's run history is the record of what was actually verified
+  # main is never cancelled: its run history is the record of what was verified
   # before each merge, and a cancelled run leaves a hole in it.
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref_name == 'dev' }}
 
 jobs:
-  # The job id is what the Actions run graph puts after "Matrix:".
   checks:
-    # Four separately named checks (lint, typecheck, test, build) rather than
-    # one job with four steps: a red X names the failing gate without opening
-    # the log, and branch protection can require them individually.
+    # Four separately named checks rather than one job with four steps: a red X
+    # names the failing gate, and branch protection can require them singly.
     name: ${{ matrix.task }}
     runs-on: ubuntu-latest
     strategy:
@@ -40,26 +30,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # pnpm/setup supersedes pnpm/action-setup for pnpm v11+ and installs the
-      # runtime in the same step, so there is no actions/setup-node here.
-      # `version` is omitted deliberately — it is read from `packageManager` in
-      # package.json, which keeps CI and local on one pinned pnpm.
+      # `version` is omitted deliberately — pnpm/setup reads it from
+      # `packageManager` in package.json, keeping CI and local on one pin.
       - uses: pnpm/setup@v2
         with:
           runtime: node@22
           cache: true
-          # This action installs by default. We do it ourselves in the next
-          # step so --frozen-lockfile is visible in the workflow rather than
-          # inherited from a CI-environment default that could change.
+          # Installing in the next step instead keeps --frozen-lockfile visible
+          # here rather than inherited from a CI-environment default.
           install: false
 
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm ${{ matrix.task }}
 
-  # `packages/*` changes ship a changeset — docs/WORKFLOW.md makes it part of
-  # the definition of done, and a rule with no gate behind it decays into a
-  # rule people remember sometimes.
   changeset:
     name: changeset
     if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')
@@ -79,8 +63,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Exits non-zero when a package changed with no changeset to release it.
-      # Skipped on the version PR that release.yml opens: that PR bumps every
-      # affected package while consuming the changesets, so it could never
-      # satisfy this gate.
+      # Skipped on the version PR: it consumes the changesets while bumping the
+      # packages, so it could never satisfy this gate.
       - run: pnpm exec changeset status --since=origin/${{ github.base_ref }}

@@ -1,11 +1,7 @@
 /**
  * The GET discovery response — the executable form of
- * `spec/CIP-XXXX/schemas/slip-get-response.schema.json`, held to the same
- * examples by `test/get-discovery.test.ts`.
- *
- * Rules needing context a payload does not carry (same-origin `href`, `max`
- * against `min`, placeholders against parameters) are not checked here: they
- * need the discovery URL, and live in `url.ts`.
+ * `spec/CIP-XXXX/schemas/slip-get-response.schema.json`. Rules needing the
+ * discovery URL are not checked here; they live in `url.ts`.
  */
 import { Schema } from "effect"
 

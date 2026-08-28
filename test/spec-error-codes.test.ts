@@ -6,12 +6,9 @@ import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.
 import { describe, expect, it } from "vitest"
 
 /**
- * The failure codes and the versioning rule (#18).
- *
- * The codes only stay a closed vocabulary if the table in the written spec, the
- * JSON Schema and the examples agree, so every pair is compared. The versioning
- * rules have no schema to enforce them — the response may satisfy some *other*
- * version's schema — so they are asserted against the written spec directly.
+ * The failure codes and the versioning rule (#18). The codes stay a closed
+ * vocabulary only if written spec, schema and examples agree, so every pair is
+ * compared; the versioning rules have no schema and are asserted from the text.
  */
 
 const root = join(import.meta.dirname, "..")
