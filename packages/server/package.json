@@ -45,7 +45,8 @@
     "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
   },
   "dependencies": {
-    "@cardano-slips/core": "workspace:^"
+    "@cardano-slips/core": "workspace:^",
+    "effect": "^3.22.1"
   },
   "devDependencies": {
     "typescript": "^6.0.3"

@@ -90,6 +90,9 @@ importers:
       '@cardano-slips/core':
         specifier: workspace:^
         version: link:../core
+      effect:
+        specifier: ^3.22.1
+        version: 3.22.1
     devDependencies:
       typescript:
         specifier: ^6.0.3
