@@ -1,5 +1,27 @@
 # @cardano-slips/verifier
 
+## 0.1.0
+
+### Minor Changes
+
+- [#128](https://github.com/emmanuel-musau/cardano-slips/pull/128) [`7c9d1fb`](https://github.com/emmanuel-musau/cardano-slips/commit/7c9d1fb608279b985f8bec062374550aee96967e) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Decode Conway transaction CBOR into a typed structure, and hand back the body's
+  byte range beside it.
+  
+  The reader is our own, per ADR-0010: no runtime CBOR dependency, and every body
+  key, certificate type and output shape either modelled or refused by name. An
+  era that adds a field arrives as a refusal rather than as an effect the user
+  never sees. `extractTransactionBody` answers where the body is without asking
+  what it says, which is what the commit is defined over.
+  
+  Twenty-six mainnet fixtures come with it. Each one's BLAKE2b-256 over the
+  extracted body slice equals its known transaction id, and each carries the
+  chain's own reading of the transaction to check the decode against.
+
+### Patch Changes
+
+- Updated dependencies [[`9ed2ff5`](https://github.com/emmanuel-musau/cardano-slips/commit/9ed2ff59a108a1c7b18823dca1f8c4e445ecf190), [`8d53fb2`](https://github.com/emmanuel-musau/cardano-slips/commit/8d53fb2e00e1953194f097b53bcb07d2911794ce), [`77ed6d9`](https://github.com/emmanuel-musau/cardano-slips/commit/77ed6d992549d8062cce55b5357c2941adad72c0)]:
+  - @cardano-slips/core@0.2.0
+
 ## 0.0.2
 
 ### Patch Changes
