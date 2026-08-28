@@ -52,6 +52,7 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 | Module | Owns |
 |---|---|
 | `types.ts` | `Slip`, `Parameter`, `PartialIntent`, `DerivedEffects` — what a third-party implementer reads first |
+| `build-request.ts` | The body a client `POST`s — `changeAddress` and `network`, closed to anything else. The member that rejects a UTxO set is where Mode A's privacy actually lives. |
 | `url.ts` | Parse, resolve, validate Slip URLs; the human URL → technical endpoint indirection |
 | `slips-json.ts` | Domain mapping rules, so `linktap.example/pay/corner-store` resolves to `/api/slips/pay` |
 | `errors.ts` | The typed error codes — every failure mode the UI must render has a code here |
@@ -63,7 +64,7 @@ Zero runtime dependencies is the goal.
 
 | Module | Owns |
 |---|---|
-| `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in |
+| `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in. The network is declared once beside them, which is what lets a `POST` check the three statements of network the spec requires to agree. |
 | `adapters/nextjs.ts` | Framework binding |
 
 The whole developer-experience promise — a Slip in about twenty lines — is this package's job.

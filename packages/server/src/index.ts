@@ -7,4 +7,4 @@
  * boundary rather than at a stranger's wallet. Installing this must not pull in
  * a React tree or a CBOR decoder; `test/dependencies.test.ts` enforces it.
  */
-export {}
+export * from "./define-slip.js"
