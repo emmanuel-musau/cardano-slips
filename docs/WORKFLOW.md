@@ -58,8 +58,9 @@ explicitly, so versioning stays anchored to what actually shipped.
 `dev` merges into `main` with a **merge commit**, so `main` keeps one commit per
 ticket rather than one per release. Everything else squashes.
 
-After a release, **merge `main` back into `dev`** — see Releases below. Skip it
-and `dev` silently drifts behind by the version bumps and changelogs.
+After a release, `main` is fast-forwarded back into `dev` by the `backmerge`
+job — see Releases below. It is refused rather than forced when `dev` moved
+during the release, and the merge is then yours to do.
 
 ## Branch, commit, PR
 
@@ -117,17 +118,23 @@ Once the CIP draft is frozen (#21), request/response shapes are a versioned cont
 
 Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Four packages ship publicly: `core`, `server`, `verifier`, `flow`.
 
-Releasing runs in this order, and the last step is the one that gets forgotten:
+Releasing runs in this order. The last step used to be the one that got
+forgotten, so it is now a job:
 
 1. Open the `dev` -> `main` pull request and merge it with a merge commit.
 2. `release.yml` fires on the push to `main` and opens the Changesets version PR.
 3. Merge the version PR. That push publishes to npm.
-4. **Merge `main` back into `dev`.** `main` now carries version bumps and
-   changelogs that `dev` does not. Miss this and every later `dev` -> `main`
-   pull request drags a stale diff behind it.
+4. The `backmerge` job fast-forwards `dev` onto `main`. `main` now carries
+   version bumps and changelogs that `dev` does not, and left alone every
+   later `dev` -> `main` pull request drags a stale diff behind it.
+
+`backmerge` moves the branch through the refs API, which refuses anything but a
+fast-forward, so it can only go red when someone pushed to `dev` during the
+release window. That is a published release with an outstanding merge, not a
+torn one — finish it by hand:
 
 ```
-git switch dev && git merge main && git push
+git switch dev && git pull origin main && git push
 ```
 
 ## Environments

@@ -145,3 +145,19 @@ jobs:
       - uses: changesets/action/publish@v2.1.1
         with:
           script: pnpm release
+
+  backmerge:
+    name: back-merge into dev
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # `dev` is strictly behind `main` here. The refs API only fast-forwards
+      # without `force`, so a `dev` that moved fails this job, not gets clobbered.
+      - run: |
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/heads/dev" \
+            -f sha=${{ github.sha }}
+        env:
+          GH_TOKEN: ${{ github.token }}
