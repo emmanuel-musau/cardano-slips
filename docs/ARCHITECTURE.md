@@ -52,6 +52,7 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 | Module | Owns |
 |---|---|
 | `types.ts` | `Slip`, `Parameter`, `PartialIntent`, `DerivedEffects` — what a third-party implementer reads first |
+| `build-request.ts` | The body a client `POST`s — `changeAddress` and `network`, closed to anything else. The member that rejects a UTxO set is where Mode A's privacy actually lives. |
 | `url.ts` | Parse, resolve, validate Slip URLs; the human URL → technical endpoint indirection |
 | `slips-json.ts` | Domain mapping rules, so `linktap.example/pay/corner-store` resolves to `/api/slips/pay` |
 | `errors.ts` | The typed error codes — every failure mode the UI must render has a code here |
@@ -63,7 +64,7 @@ Zero runtime dependencies is the goal.
 
 | Module | Owns |
 |---|---|
-| `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in |
+| `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in. The network is declared once beside them, which is what lets a `POST` check the three statements of network the spec requires to agree. |
 | `adapters/nextjs.ts` | Framework binding |
 
 The whole developer-experience promise — a Slip in about twenty lines — is this package's job.
@@ -92,7 +93,7 @@ Then compares derived effects against what the endpoint declared in the partial 
 | `derive.ts` | Diffs inputs against outputs for the user's addresses → ADA delta, per-policy asset deltas, exact fee, certificates, withdrawals, mint/burn, validity interval. Takes four of the five terms — the declared metadata is the comparison's business, not the arithmetic's. |
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
-| `test/fixtures/` | ~50 known-good mainnet transactions with expected outputs. Regression safety. Every fixture's derived commit must equal its known transaction id, and CML cross-checks the derived fields as a second opinion (ADR-0010). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |
+| `test/fixtures/` | ~50 known-good mainnet transactions with expected outputs. Regression safety. Every fixture's derived commit must equal its known transaction id, and each fixture carries the chain's own reading of what the transaction does, recorded when it was collected, as the second opinion (ADR-0010, ADR-0012). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |
 | `test/attacks/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
 
 Deliberately consumable standalone: a wallet or an explorer should be able to use `verifier` without adopting the rest of the protocol. That reusability is an argument in the CIP.

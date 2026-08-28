@@ -47,7 +47,7 @@ type Rejection = {
   readonly param?: string
 }
 
-/** First case: the payload the mechanism exists to make unexpressible, failing on the grammar. */
+/** First case: the payload the mechanism exists to make unexpressible, failing on the pattern. */
 const schemaRejections: ReadonlyArray<Rejection> = [
   { file: "absolute-api-path.json", keyword: "pattern", instancePath: "/rules/0/apiPath" },
   { file: "protocol-relative-api-path.json", keyword: "pattern", instancePath: "/rules/0/apiPath" },
@@ -98,8 +98,8 @@ describe("the slips.json schema", () => {
   })
 
   it("makes another host unexpressible rather than merely forbidden", () => {
-    // A rule that has to be checked is one an implementation can skip; a grammar
-    // that cannot carry a host has nothing to skip.
+    // A rule that has to be checked is one an implementation can skip; a path
+    // with nowhere to write a host has nothing to skip.
     const defs = schema["$defs"] as Record<string, Record<string, unknown>>
     const path = new RegExp(defs["pathTemplate"]["pattern"] as string)
     for (const hostile of [
@@ -108,7 +108,7 @@ describe("the slips.json schema", () => {
       "http://api.other.example",
       "api.other.example/slips"
     ]) {
-      expect(path.test(hostile), `the grammar admits ${hostile}`).toBe(false)
+      expect(path.test(hostile), `the pattern admits ${hostile}`).toBe(false)
     }
   })
 

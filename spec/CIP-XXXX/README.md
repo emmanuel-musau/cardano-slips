@@ -140,13 +140,13 @@ where one URL stands for another, and where the second may be anywhere, is the
 hijacked link [CIP-13]'s security considerations warn about — and it would
 reopen exactly what [Linked actions](#linked-actions) closes by requiring every
 `href` to stay on the discovery origin. A rule that must be *checked* is a rule
-an implementation can forget; a grammar that cannot carry a host has nothing to
-forget. The cost is real and accepted: a publisher whose endpoints live on
+an implementation can forget; a path with nowhere to write a host has nothing
+to forget. The cost is real and accepted: a publisher whose endpoints live on
 another host, `api.example` in front of `example`, serves the mapping from that
 host or proxies to it.
 
-**The grammar.** A path template is one or more segments, each introduced by
-`/`. A segment is a literal, or `*`, or — as the final segment only — `**`.
+**How a path template is written.** It is one or more segments, each introduced
+by `/`. A segment is a literal, or `*`, or — as the final segment only — `**`.
 
 - `*` matches exactly one non-empty segment.
 - `**` matches one or more segments, and MUST NOT appear anywhere but last. A

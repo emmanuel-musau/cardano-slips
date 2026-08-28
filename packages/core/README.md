@@ -14,6 +14,7 @@ pnpm add @cardano-slips/core
 | --- | --- |
 | Types | `Slip`, `Parameter`, `PartialIntent`, `DerivedEffects` |
 | URLs | parse, resolve and validate Slip URLs |
+| Requests | the `POST` body an endpoint receives — one change address, one network, and nothing else |
 | `slips.json` | the domain mapping rules, so `linktap.example/pay/corner-store` resolves to `/api/slips/pay` |
 | Errors | the typed error codes — every failure a client has to render has a code here |
 

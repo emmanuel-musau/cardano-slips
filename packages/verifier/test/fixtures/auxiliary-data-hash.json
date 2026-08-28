@@ -1,0 +1,23 @@
+{
+  "name": "auxiliary-data-hash",
+  "transactionId": "d36301d547a21fc510d9acc4907345b322ac220be140dbc76a5908358e80a6ed",
+  "exercises": ["auxiliary-data-hash", "legacy-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858535,
+    "fee": "172541",
+    "totalOutput": "226980356",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "196181910",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a500d901028182582090ff5523c3f7fe9ea520869bba93fb8fac3537762ce3a9090684ed258b2cc8bb00018182581d6195c60f748b7b6a9a3c7acc429c6a9050a9dc8f99d4cb1fba615dbb561a0d877204021a0002a1fd031a0bb17f960758200be3efbd5358f9cd18ee904b77117977a6b73f319bdb1a5f2fb78ebaefafa90ca100d90102818258208d639b10d413f01e17a98ecd2482871dc5821fd7761088da8fe188e4ef11bfeb58402169dae97ecbf34405b41358a4d1d0d9a38948ea30116a1ce14ae6fb23794ab5963c1d6f21858e3ec514a05f7d16b9557433b177a31936deb1dbeb2c09c6870cf5d90103a100a101a26974696d657374616d706a313738373734343936316d6162736f6c7574655f736c6f7469313936313738363730"
+}

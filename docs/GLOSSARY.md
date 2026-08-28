@@ -22,7 +22,7 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **CIP-13** — Cardano's URI scheme (`web+cardano:`). Covers payment and stake delegation, and every extension registers an authority under it. Still `Proposed` with no listed implementors since 2020 — see `docs/ECOSYSTEM.md` §1 for why that matters. Our proposed `//slip` authority extends it; deferred to roadmap in M1.
 
-**CIP-158** — the `//browse` authority: `web+cardano://browse/v1?uri=<percent-encoded https URL>` opens that URL in the wallet's in-app browser. Active, implemented by VESPR and Begin. Our mobile entry path, because CIP-30 is injected once the page loads there.
+**CIP-158** — the `//browse` authority: `web+cardano://browse/v1?uri=<percent-encoded https URL>` opens that URL in the wallet's in-app browser. Active, implemented by VESPR and Begin. Our mobile entry path, because CIP-30 is injected once the page loads there — and the only mobile route to a signature, since a phone browser injects nothing. Android and iOS hand the URI to a wallet differently; `docs/ECOSYSTEM.md` §1 has both.
 
 **CIP-30** — the browser wallet connector. Note the detail that trips people up: `signTx` returns a **witness set**, not a signed transaction. Witnesses must be assembled into the body before `submitTx`.
 

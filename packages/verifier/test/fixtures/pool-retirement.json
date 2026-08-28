@@ -1,0 +1,23 @@
+{
+  "name": "pool-retirement",
+  "transactionId": "3411f420507c1b91eb228533a6e4ae89708bb5853b4b3f2fe79018f53e7c0d44",
+  "exercises": ["certificate:PoolRetirement", "legacy-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13853708,
+    "fee": "171705",
+    "totalOutput": "188114641",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": ["pool_retire"],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "196089925",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a500d90102818258208ad83fb84b8313ecc05b5b91fbc283500ced0dd6a9dcc8272933f1d73ed57245000181825839016918d7e8a1453accaec1092f30ce9f4861ce54646c203c2645f0b750759461c8ba0e6deb7579795929e8a670bcbccf4bc1311fb3e2b4589f1a0b3666d1021a00029eb9031a0bb0184504d90102818304581ca2563027d23bdd4f7f29ff566d68cf78137e54f1ea8af46c3e01e81919028ca100d901028282582083e91cd9b5809633783d1f7a6d83cfb2f03b283036144c0c93f37dc0ced023885840fc4c920fb63ff0d1936b8543ade1b31d1e9d8ad4b08064837c40b7778cce9af8041fde62e1edb797ba2d0b886fc0d8e580f9dd57f739d51b6e7d293c80c6000a8258204e25512f2953b136508229a36d22108dd95def26420cca13276e47411b0bfb6d584098a582d33033b4126f8a4abe5924b4a5db87576afe05423bd71c9ddc74b0c10234a2a9538e9465db898a41c435971501a8aa89855e489161e10cac796751130ff5f6"
+}

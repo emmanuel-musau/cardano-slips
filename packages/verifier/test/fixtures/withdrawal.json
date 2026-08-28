@@ -1,0 +1,23 @@
+{
+  "name": "withdrawal",
+  "transactionId": "0fb5e8f7aedb917b2bb55e430e4338614c243922ca075fe8a3b28151a127bb32",
+  "exercises": ["legacy-output", "validity-interval-end", "withdrawal"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858521,
+    "fee": "171353",
+    "totalOutput": "373151975",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": ["127814215"],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "196181962",
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a500818258202aa02feae718ace18de61bfb3a06757d4a86f2f24a1d5bb18e042772e9a349c7000181825839014e4f618ef9c936fdf1d5633af5e94047f6543bf6b5349147d7bae17e5dea4c0d93db46312d6655655426e3210963bb5c38c4a9bbaf01ce1d1a163dd8e7021a00029d59031a0bb17fca05a1581de15dea4c0d93db46312d6655655426e3210963bb5c38c4a9bbaf01ce1d1a079e4a47a100828258208552e53b741cb14cf5b9982d5a1c887545ee232ce86618d8ece471f168308aa35840d5f6cbccdac5fbbbf3ff48455e58b965463c7dda2e2ef0cde9bd9775afe924563ed8faf482a606ed1e8aafd3d94f7b29262fe1730461833908e5f0a6c4e3120a825820aebb3082661470d9e72595d4fda7dc1db28997756b7ff337b158126cfc0aa3095840ad5b1991e5a77b67601ed795843479a2c291c3a45a54bb05d5de76f4e4da957ad19961307bfaf05e2e32790f69368a7152481e18e8c79c0229399ad5040d6b02f5f6"
+}

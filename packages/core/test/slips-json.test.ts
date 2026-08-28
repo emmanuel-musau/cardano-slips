@@ -94,7 +94,7 @@ describe("decoding slips.json", () => {
       "api.other.example/slips"
     ]) {
       const result = Schema.decodeUnknownEither(MappingRule)({ pathPattern: "/pay/*", apiPath: hostile })
-      expect(Either.isLeft(result), `the grammar admits ${hostile}`).toBe(true)
+      expect(Either.isLeft(result), `the pattern admits ${hostile}`).toBe(true)
     }
   })
 })
@@ -291,5 +291,178 @@ describe("fetching the mapping", () => {
     )
     expect(asked).toBe(false)
     expect(Either.isLeft(result) && result.left._tag).toBe("InsecureSlipUrl")
+  })
+})
+
+/**
+ * Beyond the published table: combinations no case in the CIP happens to name,
+ * held to the same reading of `*` and `**`.
+ */
+describe("the resolution matrix", () => {
+  const matrix: ReadonlyArray<{
+    readonly name: string
+    readonly rules: ReadonlyArray<MappingRule>
+    readonly path: string
+    readonly resolved: string
+  }> = [
+    {
+      name: "fills two wildcards in the order they appear",
+      rules: [{ pathPattern: "/pay/*/*", apiPath: "/api/*/tickets/*" }],
+      path: "/pay/2026/summer",
+      resolved: "/api/2026/tickets/summer"
+    },
+    {
+      name: "gives a catch-all every remaining segment as one capture",
+      rules: [{ pathPattern: "/pay/*/**", apiPath: "/api/*/rest/**" }],
+      path: "/pay/2026/summer/tickets/vip",
+      resolved: "/api/2026/rest/summer/tickets/vip"
+    },
+    {
+      name: "does not match a pattern longer than the path",
+      rules: [{ pathPattern: "/pay/tickets/*", apiPath: "/api/slips/pay/*" }],
+      path: "/pay/tickets",
+      resolved: "/pay/tickets"
+    },
+    {
+      name: "does not match a path longer than the pattern",
+      rules: [{ pathPattern: "/pay/*", apiPath: "/api/slips/pay/*" }],
+      path: "/pay/alice/extra",
+      resolved: "/pay/alice/extra"
+    },
+    {
+      name: "does not let a single wildcard take an empty segment",
+      rules: [{ pathPattern: "/pay/*", apiPath: "/api/slips/pay/*" }],
+      path: "/pay/",
+      resolved: "/pay/"
+    },
+    {
+      name: "does not let a catch-all end on an empty segment",
+      rules: [{ pathPattern: "/pay/**", apiPath: "/api/slips/pay/**" }],
+      path: "/pay/alice/",
+      resolved: "/pay/alice/"
+    },
+    {
+      name: "drops a single-dot segment as readily as a double",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/./delegate/POOL1",
+      resolved: "/api/slips/delegate/POOL1"
+    },
+    {
+      name: "cannot be walked above the root",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/../../../delegate/POOL1",
+      resolved: "/api/slips/delegate/POOL1"
+    },
+    {
+      name: "captures a segment that is literally an asterisk",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/delegate/%2A",
+      resolved: "/api/slips/delegate/%2A"
+    },
+    {
+      name: "keeps a query on a path no rule matched",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/about?ref=x",
+      resolved: "/about?ref=x"
+    },
+    {
+      name: "keeps an empty query string",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/delegate/POOL1?",
+      resolved: "/api/slips/delegate/POOL1?"
+    },
+    {
+      name: "matches a literal segment case-sensitively too",
+      rules: [{ pathPattern: "/Delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/delegate/POOL1",
+      resolved: "/delegate/POOL1"
+    },
+    {
+      name: "reads a question mark inside a segment as the start of the query",
+      rules: [{ pathPattern: "/delegate/*", apiPath: "/api/slips/delegate/*" }],
+      path: "/delegate/a?b/c",
+      resolved: "/api/slips/delegate/a?b/c"
+    }
+  ]
+
+  it.each(matrix)("$name", ({ rules, path, resolved }) => {
+    expect(resolvePath(rules, path)).toBe(resolved)
+  })
+
+  it("uses only rule sets a publisher could actually serve", () => {
+    const unserveable = matrix.filter(({ rules }) => Either.isLeft(decodeSlipsJson({ rules }))).map(({ name }) => name)
+    expect(unserveable).toEqual([])
+  })
+
+  it("resolves nothing when there are no rules at all", () => {
+    expect(resolvePath([], "/delegate/POOL1?ref=x")).toBe("/delegate/POOL1?ref=x")
+  })
+
+  it("degrades safely if handed a rule that never came through the decoder", () => {
+    // `resolvePath` is exported, so it can be reached with a rule the file schema refuses.
+    const disagreeing = { pathPattern: "/pay/*", apiPath: "/api/*/*" } as MappingRule
+    expect(Either.isLeft(decodeSlipsJson({ rules: [disagreeing] }))).toBe(true)
+    expect(resolvePath([disagreeing], "/pay/alice")).toBe("/api/alice/")
+  })
+})
+
+describe("responses the fetch has to place exactly", () => {
+  it("reads a 200 with no body at all as malformed, not as absent", async () => {
+    const result = await run("https://linktap.example/pay", (() =>
+      Promise.resolve(new Response(null, { status: 200 }))) as unknown as typeof globalThis.fetch)
+    expect(Either.isLeft(result) && result.left.code).toBe("MALFORMED_RESPONSE")
+  })
+
+  it("uses the platform fetch when the caller supplies none", async () => {
+    const original = globalThis.fetch
+    try {
+      globalThis.fetch = stub(() => respond(served))
+      const result = await Effect.runPromise(Effect.either(fetchDomainMapping("https://linktap.example/pay")))
+      expect(Either.isRight(result) && result.right._tag).toBe("Mapping")
+    } finally {
+      globalThis.fetch = original
+    }
+  })
+
+  it("reads a file whose rules disagree with themselves as malformed", async () => {
+    const disagreeing = JSON.stringify({ rules: [{ pathPattern: "/pay/*", apiPath: "/api/slips/pay/**" }] })
+    const result = await run(
+      "https://linktap.example/pay",
+      stub(() => respond(disagreeing))
+    )
+    expect(Either.isLeft(result) && result.left.code).toBe("MALFORMED_RESPONSE")
+  })
+
+  it("reads a JSON array where an object belongs as malformed", async () => {
+    const result = await run(
+      "https://linktap.example/pay",
+      stub(() => respond("[]"))
+    )
+    expect(Either.isLeft(result) && result.left.code).toBe("MALFORMED_RESPONSE")
+  })
+
+  it("accepts a body that arrives in several chunks", async () => {
+    const chunked = new ReadableStream<Uint8Array>({
+      start(controller) {
+        const bytes = new TextEncoder().encode(served)
+        controller.enqueue(bytes.slice(0, 20))
+        controller.enqueue(bytes.slice(20))
+        controller.close()
+      }
+    })
+    const result = await run("https://linktap.example/pay", (() =>
+      Promise.resolve(new Response(chunked))) as unknown as typeof globalThis.fetch)
+    expect(Either.isRight(result) && result.right._tag).toBe("Mapping")
+  })
+
+  it("reads a body exactly at the limit", async () => {
+    const result = await run(
+      "https://linktap.example/pay",
+      stub(() => respond(served)),
+      {
+        maxBytes: new TextEncoder().encode(served).byteLength
+      }
+    )
+    expect(Either.isRight(result) && result.right._tag).toBe("Mapping")
   })
 })

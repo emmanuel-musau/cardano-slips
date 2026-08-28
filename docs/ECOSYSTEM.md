@@ -35,6 +35,37 @@ Every rule below was paid for by a bug that shipped. Sources: issue #836 and the
 - **Quantities are integer base units, never decimals-adjusted.** Mishandled decimals on `amount` is the most repeated bug in the whole family — it shipped in Eternl and Begin — and VESPR asked CIP-157 to state it normatively. Display decimals travel separately and are never authoritative. Spec input on #17, attack case on #41.
 - **Identify assets as `<policy_id>.<asset_name>`, not by fingerprint.** Fingerprints are fixed-length and would give predictable URI lengths, but neither Blockfrost nor Koios can query by them. Short tickers are worse: they collide with each other and with query keywords — a token named `MSG` breaks `&msg=`.
 
+### What the operating system does with the URI
+
+The authority is only half the journey. To the OS, `web+cardano:` is an ordinary
+custom scheme, registered in an Android `intent-filter` and an iOS `Info.plist`
+per EMIP-002 — and the two platforms treat it differently. Checked 2026-08-27.
+
+- **Android chooses the wallet properly.** Chrome fires an `ACTION_VIEW` intent
+  and Android opens the user's default handler, the only handler, or a chooser.
+  Several wallets installed means a real choice, and we ship no wallet list.
+- **iOS does not choose.** Apple has no chooser for a duplicate scheme;
+  resolution is undocumented and follows install order. With three wallets
+  installed the user gets one of them and cannot change it. Apple's own answer
+  is Universal Links, which CIP-158 has no form for.
+- **The handoff must be a real tap.** Chrome on Android blocks navigation to an
+  external scheme that no user gesture started — a redirect, a `window.location`
+  on load, anything in an iframe.
+- **Failure is silent.** With no wallet installed there is no error and no
+  prompt. A timer after the tap is the only way to notice.
+- **A sender app can eat the scheme before any wallet sees it.** X's iOS in-app
+  browser stopped passing app-scheme redirects around November 2025; AppsFlyer
+  measured an 86% drop in conversions from organic posts and X's developer forum
+  thread is still open. A link tapped inside X on iOS never reaches a wallet.
+
+**What follows for us.** A phone browser injects no CIP-30, so `//browse` is not
+a convenience on mobile — it is the only route to a signature. That makes the
+iOS gap a design question rather than a detail: either accept the wallet iOS
+picks, or ship our own picker over per-wallet schemes, which CIP-158 cannot
+express because its authority is deliberately generic. WalletConnect maintains a
+wallet registry for exactly this reason. Undecided, and it needs the measured
+behaviour from #98 first.
+
 ### Why this layer stalls
 
 The URI family's problem is adoption, not design. Wallet teams largely do not engage with the CIP process; each ships its own shape first, and editors have spent two years asking for a working group that has not convened. The record:

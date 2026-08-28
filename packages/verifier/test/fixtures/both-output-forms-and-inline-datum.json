@@ -1,0 +1,23 @@
+{
+  "name": "both-output-forms-and-inline-datum",
+  "transactionId": "830c348f611543eedef3bd9f2bd3f59446d6fe79f7be71e304cca2b29b226212",
+  "exercises": ["inline-datum", "legacy-output", "native-assets-in-output", "post-alonzo-output"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13858504,
+    "fee": "174433",
+    "totalOutput": "20286672",
+    "outputs": 2,
+    "inputs": 2,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0
+  },
+  "cbor": "84a300d901028282582029b85a5351421ec378a63f99f2f039b9f1bd58ac40ea6b7c2838c46e6c10fe620082582077401a3e481c478eec4e2f40f512fd9cb9a6058934f7270d489d616800f0b462010182a300583901bb09f43245759995440388db9ef3f8a614246e8da1dd9bd053261347dbb81874d7e8c175896815e06da5113d78371fd123d64741521e09df01821a001e8480a1581ca8c5354a4813f2b3f60836839b8842a9422186f4f15511790ec95f9ca1581b41454749535f50524943455f464545445f4554485f5553445f563101028201d8185823d8799fd87b9fa3001a92a127b8011b000001a03ddf069d021b000001a03e1f1cddffff82583901bb09f43245759995440388db9ef3f8a614246e8da1dd9bd053261347dbb81874d7e8c175896815e06da5113d78371fd123d64741521e09df1a01170850021a0002a961a100d90102818258205903780786087c56b472c8ba691d224a39f9c084bf77eecb409f3ffb3e76ad3a58408593bb2a95ca95702eb0aaa5c65e7c126bd4b426ea4c5be9cc721a8194417294dad03700c933b792e91cb083568ff8fa72ae36cf5caa720ddfe4940a51873900f5f6"
+}
