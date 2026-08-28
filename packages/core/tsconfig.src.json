@@ -1,9 +1,8 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // The shippable sources, emitted to `build/src` for the editor and
-  // `pnpm typecheck`. `dist` comes from tsconfig.build.json instead, so a
-  // typecheck can never half-overwrite a build turbo has cached.
+  // Emitted to `build/src`, never `dist`, so a typecheck cannot half-overwrite
+  // the build turbo has cached. tsconfig.build.json writes `dist`.
   "extends": "../../tsconfig.base.json",
   "include": ["src"],
   "compilerOptions": {

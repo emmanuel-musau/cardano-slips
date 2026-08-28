@@ -4,50 +4,34 @@ on:
   push:
     branches: [main]
 
-# Read-only by default; each job asks for exactly what it needs. Publishing is
-# the only thing in this repository that can write outside the repository, so
-# the grant is per job rather than per workflow.
+# Publishing is the only thing here that writes outside the repository, so
+# writes are granted per job rather than per workflow.
 permissions:
   contents: read
 
 concurrency:
   group: release
-  # Never cancelled. A half-finished publish leaves some packages on npm and
-  # some not, and npm versions cannot be reused — the cost of a wasted run is
-  # a minute, the cost of a torn release is permanent.
+  # A cancelled publish leaves some packages on npm and some not, and npm
+  # versions cannot be reused.
   cancel-in-progress: false
 
 jobs:
-  # Two jobs, not one, because publishing needs the `npm` environment and its
-  # OIDC identity, and versioning must not run with them.
+  # Split from `publish` so versioning never runs with the npm environment's
+  # OIDC identity.
   version:
     name: version PR
     runs-on: ubuntu-latest
-    # Only what `checkout` needs. The two writes this job performs — pushing
-    # the version branch and opening the PR — are authorised by the App token
-    # below, not by this grant, so `GITHUB_TOKEN` never needs write here.
+    # This job's writes are authorised by the App token below, never by
+    # `GITHUB_TOKEN`.
     permissions:
       contents: read
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
 
     steps:
-      # A pull request opened with the default `GITHUB_TOKEN` does not trigger
-      # workflows. That is GitHub's recursion guard and it is not configurable:
-      # `ci.yml` would never run on the version PR, its four required checks
-      # would never report, and the PR could not be merged without weakening
-      # branch protection for every PR in the repository. An App installation
-      # token is not `GITHUB_TOKEN`, so the PR it opens is checked like any
-      # other — and unlike a PAT it is short-lived and scoped to this repo.
-      #
-      # The App needs Contents: read & write and Pull requests: read & write,
-      # and it must be *installed* on this repository — creating it is not
-      # enough. Without an installation this step fails with a 404 from
-      # `get-a-repository-installation-for-the-authenticated-app`, which is
-      # distinct from the 401 that bad credentials produce.
-      #
-      # `client-id` rather than `app-id`: v3 deprecated the numeric App ID in
-      # favour of the client id on the same settings page.
+      # A PR opened with `GITHUB_TOKEN` does not trigger workflows, so the
+      # version PR would never get its required checks. App setup and its
+      # failure modes: docs/WORKFLOW.md.
       - uses: actions/create-github-app-token@v3
         id: app-token
         with:
@@ -67,12 +51,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The same four gates `main` requires, re-run on this commit rather than
-      # trusted from whichever CI run happened earlier. `publish` declares
-      # `needs: version`, so one pass gates both paths at once: nothing is
-      # proposed for release and nothing is published unless all four are green
-      # here. Sequential rather than a matrix — this is a gate on one commit,
-      # not a fan-out whose individual red X anyone reads.
+      # Re-run on this commit rather than trusted from an earlier run. `publish`
+      # needs this job, so one pass gates both versioning and publishing.
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build
@@ -89,30 +69,23 @@ jobs:
           script: pnpm version:packages
           commit-message: "chore: version packages"
           pr-title: "chore: version packages"
-          # `push-with-git-cli` is left at its default of false, so the commit
-          # goes through the GitHub API: signed with GitHub's GPG key and
-          # attributed to the App that owns this token.
+          # `push-with-git-cli` stays at its default of false, so the commit
+          # goes through the API: signed, and attributed to the App.
           github-token: ${{ steps.app-token.outputs.token }}
         env:
-          # Read by @changesets/changelog-github, which resolves each
-          # changeset's commit to its PR and author. Without it `changeset
-          # version` throws — the action's own token input does not reach the
-          # version script. It gets the App token too, so both the action and
-          # the script it spawns speak as the same identity.
+          # @changesets/changelog-github reads this to resolve each changeset to
+          # its PR; the action's own token input does not reach the script.
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
   publish:
     name: publish
     needs: version
-    # Reached only once the version PR has been merged and no changesets
-    # remain. Merging that PR is the release decision — it shows the exact
-    # version bumps and changelog entries being shipped — so there is no
-    # second approval here.
+    # Merging the version PR is the release decision — it shows the exact bumps
+    # being shipped — so there is no second approval here.
     if: needs.version.outputs.mode == 'publish'
     runs-on: ubuntu-latest
-    # Scopes the npm trusted-publisher relationship: npm can be configured to
-    # mint a publish token only for runs of this workflow in this environment,
-    # and the environment is restricted to main. It carries no reviewers.
+    # npm mints a publish token only for this workflow in this environment,
+    # which is restricted to main. It carries no reviewers.
     environment: npm
     permissions:
       contents: write # push tags, create GitHub releases
@@ -129,19 +102,14 @@ jobs:
           cache: true
           install: false
 
-      # Trusted publishing requires npm 11.5.1 or later, and Node 22 bundles
-      # npm 10.x — without this step the OIDC exchange below fails whatever
-      # else is configured. Pinned to the 11.x line rather than latest: npm 12
-      # rejects the `--no-git-checks` flag that changesets passes when
-      # publishing a pnpm workspace.
+      # Trusted publishing needs npm 11.5.1+ and Node 22 bundles 10.x. Not 12:
+      # it rejects the `--no-git-checks` flag changesets passes for workspaces.
       - run: npm install -g npm@11
 
       - run: pnpm install --frozen-lockfile
 
-      # No NPM_TOKEN. Authentication is npm trusted publishing over OIDC —
-      # changesets/action v2 removed its .npmrc token handling, and a
-      # long-lived publish token in a secret is the thing worth not having.
-      # Provenance attestations are generated automatically on this path.
+      # No NPM_TOKEN — auth is npm trusted publishing over OIDC, and provenance
+      # comes with it.
       - uses: changesets/action/publish@v2.1.1
         with:
           script: pnpm release

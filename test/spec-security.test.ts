@@ -3,10 +3,9 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The security considerations (#20). A reviewer reads this section first, so it
- * must not contradict the rest of the document or invent guarantees the rest
- * does not deliver. The cross-checks are where this earns its place: every
- * reason and failure code it cites is checked against the table defining it.
+ * The security considerations (#20), which a reviewer reads first. Every reason
+ * and failure code cited there is checked against the table defining it, so the
+ * section cannot invent a guarantee the rest of the document does not deliver.
  */
 
 const root = join(import.meta.dirname, "..")

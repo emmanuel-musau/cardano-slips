@@ -6,10 +6,9 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * The browser target, proved rather than configured. Four files have to agree
- * or silently do not: the JSX transform, React's types instead of Node's, the
- * happy-dom environment, and the render that needs all three. Exercised here on
- * a component that does nothing, while there is nothing else to blame.
+ * The browser target, proved rather than configured: the JSX transform, React's
+ * types, and the happy-dom environment agree or silently do not. Exercised on a
+ * component that does nothing, so there is nothing else to blame.
  */
 
 const packageRoot = join(import.meta.dirname, "..")

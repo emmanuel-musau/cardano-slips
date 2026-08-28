@@ -1,10 +1,7 @@
 /**
- * `defineSlip` — two handlers in, a conforming Slip endpoint out.
- *
- * Everything a handler returns is decoded against the `core` schemas before a
- * response is built, so a publisher's mistake fails at their own deploy rather
- * than at a stranger's wallet. The failure path is validated the same way: a
- * body this protocol would reject is replaced, never sent.
+ * `defineSlip` — two handlers in, a conforming Slip endpoint out. Everything a
+ * handler returns is decoded against the `core` schemas first, failure bodies
+ * included, so a publisher's mistake fails at their deploy, not in a wallet.
  */
 import { Either } from "effect"
 import { TreeFormatter } from "effect/ParseResult"
@@ -53,9 +50,8 @@ export type SlipFailure = {
 }
 
 /**
- * `message` is read by a person, so it carries no markup, no stack trace and no
- * name of anything inside the publisher's own systems. No schema can hold an
- * endpoint to that; it is a rule about what a string says.
+ * `message` is read by a person: no markup, no stack trace, no name of anything
+ * inside the publisher's systems. No schema can hold an endpoint to that.
  */
 export const fail = (
   code: EndpointErrorCode,
@@ -143,11 +139,8 @@ const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: 
     return internalError()
   }
 
-  // A header is part of the response, so it is validated like the body. A
-  // client waits the interval this names, and `Retry-After: NaN` names none —
-  // RFC 9110 has delay-seconds as a non-negative integer. Both codes that reach
-  // here are transient, so rejecting one costs the person nothing and shows the
-  // publisher a bug that would otherwise leave silently.
+  // A header is validated like the body: a client waits the interval this
+  // names, and `Retry-After: NaN` names none. RFC 9110 wants whole seconds.
   if (failure.retryAfter !== undefined && !Number.isSafeInteger(failure.retryAfter)) {
     report(`Retry-After must be a whole number of seconds, and this endpoint gave ${String(failure.retryAfter)}`)
     return internalError()
@@ -168,10 +161,8 @@ const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: 
 export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
   const configured = definition.onInternalError ?? reportToConsole
 
-  // A publisher's reporter is their code, and it can throw — a logger built
-  // against an environment variable nobody set. Uncontained, the failure this
-  // module exists to hide becomes the failure it causes: the exception leaves
-  // `GET`, and the framework renders its own error page over it.
+  // A publisher's reporter is their code and can throw. Uncontained, the
+  // failure this module exists to hide becomes the failure it causes.
   const report = (detail: string, cause?: unknown): void => {
     try {
       configured(detail, cause)
@@ -238,8 +229,7 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
     const { changeAddress, network } = built.right
 
     // Three statements of network have to agree, and each can be wrong on its
-    // own: a stale card, a wallet switched between discovery and submission, an
-    // address from another network.
+    // own: a stale card, a switched wallet, an address from another network.
     if (network !== definition.network) {
       return failureResponse(
         fail("WRONG_NETWORK", `This Slip is on ${definition.network}. Your wallet is on ${network}.`),

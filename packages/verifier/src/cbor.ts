@@ -1,15 +1,7 @@
 /**
- * A CBOR reader that remembers where every value came from.
- *
- * Two things separate it from a general-purpose library, and both are why
- * ADR-0010 chose to write one. The transaction commit is BLAKE2b-256 over the
- * body's original bytes, so the reader has to hand back byte ranges rather than
- * plain JavaScript values. And its default on anything unmodelled is to raise,
- * where a library's default is to carry on.
- *
- * Maps and arrays are separate members of `CborValue` on purpose: a
- * post-alonzo output is a map and a legacy output is an array, they differ by
- * nothing else, and both appear in the same real transaction.
+ * A CBOR reader that remembers where every value came from. It hands back byte
+ * ranges because the commit is taken over original bytes, and raises on
+ * anything unmodelled where a library would carry on — ADR-0010.
  */
 import { refuse, TransactionDecodeError } from "./decode-error.js"
 

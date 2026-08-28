@@ -1,11 +1,7 @@
 /**
- * Templated references: the placeholders in a linked action's `label` and
- * `href`, the values a person supplies for them, and the `POST` target that
- * results.
- *
- * This is where the three rules `types.ts` defers land — same-origin `href`,
- * `max` against `min`, placeholders against parameters — because each needs the
- * discovery URL or a comparison of two siblings that no JSON Schema can make.
+ * Templated references: the placeholders in a linked action, the values a
+ * person supplies, and the `POST` target that results. The three rules
+ * `types.ts` defers land here, since each needs context a payload lacks.
  */
 import { Either } from "effect"
 

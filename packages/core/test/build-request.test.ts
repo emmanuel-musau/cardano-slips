@@ -8,9 +8,8 @@ import { addressIsOnNetwork, BuildRequest, decodeBuildRequest } from "../src/ind
 
 /**
  * `decodeBuildRequest` against the examples the CIP publishes. This is the one
- * payload that travels *to* an endpoint, and the closed object is where Mode A's
- * privacy lives: `utxos-in-the-body.json` is the body this protocol exists to
- * make unsendable.
+ * payload that travels *to* an endpoint: `utxos-in-the-body.json` is the body
+ * this protocol exists to make unsendable.
  */
 
 const examples = join(import.meta.dirname, "..", "..", "..", "spec", "examples", "build-request")

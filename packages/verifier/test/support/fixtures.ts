@@ -5,10 +5,9 @@ import { join } from "node:path"
 const root = join(import.meta.dirname, "..", "fixtures")
 
 /**
- * What the chain says this transaction does, recorded from Koios when the
- * fixture was collected. It is the second opinion: an oracle that read the same
- * bytes with a different implementation, which is the only reason agreeing with
- * it means anything.
+ * What the chain says this transaction does, recorded from Koios. A different
+ * implementation reading the same bytes is the only reason agreeing means
+ * anything.
  */
 export type ChainReading = {
   readonly source: string

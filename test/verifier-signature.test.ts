@@ -4,13 +4,8 @@ import { describe, expect, it } from "vitest"
 
 /**
  * The verifier's stated signature, and the four places that state it (#107).
- * Two terms were found after the fact — resolved inputs by the CBOR decode
- * proof (ADR-0010), protocol parameters by the effects section — and both times
- * the term was fixed in one document and left stale in the others.
- *
  * A term reaching an implementation as "whatever else you need" gets fetched
- * mid-derivation, from a service that can be slow, absent or hostile, and the
- * check between a person and a signature acquires a way to fail open.
+ * mid-derivation, and the check acquires a way to fail open.
  */
 
 const root = join(import.meta.dirname, "..")

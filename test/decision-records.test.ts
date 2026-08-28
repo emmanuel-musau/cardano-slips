@@ -3,10 +3,9 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * ADR-0008 renamed the protocol and left earlier records alone: an ADR says what
- * was decided on the day it was decided. The cost is that a reader meets the old
- * names with nothing to tell them they moved, so ADR-0008 carries a mapping and
- * these tests keep it complete.
+ * ADR-0008 renamed the protocol and left earlier records alone, since an ADR
+ * says what was decided on the day. It carries a mapping from the old names
+ * instead, and these tests keep that mapping complete.
  */
 
 const root = join(import.meta.dirname, "..")

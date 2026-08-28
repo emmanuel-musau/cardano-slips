@@ -5,8 +5,6 @@ import { describe, expect, it } from "vitest"
 /**
  * The scaffold's own contract, copied from `core`: a typo in an `exports` map
  * is invisible until an installed consumer fails to import.
- *
- * What it has to be is in test/no-io.test.ts.
  */
 
 const packageRoot = join(import.meta.dirname, "..")

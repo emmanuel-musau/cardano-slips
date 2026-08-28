@@ -1,11 +1,7 @@
 /**
- * The public entry point of `@cardano-slips/verifier`. The `exports` map
- * exposes this module and nothing else, so moving a file is never a breaking
- * change.
- *
- * This package is a pure function of (tx CBOR, declared metadata, user
- * addresses, resolved inputs, protocol parameters) — all five arguments, no
- * socket, no file, no service. `test/no-io.test.ts` fails if that stops holding.
+ * The public entry point of `@cardano-slips/verifier`, and a pure function of
+ * its five arguments — no socket, no file, no service. `test/no-io.test.ts`
+ * fails if that stops holding.
  */
 export type { CborEntry, CborValue, ReadOptions, Span } from "./cbor.js"
 export type { DecodeRefusal } from "./decode-error.js"

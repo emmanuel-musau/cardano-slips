@@ -4,16 +4,9 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * `server` never imports `flow` or `verifier`: a dApp adding a Slip endpoint
- * gets a request handler, not a React tree and not a CBOR decoder.
- *
- * Both wrong imports look reasonable from inside a pull request. Reaching for
- * `verifier` to check an intent before returning it has a real argument behind
- * it and is still wrong — the comparison runs in the client, over the bytes the
- * wallet is handed, so an endpoint running it would be checking its own work.
- *
- * The scan reads the sources rather than the manifest: a dependency can be
- * undeclared and imported all the same.
+ * `server` never imports `flow` or `verifier`. Reaching for `verifier` to check
+ * an intent before returning it looks reasonable and is still wrong: the
+ * comparison runs in the client, so an endpoint would be checking its own work.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
@@ -23,10 +16,9 @@ const sourceRoot = join(packageRoot, "src")
 const forbiddenPackages = ["@cardano-slips/flow", "@cardano-slips/verifier"]
 
 /**
- * What `server` may carry. Widening it is a judgement a test cannot settle, so
- * it is recorded here and CODEOWNERS routes the edit. A framework is absent on
- * purpose: the Next.js adapter arrives as a peer dependency, because a second
- * copy of a publisher's framework is a bug we would have shipped them.
+ * What `server` may carry — widening it is a judgement CODEOWNERS routes. No
+ * framework: the Next.js adapter is a peer dependency, because a second copy of
+ * a publisher's framework is a bug we would have shipped them.
  */
 const allowedDependencies = ["@cardano-slips/core", "effect"]
 

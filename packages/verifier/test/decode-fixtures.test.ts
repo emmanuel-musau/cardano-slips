@@ -1,11 +1,7 @@
 /**
- * Twenty-six mainnet transactions, each read twice: once by this decoder and
- * once by Koios, whose answers were recorded when the fixture was collected.
- *
- * The check that carries the most weight is the commit. BLAKE2b-256 over the
- * extracted body byte range has to equal the transaction id the chain reports,
- * and that fails if the body's boundaries are off by a single byte — which is
- * why ADR-0010 keeps it in place of the round trip an encoder would have given.
+ * Twenty-six mainnet transactions, read by this decoder and by Koios. The
+ * commit carries the most weight: BLAKE2b-256 over the extracted body must
+ * equal the chain's transaction id, and fails on a single byte of drift.
  */
 import { blake2b } from "@noble/hashes/blake2.js"
 import { Either } from "effect"

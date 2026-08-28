@@ -1,10 +1,7 @@
 /**
- * The failure body and the code vocabulary.
- *
- * Two schemas govern one body because the obligation differs by party: an
- * endpoint may send only the eight codes version 1 allows it, while a client
- * reads any well-shaped code so a publisher's message survives one this version
- * does not define (ADR-0009).
+ * The failure body and the code vocabulary. Two schemas for one body because
+ * the obligation differs by party: an endpoint may send only the eight codes
+ * version 1 allows, a client reads any well-shaped one (ADR-0009).
  */
 import { Schema } from "effect"
 

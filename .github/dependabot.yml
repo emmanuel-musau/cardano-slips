@@ -1,25 +1,12 @@
-# Automated dependency currency. `@evolution-sdk/evolution` and Effect both
-# move fast; a dependency left alone for a quarter stops being a one-line bump
-# and becomes an afternoon.
-#
-# Dependabot rather than Renovate: it is native to GitHub, so there is no app
-# to install and no third party holding write access to this repository.
-#
-# Nothing here merges anything. Dependabot opens pull requests; they go
-# through the same required checks as any other PR (lint, typecheck, test,
-# build) and a human merges them. Auto-merge is deliberately not configured —
-# neither in this file, which cannot express it, nor as a workflow that would.
-#
-# This file only takes effect once it is on the default branch.
+# Weekly dependency currency. Policy — why Dependabot, why no auto-merge — is in
+# docs/WORKFLOW.md. Takes effect only once it is on the default branch.
 version: 2
 
 updates:
-  # One npm entry for the whole workspace, not one per package. Dependabot
-  # reads `pnpm-workspace.yaml` at the root and updates every package manifest
-  # against the single root `pnpm-lock.yaml`. Splitting the same pnpm workspace
-  # across several `directory` entries is a known way to get pull requests that
-  # edit a manifest and leave the root lockfile untouched (dependabot-core
-  # #11135) — which then fails `pnpm install --frozen-lockfile` in CI.
+  # One entry for the whole workspace, not one per package. Split `directory`
+  # entries over one pnpm workspace produce PRs that edit a manifest and leave
+  # the root lockfile untouched (dependabot-core #11135), failing CI's
+  # --frozen-lockfile.
   - package-ecosystem: npm
     directory: /
 
@@ -29,11 +16,8 @@ updates:
       time: "06:00"
       timezone: Africa/Nairobi
 
-    # A batch to review on Monday, not a trickle through the week. Everything
-    # that moves within its major arrives as one pull request. Majors are left
-    # out of the group on purpose: each gets its own PR, its own CI run, and
-    # its own read of the changelog, because each can break the build in a way
-    # a grouped diff would hide.
+    # Majors are left out on purpose: each gets its own PR and its own read of
+    # the changelog, because each can break the build in a way a group hides.
     groups:
       npm:
         patterns: ["*"]
@@ -41,36 +25,29 @@ updates:
           - minor
           - patch
 
-    # Declared ranges stay as wide as they were written. `increase` would
-    # ratchet every `^` floor on each bump, and for the four packages we
-    # publish that forces a resolution on consumers for no reason we can name.
+    # `increase` would ratchet every `^` floor on each bump, forcing a
+    # resolution on consumers of the four packages we publish.
     versioning-strategy: increase-if-necessary
 
-    # How long a release must survive before we are offered it. Recent npm
-    # supply-chain compromises were caught within days of publish, and nothing
-    # in this repository is urgent enough to be the first install of a new
-    # version. Security updates ignore cooldown, which is the point of having
-    # it only here.
+    # How long a release must survive before we are offered it. Security
+    # updates ignore cooldown, which is the point of having it only here.
     cooldown:
       default-days: 5
       semver-major-days: 14
 
     open-pull-requests-limit: 5
 
-    # `infra` exists in this repository; labels that do not exist are silently
-    # ignored, so the list is kept to the repo's own taxonomy.
+    # Labels that do not exist are silently ignored, so this stays on the repo's
+    # own taxonomy.
     labels:
       - infra
 
-    # Conventional Commits, as docs/WORKFLOW.md requires: `chore(deps): …` and
-    # `chore(deps-dev): …`.
     commit-message:
       prefix: chore
       include: scope
 
-  # Workflows pin actions by major tag. Without this entry they quietly rot on
-  # whatever major they were written against — including the ones that publish
-  # to npm.
+  # Without this, actions quietly rot on whatever major they were pinned to —
+  # including the ones that publish to npm.
   - package-ecosystem: github-actions
     directory: /
 
@@ -87,10 +64,8 @@ updates:
           - minor
           - patch
 
-    # No `cooldown` here. The key is rejected for this ecosystem and an invalid
-    # key does not degrade to a warning — it invalidates the whole file, taking
-    # the npm updates above down with it. Actions still get GitHub's own
-    # three-day default.
+    # No `cooldown` here: the key is rejected for this ecosystem and invalidates
+    # the whole file, taking the npm updates above with it.
 
     open-pull-requests-limit: 5
 

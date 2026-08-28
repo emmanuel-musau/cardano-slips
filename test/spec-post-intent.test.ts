@@ -6,14 +6,9 @@ import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.
 import { describe, expect, it } from "vitest"
 
 /**
- * The POST build contract and the partial intent (#17) — the shape the mismatch
- * gate is held to, so a field that can express a quantity ambiguously is a hole
- * in the gate rather than a documentation defect.
- *
- * Three properties carry the weight: quantities are integer base units in
- * decimal strings; the endpoint declares only what it chooses, never what the
- * ledger or wallet determines; and nothing about the person travels except one
- * address they chose.
+ * The POST build contract and the partial intent (#17). This is the shape the
+ * mismatch gate is held to, so a field that can express a quantity ambiguously
+ * is a hole in the gate rather than a documentation defect.
  */
 
 const root = join(import.meta.dirname, "..")
@@ -255,9 +250,8 @@ describe("what an endpoint may not declare", () => {
   })
 
   it("gives an endpoint no way to ask for a required signer", () => {
-    // Dropped from version 1: no script runs in a Mode A transaction, so nothing
-    // could read the signers a publisher named. Pinned against a future sweep
-    // adding it back as an oversight.
+    // Dropped from version 1: no script runs in a Mode A transaction, so
+    // nothing could read them. Pinned against a sweep adding it back.
     expect(Object.keys(defs["intent"]["properties"] as Record<string, unknown>)).not.toContain("requiredSigners")
     expect(defs).not.toHaveProperty("signerRole")
     expect(source).toMatch(/Required signers, and why there are none/)

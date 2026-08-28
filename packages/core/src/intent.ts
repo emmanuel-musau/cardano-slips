@@ -1,11 +1,7 @@
 /**
  * The partial intent a Slip endpoint returns from POST — the executable form of
- * `spec/CIP-XXXX/schemas/slip-partial-intent.schema.json`, held to the same
- * examples by `test/partial-intent.test.ts`.
- *
- * Rules needing context a payload does not carry (an address against the Slip's
- * network, `validUntil` against the clock, one asset named twice in an output)
- * are not checked here. See `spec/examples/README.md`.
+ * `spec/CIP-XXXX/schemas/slip-partial-intent.schema.json`. Rules needing
+ * context a payload lacks are not checked here; see `spec/examples/README.md`.
  */
 import { Schema } from "effect"
 
@@ -74,9 +70,8 @@ export const VoteDelegation = Schema.Struct({ type: Schema.Literal("voteDelegati
  * A union on `type` is what enforces the three rules the JSON Schema spends
  * conditionals on — `poolId` only on `stakeDelegation`, `drep` only on
  * `voteDelegation`, neither on a registration — and it narrows for consumers.
- *
  * No deposit, no stake credential: each is fixed by a protocol parameter or by
- * the wallet, so there is no field here in which an endpoint could state one wrongly.
+ * the wallet, so there is no field here to state one wrongly in.
  */
 export const Certificate = Schema.Union(StakeRegistration, StakeDeregistration, StakeDelegation, VoteDelegation)
 export type Certificate = typeof Certificate.Type
