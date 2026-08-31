@@ -26,10 +26,20 @@ export type Discovery = Omit<Slip, "type" | "version" | "network">
 /** What `post` returns: the publisher's side of a transaction, less the two constants. */
 export type Build = Omit<PartialIntent, "type" | "version">
 
+/** A catch-all segment matches more than one, so a value is a string or a list of them. */
+export type RouteParams = Record<string, string | ReadonlyArray<string>>
+
+/** Next 15 hands `params` as a promise and 13/14 hand the object; awaiting takes either. */
+export type RouteContext = {
+  readonly params?: RouteParams | Promise<RouteParams>
+}
+
 export type DiscoveryContext = {
   readonly request: Request
   /** Parameter values were substituted into the target before the request, so an endpoint reads them from here. */
   readonly url: URL
+  /** The route's own dynamic segments, so `/pay/[handle]` need not be picked back out of `url`. */
+  readonly params: RouteParams
 }
 
 export type BuildContext = DiscoveryContext & {
@@ -82,8 +92,8 @@ export type SlipDefinition = {
 
 /** Named for the exports a route file needs, so a publisher can destructure them straight out. */
 export type SlipEndpoint = {
-  readonly GET: (request: Request) => Promise<Response>
-  readonly POST: (request: Request) => Promise<Response>
+  readonly GET: (request: Request, context?: RouteContext) => Promise<Response>
+  readonly POST: (request: Request, context?: RouteContext) => Promise<Response>
   readonly OPTIONS: () => Response
 }
 
@@ -172,12 +182,24 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
     }
   }
 
-  const GET = async (request: Request): Promise<Response> => {
+  // The framework resolves these, not the publisher, and awaiting a foreign
+  // thenable can reject — uncontained that reaches the person as a raw 500.
+  const paramsOf = async (context: RouteContext | undefined): Promise<RouteParams> => (await context?.params) ?? {}
+
+  const GET = async (request: Request, context?: RouteContext): Promise<Response> => {
     const url = new URL(request.url)
+
+    let params: RouteParams
+    try {
+      params = await paramsOf(context)
+    } catch (cause) {
+      report("resolving the route params threw", cause)
+      return internalError()
+    }
 
     let result: Discovery | SlipFailure
     try {
-      result = await definition.get({ request, url })
+      result = await definition.get({ request, url, params })
     } catch (cause) {
       report("the get handler threw", cause)
       return internalError()
@@ -206,8 +228,16 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
     return json(payload, 200, "public, max-age=60")
   }
 
-  const POST = async (request: Request): Promise<Response> => {
+  const POST = async (request: Request, context?: RouteContext): Promise<Response> => {
     const url = new URL(request.url)
+
+    let params: RouteParams
+    try {
+      params = await paramsOf(context)
+    } catch (cause) {
+      report("resolving the route params threw", cause)
+      return internalError()
+    }
 
     let submitted: unknown
     try {
@@ -243,7 +273,7 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
 
     let result: Build | SlipFailure
     try {
-      result = await definition.post({ request, url, changeAddress, network })
+      result = await definition.post({ request, url, params, changeAddress, network })
     } catch (cause) {
       report("the post handler threw", cause)
       return internalError()

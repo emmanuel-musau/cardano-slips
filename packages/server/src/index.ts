@@ -4,3 +4,4 @@
  * that.
  */
 export * from "./define-slip.js"
+export * from "./domain-mapping.js"
