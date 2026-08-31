@@ -32,9 +32,10 @@ describe("the public entry point", () => {
     expect(entry).toBeTypeOf("object")
   })
 
-  it("is the only module the package exposes", () => {
-    // Keeping the map to the root subpath is what makes moving a file non-breaking.
-    expect(Object.keys(manifest.exports ?? {})).toEqual([".", "./package.json"])
+  it("exposes the root and the Node bridge, and nothing else", () => {
+    // A closed map is what makes moving a file non-breaking. The bridge is its
+    // own entry so the root carries no Node types for a runtime that has none.
+    expect(Object.keys(manifest.exports ?? {})).toEqual([".", "./package.json", "./adapters/node"])
   })
 })
 

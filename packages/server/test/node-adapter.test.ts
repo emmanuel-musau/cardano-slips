@@ -2,7 +2,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import type { AddressInfo } from "node:net"
 import { describe, expect, it, vi } from "vitest"
 
-import { defineSlip, toNodeHandler, type NodeRequest, type SlipEndpoint } from "../src/index.js"
+import { toNodeHandler, type NodeRequest } from "../src/adapters/node.js"
+import { defineSlip, type SlipEndpoint } from "../src/index.js"
 
 /**
  * The bridge runs against a real `node:http` server rather than a stubbed
@@ -16,11 +17,11 @@ const changeAddress =
 const endpoint = (): SlipEndpoint =>
   defineSlip({
     network: "mainnet",
-    get: ({ url, params }) => ({
+    get: ({ url, params, request }) => ({
       title: `Pay ${String(params.handle ?? "someone")}`,
-      description: `Served from ${url.origin}. Nothing is stored, no account is created.`,
+      description: `Served from ${url.origin} at ${url.pathname}${url.search}.`,
       icon: "https://linktap.example/i/pay.png",
-      label: "Pay"
+      label: `Pay ${request.headers.get("accept-language") ?? "none"}`
     }),
     post: ({ url }) => ({
       intent: {
@@ -88,7 +89,7 @@ describe("dispatch", () => {
       const response = await fetch(`${base}/api/slips/pay`, { method: "DELETE" })
 
       expect(response.status).toBe(405)
-      expect(response.headers.get("allow")).toBe("GET, POST, OPTIONS")
+      expect(response.headers.get("allow")).toBe("GET, HEAD, POST, OPTIONS")
       expect(response.headers.get("access-control-allow-origin")).toBe("*")
     })
   })
@@ -184,7 +185,7 @@ describe("the origin", () => {
       const response = await fetch(`${base}/api/slips/pay`, { headers: { Host: "attacker.example" } })
       const slip = (await response.json()) as { description: string }
 
-      expect(slip.description).toContain("https://linktap.example")
+      expect(slip.description).toContain("Served from https://linktap.example at")
       expect(slip.description).not.toContain("attacker.example")
     })
   })
@@ -248,6 +249,122 @@ describe("a failure inside the bridge", () => {
       expect(payload.code).toBe("INTERNAL_ERROR")
       expect(payload.message).not.toContain("boom")
       expect(onInternalError).toHaveBeenCalled()
+    })
+  })
+})
+
+describe("the request target", () => {
+  it("cannot have its origin replaced by a protocol-relative path", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    await withServer(handler, async (base) => {
+      // Node hands `//evil.example/pay` over verbatim, and resolving it against
+      // the declared origin would swap the authority for the attacker's.
+      const response = await fetch(`${base}//evil.example/pay`)
+      const slip = (await response.json()) as { description: string }
+
+      expect(slip.description).toContain("Served from https://linktap.example at")
+      expect(slip.description).not.toContain("Served from https://evil.example")
+    })
+  })
+
+  it("keeps the whole path where a framework mounted the handler under a prefix", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    // What `app.use("/api/slips/pay", handler)` does: `url` loses the prefix.
+    const mounted: Listener = (request, response) => {
+      Object.assign(request, { originalUrl: request.url, url: "/" })
+      void handler(request as NodeRequest, response)
+    }
+
+    await withServer(mounted, async (base) => {
+      const slip = (await (await fetch(`${base}/api/slips/pay?amount=5`)).json()) as { description: string }
+
+      expect(slip.description).toContain("/api/slips/pay")
+    })
+  })
+
+  it("carries the query string through", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    await withServer(handler, async (base) => {
+      const slip = (await (await fetch(`${base}/api/slips/pay?amount=5`)).json()) as { description: string }
+
+      expect(slip.description).toContain("amount=5")
+    })
+  })
+})
+
+describe("the request headers", () => {
+  it("reach the handlers, so an endpoint can still read what it authenticates on", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    await withServer(handler, async (base) => {
+      const response = await fetch(`${base}/api/slips/pay`, { headers: { "Accept-Language": "sw-KE" } })
+      const slip = (await response.json()) as { label: string }
+
+      expect(slip.label).toBe("Pay sw-KE")
+    })
+  })
+})
+
+describe("HEAD", () => {
+  it("carries the headers of the GET and none of its body", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    await withServer(handler, async (base) => {
+      const response = await fetch(`${base}/api/slips/pay`, { method: "HEAD" })
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get("cache-control")).toBe("public, max-age=60")
+      expect(await response.text()).toBe("")
+    })
+  })
+})
+
+describe("a body the bound has to judge", () => {
+  it("does not mistake a small body for an oversized one because of what it says", async () => {
+    const handler = toNodeHandler(endpoint(), { origin })
+
+    await withServer(handler, async (base) => {
+      const response = await fetch(`${base}/api/slips/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "tooLarge"
+      })
+      const payload = (await response.json()) as { message: string }
+
+      expect(payload.message).toBe("The request body is not valid JSON.")
+    })
+  })
+
+  it("holds the bound over a body a framework parsed, not only over the stream", async () => {
+    const handler = toNodeHandler(endpoint(), { origin, maxBytes: 32 })
+
+    const bodyParser: Listener = (request, response) => {
+      Object.assign(request, { body: { ...post, padding: "x".repeat(200) } })
+      void handler(request as NodeRequest, response)
+    }
+
+    await withServer(bodyParser, async (base) => {
+      const response = await fetch(`${base}/api/slips/pay`, { method: "POST" })
+
+      expect(response.status).toBe(400)
+      expect(((await response.json()) as { message: string }).message).toContain("larger than")
+    })
+  })
+})
+
+describe("a proxy header that is not a scheme", () => {
+  it("does not become an origin, and does not become a reported defect either", async () => {
+    const onInternalError = vi.fn()
+    const handler = toNodeHandler(endpoint(), { originFromHeaders: true, onInternalError })
+
+    await withServer(handler, async (base) => {
+      const response = await fetch(`${base}/api/slips/pay`, { headers: { "X-Forwarded-Proto": "wss" } })
+
+      expect(response.status).toBe(200)
+      expect(onInternalError).not.toHaveBeenCalled()
     })
   })
 })

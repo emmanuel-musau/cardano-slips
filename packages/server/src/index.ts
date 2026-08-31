@@ -5,4 +5,3 @@
  */
 export * from "./define-slip.js"
 export * from "./domain-mapping.js"
-export * from "./adapters/node.js"

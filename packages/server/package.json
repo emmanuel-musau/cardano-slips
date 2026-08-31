@@ -24,7 +24,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./adapters/node": {
+      "types": "./dist/adapters/node.d.ts",
+      "default": "./dist/adapters/node.js"
+    }
   },
   "types": "./dist/index.d.ts",
   "files": [

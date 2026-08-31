@@ -1,19 +1,22 @@
 /**
  * The bridge from Node's `IncomingMessage`/`ServerResponse` to the Web handlers
- * `defineSlip` returns, for NestJS, Express and Fastify. A runtime built on
+ * `defineSlip` returns, for NestJS and Express. A runtime built on
  * `Request`/`Response` needs nothing from this file.
  */
 import type { IncomingMessage, ServerResponse } from "node:http"
 
-import { PROTOCOL_VERSION } from "@cardano-slips/core"
+import { endpointErrorStatus, PROTOCOL_VERSION } from "@cardano-slips/core"
 
 import type { RouteParams, SlipEndpoint } from "../define-slip.js"
+import { contained, internalErrorPayload, reportToConsole, type ErrorReporter } from "../reporting.js"
 
 export type NodeRequest = IncomingMessage & {
   /** A body parser leaves the parsed value here, having already drained the stream. */
   readonly body?: unknown
   /** Express and Nest both put what the route matched here. */
   readonly params?: Record<string, string>
+  /** Express rewrites `url` for a mounted handler and keeps the whole path here. */
+  readonly originalUrl?: string
 }
 
 export type NodeHandlerOptions = {
@@ -31,22 +34,16 @@ export type NodeHandlerOptions = {
   readonly originFromHeaders?: boolean
   /** A conforming `POST` body is two short strings; anything past this is not one arriving slowly. */
   readonly maxBytes?: number
-  readonly onInternalError?: (detail: string, cause?: unknown) => void
+  readonly onInternalError?: ErrorReporter
 }
 
 export type NodeHandler = (request: NodeRequest, response: ServerResponse) => Promise<void>
 
 const defaultMaxBytes = 64 * 1024
 
-const allowedMethods = "GET, POST, OPTIONS"
+const allowedMethods = "GET, HEAD, POST, OPTIONS"
 
-/** The one body this module can always send: a constant cannot be malformed. */
-const internalErrorBody = JSON.stringify({
-  type: "error",
-  version: PROTOCOL_VERSION,
-  code: "INTERNAL_ERROR",
-  message: "The endpoint could not answer this request."
-})
+const internalErrorBody = JSON.stringify(internalErrorPayload)
 
 const tooLargeBody = JSON.stringify({
   type: "error",
@@ -54,14 +51,6 @@ const tooLargeBody = JSON.stringify({
   code: "INVALID_PARAMETER",
   message: "The request body is larger than this endpoint accepts."
 })
-
-/* eslint-disable no-console */
-const reportToConsole = (detail: string, cause?: unknown): void => {
-  const line = `[cardano-slips] ${detail}`
-  if (cause === undefined) console.error(line)
-  else console.error(line, cause)
-}
-/* eslint-enable no-console */
 
 /** A comma-separated proxy header names a chain; the first entry is the one nearest the client. */
 const firstHeader = (value: string | ReadonlyArray<string> | undefined): string | undefined => {
@@ -76,22 +65,73 @@ const derivedOrigin = (request: NodeRequest): string | undefined => {
   const host = firstHeader(request.headers["x-forwarded-host"]) ?? firstHeader(request.headers.host)
   if (host === undefined || host === "") return undefined
 
-  const proto = firstHeader(request.headers["x-forwarded-proto"]) ?? (isEncrypted(request) ? "https" : "http")
+  // Any other scheme gives a URL with no origin of its own, and `"null"` is a
+  // string a caller could otherwise make this build every request against.
+  const forwarded = firstHeader(request.headers["x-forwarded-proto"])?.toLowerCase()
+  const proto = forwarded === "http" || forwarded === "https" ? forwarded : isEncrypted(request) ? "https" : "http"
+
   try {
-    return new URL(`${proto}://${host}`).origin
+    const origin = new URL(`${proto}://${host}`).origin
+    return origin === "null" ? undefined : origin
   } catch {
     return undefined
   }
 }
 
-type Body = string | "tooLarge"
+/**
+ * Only the path and query come from the request. Resolving its target against
+ * the origin instead would let `//evil.example/x` — a protocol-relative
+ * reference Node hands over verbatim — replace the authority the publisher
+ * declared, and `context.url` is what fixes same-origin for every linked action.
+ */
+const targetUrl = (request: NodeRequest, origin: string): URL => {
+  const raw = request.originalUrl ?? request.url ?? "/"
+  const url = new URL(origin)
+  const at = raw.indexOf("?")
+
+  url.pathname = at === -1 ? raw : raw.slice(0, at)
+  url.search = at === -1 ? "" : raw.slice(at)
+  return url
+}
+
+/** Hop-by-hop headers describe one connection, so they do not belong on the request the handlers see. */
+const hopByHop = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade"
+])
+
+const headersOf = (request: NodeRequest): Headers => {
+  const headers = new Headers()
+  for (const [name, value] of Object.entries(request.headers)) {
+    if (value === undefined || hopByHop.has(name)) continue
+    for (const one of Array.isArray(value) ? value : [value]) headers.append(name, one)
+  }
+  return headers
+}
+
+type Body = { readonly ok: true; readonly text: string } | { readonly ok: false }
+
+const tooLarge: Body = { ok: false }
 
 const bodyOf = async (request: NodeRequest, maxBytes: number): Promise<Body> => {
   const parsed = request.body
   if (parsed !== undefined) {
-    if (typeof parsed === "string") return parsed
-    if (parsed instanceof Uint8Array) return new TextDecoder().decode(parsed)
-    return JSON.stringify(parsed)
+    const text =
+      typeof parsed === "string"
+        ? parsed
+        : parsed instanceof Uint8Array
+          ? new TextDecoder().decode(parsed)
+          : JSON.stringify(parsed)
+
+    // The bound holds whoever read the body, so `maxBytes` means the same thing
+    // in front of a parser as it does without one.
+    return new TextEncoder().encode(text).byteLength > maxBytes ? tooLarge : { ok: true, text }
   }
 
   const chunks: Uint8Array[] = []
@@ -101,7 +141,7 @@ const bodyOf = async (request: NodeRequest, maxBytes: number): Promise<Body> => 
     size += bytes.byteLength
     // Stop reading, but leave the socket alive: destroying it here would take
     // the connection down before the refusal could be written to it.
-    if (size > maxBytes) return "tooLarge"
+    if (size > maxBytes) return tooLarge
     chunks.push(bytes)
   }
 
@@ -111,17 +151,18 @@ const bodyOf = async (request: NodeRequest, maxBytes: number): Promise<Body> => 
     joined.set(chunk, at)
     at += chunk.byteLength
   }
-  return new TextDecoder().decode(joined)
+  return { ok: true, text: new TextDecoder().decode(joined) }
 }
 
-const send = async (result: Response, response: ServerResponse): Promise<void> => {
+const send = async (result: Response, response: ServerResponse, withBody: boolean): Promise<void> => {
   response.statusCode = result.status
   result.headers.forEach((value, name) => {
     response.setHeader(name, value)
   })
 
   const bytes = new Uint8Array(await result.arrayBuffer())
-  if (bytes.byteLength === 0) response.end()
+  // A HEAD carries the headers of the GET and none of its body.
+  if (!withBody || bytes.byteLength === 0) response.end()
   else response.end(bytes)
 }
 
@@ -150,27 +191,18 @@ export const toNodeHandler = (endpoint: SlipEndpoint, options: NodeHandlerOption
   }
 
   const maxBytes = options.maxBytes ?? defaultMaxBytes
-  const configured = options.onInternalError ?? reportToConsole
-
-  const report = (detail: string, cause?: unknown): void => {
-    try {
-      configured(detail, cause)
-    } catch (reporterFailure) {
-      if (configured !== reportToConsole) reportToConsole(detail, cause)
-      reportToConsole("the onInternalError callback threw", reporterFailure)
-    }
-  }
+  const report = contained(options.onInternalError ?? reportToConsole)
 
   return async (request: NodeRequest, response: ServerResponse): Promise<void> => {
     try {
       const method = request.method ?? "GET"
 
       if (method === "OPTIONS") {
-        await send(endpoint.OPTIONS(), response)
+        await send(endpoint.OPTIONS(), response, true)
         return
       }
 
-      if (method !== "GET" && method !== "POST") {
+      if (method !== "GET" && method !== "HEAD" && method !== "POST") {
         response.statusCode = 405
         response.setHeader("Allow", allowedMethods)
         response.setHeader("Access-Control-Allow-Origin", "*")
@@ -181,21 +213,24 @@ export const toNodeHandler = (endpoint: SlipEndpoint, options: NodeHandlerOption
       const origin = fixedOrigin ?? derivedOrigin(request)
       if (origin === undefined) {
         report("the request carried no host to build an origin from")
-        sendJson(response, 500, internalErrorBody)
+        sendJson(response, endpointErrorStatus.INTERNAL_ERROR, internalErrorBody)
         return
       }
 
+      const url = targetUrl(request, origin)
       const params: RouteParams | undefined = request.params
       const context = params === undefined ? undefined : { params }
+      const headers = headersOf(request)
 
-      if (method === "GET") {
-        await send(await endpoint.GET(new Request(new URL(request.url ?? "/", origin)), context), response)
+      if (method === "GET" || method === "HEAD") {
+        const built = new Request(url, { method: "GET", headers })
+        await send(await endpoint.GET(built, context), response, method === "GET")
         return
       }
 
       const body = await bodyOf(request, maxBytes)
-      if (body === "tooLarge") {
-        response.statusCode = 400
+      if (!body.ok) {
+        response.statusCode = endpointErrorStatus.INVALID_PARAMETER
         response.setHeader("Content-Type", "application/json")
         response.setHeader("Access-Control-Allow-Origin", "*")
         response.setHeader("Cache-Control", "no-store")
@@ -207,15 +242,13 @@ export const toNodeHandler = (endpoint: SlipEndpoint, options: NodeHandlerOption
         return
       }
 
-      const built = new Request(new URL(request.url ?? "/", origin), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body
-      })
-      await send(await endpoint.POST(built, context), response)
+      // Whatever the framework said it was, the handlers decode it as JSON.
+      headers.set("Content-Type", "application/json")
+      const built = new Request(url, { method: "POST", headers, body: body.text })
+      await send(await endpoint.POST(built, context), response, true)
     } catch (cause) {
       report("the node bridge could not answer this request", cause)
-      if (!response.headersSent) sendJson(response, 500, internalErrorBody)
+      if (!response.headersSent) sendJson(response, endpointErrorStatus.INTERNAL_ERROR, internalErrorBody)
       else response.end()
     }
   }
