@@ -1,4 +1,4 @@
-import { checkTemplates, decodePartialIntent, decodeSlip, type Slip } from "@cardano-slips/core"
+import { checkTemplates, decodePartialIntent, decodeSlip, fillHref, type Slip } from "@cardano-slips/core"
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"
 
@@ -75,6 +75,43 @@ describe("the tip Slip", () => {
     if (Either.isLeft(decoded)) throw new Error("the tip Slip did not decode")
 
     expect(checkTemplates(decoded.right as Slip, tipUrl)).toEqual([])
+  })
+
+  it("points its actions at wherever it was actually served", async () => {
+    const elsewhere = "https://linktap.example/slips/tip"
+    const decoded = decodeSlip(await body(await tip.GET(new Request(elsewhere))))
+    if (Either.isLeft(decoded)) throw new Error("the tip Slip did not decode")
+
+    const hrefs = (decoded.right as Slip).links?.actions.map((action) => action.href)
+    expect(hrefs).toEqual(["/slips/tip?amount=5", "/slips/tip?amount=25", "/slips/tip?amount={amount}"])
+  })
+
+  it("answers the POST its own parameterised action fills in", async () => {
+    const decoded = decodeSlip(await body(await tip.GET(new Request(tipUrl))))
+    if (Either.isLeft(decoded)) throw new Error("the tip Slip did not decode")
+
+    const action = (decoded.right as Slip).links?.actions[2]
+    if (action === undefined) throw new Error("the tip Slip declared no parameterised action")
+
+    const target = fillHref(action, { amount: "7.5" }, tipUrl)
+    if (Either.isLeft(target)) throw new Error("the client could not fill the action")
+
+    const payload = await body(await tip.POST(build(target.right)))
+    expect(payload.intent).toMatchObject({ outputs: [{ lovelace: "7500000" }] })
+  })
+
+  it("takes the exponent form core's own parameter check lets through", async () => {
+    const payload = await body(await tip.POST(build(`${tipUrl}?amount=5e2`)))
+
+    expect(payload.intent).toMatchObject({ outputs: [{ lovelace: "500000000" }] })
+  })
+
+  it("says what is actually wrong with an amount finer than a lovelace", async () => {
+    const response = await tip.POST(build(`${tipUrl}?amount=1.0000001`))
+    const payload = await body(response)
+
+    expect(response.status).toBe(400)
+    expect(payload.message).toBe("ADA divides no further than six decimal places.")
   })
 
   it("turns whole ADA into lovelace", async () => {

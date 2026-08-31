@@ -14,7 +14,7 @@ export const delegate = defineSlip({
 
   get: () => ({
     title: "Delegate to the Community Stake Pool",
-    description: "One delegation certificate. Your ADA never leaves your wallet and stays spendable throughout.",
+    description: "One delegation certificate. No payment to anyone, and the pool never gains control of your funds.",
     icon: "https://linktap.example/i/community-pool.png",
     label: "Delegate"
   }),
