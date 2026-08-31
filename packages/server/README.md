@@ -37,7 +37,48 @@ Every response the handlers produce is checked against the `core` schemas on the
 
 ## What ships in M1
 
-One framework adapter: Next.js App Router. Route handlers for `GET`, `POST` and the `OPTIONS` preflight a JSON body makes mandatory, `slips.json` serving from the origin root, and the spec's failure codes mapped to their HTTP status. Hono and Express adapters are deferred — see [ARCHITECTURE](../../docs/ARCHITECTURE.md).
+Route handlers for `GET`, `POST` and the `OPTIONS` preflight a JSON body makes mandatory, `slips.json` serving from the origin root, and the spec's failure codes mapped to their HTTP status.
+
+An endpoint written in something other than TypeScript does not need this package. The payload shapes are normative and published as JSON Schemas in [`spec/CIP-XXXX/schemas/`](../../spec/CIP-XXXX/schemas); a Laravel or Go endpoint validating against those conforms exactly as well as one built here. That is the protocol working, not a gap in it.
+
+## Mounting it on Next.js
+
+The App Router asks for exactly what `defineSlip` returns, so a route file is the destructure and nothing else:
+
+```ts
+// app/api/slips/pay/route.ts
+export const { GET, POST, OPTIONS } = defineSlip({ ... })
+```
+
+**A route with dynamic segments** gets them as `params`, already resolved — Next 15 and 16 hand them over as a promise, 13 and 14 as a plain object, and both arrive here the same way:
+
+```ts
+// app/api/slips/pay/[handle]/route.ts
+export const { GET, POST, OPTIONS } = defineSlip({
+  network: "mainnet",
+  get: ({ params }) => shopCard(params.handle as string),
+  post: ({ params, changeAddress }) => payment(params.handle as string, changeAddress)
+})
+```
+
+A catch-all segment matches more than one, so a value is `string | readonly string[]` and a route that uses one has to say which it expects. On a route with no dynamic segment `params` is `{}`.
+
+**`slips.json` goes at the origin root**, which is a route segment named for the file:
+
+```ts
+// app/slips.json/route.ts
+export const { GET } = defineDomainMapping({
+  rules: [{ pathPattern: "/pay/*", apiPath: "/api/slips/pay/*" }]
+})
+```
+
+The rules are fixed at deploy, so they are decoded when the module loads: a mapping the spec rejects throws where the publisher can see it rather than serving a file no client will accept. `Cache-Control: public, max-age=300` is the default, matching the spec's own example; pass `{ maxAge }` to change it. There is no `OPTIONS` here on purpose — a `GET` carrying only `Accept` is a simple request, so a browser never preflights it.
+
+Both route shapes and the `params` typing are verified against Next 16.3.3. Serving the mapping from `public/slips.json` instead works too, but then the CORS header is yours to add in `next.config`, and a mapping the spec rejects ships silently.
+
+## Mounting it anywhere else
+
+`defineSlip` returns `(Request) => Promise<Response>`, so any runtime built on those needs no adapter — Hono, SvelteKit, Remix, Bun, Deno and Cloudflare Workers all take these handlers directly. Node's `IncomingMessage`/`ServerResponse` frameworks are the exception and get a bridge; NestJS and Express are covered there.
 
 ## What it will never import
 
