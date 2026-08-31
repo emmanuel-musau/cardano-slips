@@ -8,6 +8,9 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "build/src",
-    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo"
+    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
+
+    // The node adapter names `node:http` types; nothing else here touches them.
+    "types": ["node"]
   }
 }

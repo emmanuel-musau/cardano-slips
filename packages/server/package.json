@@ -49,6 +49,7 @@
     "effect": "^3.22.1"
   },
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@types/node": "^26.2.0"
   }
 }

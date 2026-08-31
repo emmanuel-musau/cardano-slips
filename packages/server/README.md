@@ -78,7 +78,33 @@ Both route shapes and the `params` typing are verified against Next 16.3.3. Serv
 
 ## Mounting it anywhere else
 
-`defineSlip` returns `(Request) => Promise<Response>`, so any runtime built on those needs no adapter — Hono, SvelteKit, Remix, Bun, Deno and Cloudflare Workers all take these handlers directly. Node's `IncomingMessage`/`ServerResponse` frameworks are the exception and get a bridge; NestJS and Express are covered there.
+`defineSlip` returns `(Request) => Promise<Response>`, so any runtime built on those needs no adapter — Hono, SvelteKit, Remix, Bun, Deno and Cloudflare Workers all take these handlers directly.
+
+## Mounting it on NestJS, Express or Fastify
+
+These serve Node's `IncomingMessage`/`ServerResponse` rather than the Web pair, so they get a bridge. `toNodeHandler` returns one function, and both frameworks mount it the same way:
+
+```ts
+// Express
+const handler = toNodeHandler(endpoint, { origin: "https://linktap.example" })
+
+app.use(express.json())
+app.all("/api/slips/pay/:handle", handler)
+```
+
+```ts
+// NestJS
+const app = await NestFactory.create(AppModule)
+app.use("/api/slips/pay", toNodeHandler(endpoint, { origin: "https://linktap.example" }))
+```
+
+It handles the two things that break a naive bridge. A body parser that already ran — `express.json()`, and Nest's, which is on by default — leaves the stream drained and the parsed value on `req.body`, and reading the stream again would hang forever; this takes the body from wherever it actually is. And route parameters a framework matched (`req.params`) arrive in the handlers as `params`, the same way a Next dynamic segment does.
+
+**The origin is yours to state, and that is deliberate.** `toNodeHandler` refuses to be built without either an `origin` or `originFromHeaders: true`. `Host` and `X-Forwarded-Host` are the client's to set: the origin reaches your own handlers as `context.url`, and it fixes what counts as same-origin when a linked action's `href` is checked. Behind a proxy that overwrites those headers, `originFromHeaders` is fine. Exposed to whatever a request claims, it is a header away from your endpoint describing itself as somewhere else. Naming the origin costs one line and removes the question.
+
+A `POST` body is bounded at 64 KiB, since a conforming one is two short strings — pass `maxBytes` to change it. Anything else is `405` with an `Allow` header.
+
+Verified against Express 5 and NestJS 11 on Node 22.
 
 ## What it will never import
 
