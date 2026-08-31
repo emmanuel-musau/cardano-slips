@@ -130,6 +130,8 @@ Documentation site and the Slip tester — paste an endpoint URL, see the render
 ### `examples/slips`
 The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs site read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
 
+The server's end-to-end tests live here too, beside the fixtures rather than in `packages/server/test`. They need both the fixtures and `server`, and this package already depends on `server` — so pointing `server` back at it would be a cycle, and the rule that apps and examples depend on packages and never the reverse is what forbids it. What they drive is an App Router tree's routing over the handlers `defineSlip` returns.
+
 ### `examples/adalink`
 Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions. It runs NestJS behind Laravel/Inertia, which is why the Node adapter is M1 work and not deferred.
 
