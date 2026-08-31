@@ -28,6 +28,7 @@ cardano-slips/
 │   ├── page/                  the slip page, hosted + self-hostable
 │   └── docs/                  docs site + the Slip tester
 ├── examples/
+│   ├── slips/                 the delegate and tip fixtures, shared by tests and docs
 │   └── adalink/               reference integration: USDM/USDCx payment Slip
 ├── docs/                      requirements, architecture, workflow, ADRs
 ├── .changeset/
@@ -126,6 +127,9 @@ Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the wh
 ### `apps/docs`
 Documentation site and the Slip tester — paste an endpoint URL, see the rendered card alongside the raw GET/POST payloads. The tester is the single best adoption tool in the project: a developer verifies their endpoint in seconds without installing anything.
 
+### `examples/slips`
+The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs site read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
+
 ### `examples/adalink`
 Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions. It runs NestJS behind Laravel/Inertia, which is why the Node adapter is M1 work and not deferred.
 
@@ -141,6 +145,7 @@ core  ←  server
 
       page          →  (flow, core)
       docs          →  (flow, core)
+      slips         →  (server, core)
       adalink       →  (server, via the Node adapter)
 ```
 

@@ -51,6 +51,22 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
 
+  examples/slips:
+    dependencies:
+      '@cardano-slips/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@cardano-slips/server':
+        specifier: workspace:^
+        version: link:../../packages/server
+      effect:
+        specifier: ^3.22.1
+        version: 3.22.1
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/core:
     dependencies:
       effect:
