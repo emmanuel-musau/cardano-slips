@@ -3,13 +3,9 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The assembled draft: no section left as a stub, the shapes it defines matched
- * to the schemas it has, the URI grammar matched to CIP-158, and nothing in
- * Path to Active waiting on a wallet.
- *
- * That last is the one this project is most likely to break by being ambitious.
- * CIP-13 has been Proposed since 2020 because its acceptance rested on adoption
- * its authors could not perform.
+ * The assembled draft: no stub sections, shapes matched to schemas, and nothing
+ * in Path to Active waiting on a wallet. CIP-13 has been Proposed since 2020
+ * because its acceptance rested on adoption its authors could not perform.
  */
 
 const root = join(import.meta.dirname, "..")

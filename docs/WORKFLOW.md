@@ -58,8 +58,9 @@ explicitly, so versioning stays anchored to what actually shipped.
 `dev` merges into `main` with a **merge commit**, so `main` keeps one commit per
 ticket rather than one per release. Everything else squashes.
 
-After a release, **merge `main` back into `dev`** — see Releases below. Skip it
-and `dev` silently drifts behind by the version bumps and changelogs.
+After a release, `main` is fast-forwarded back into `dev` by the `backmerge`
+job — see Releases below. It is refused rather than forced when `dev` moved
+during the release, and the merge is then yours to do.
 
 ## Branch, commit, PR
 
@@ -117,18 +118,64 @@ Once the CIP draft is frozen (#21), request/response shapes are a versioned cont
 
 Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Four packages ship publicly: `core`, `server`, `verifier`, `flow`.
 
-Releasing runs in this order, and the last step is the one that gets forgotten:
+Releasing runs in this order. The last step used to be the one that got
+forgotten, so it is now a job:
 
 1. Open the `dev` -> `main` pull request and merge it with a merge commit.
 2. `release.yml` fires on the push to `main` and opens the Changesets version PR.
 3. Merge the version PR. That push publishes to npm.
-4. **Merge `main` back into `dev`.** `main` now carries version bumps and
-   changelogs that `dev` does not. Miss this and every later `dev` -> `main`
-   pull request drags a stale diff behind it.
+4. The `backmerge` job fast-forwards `dev` onto `main`. `main` now carries
+   version bumps and changelogs that `dev` does not, and left alone every
+   later `dev` -> `main` pull request drags a stale diff behind it.
+
+`backmerge` moves the branch through the refs API, which refuses anything but a
+fast-forward, so it can only go red when someone pushed to `dev` during the
+release window. That is a published release with an outstanding merge, not a
+torn one — finish it by hand:
 
 ```
-git switch dev && git merge main && git push
+git switch dev && git pull origin main && git push
 ```
+
+### The release App
+
+`release.yml` opens the version PR with a GitHub App token rather than
+`GITHUB_TOKEN`, because a pull request opened with `GITHUB_TOKEN` does not
+trigger workflows — GitHub's recursion guard, and not configurable. `ci.yml`
+would never run on the version PR, its four required checks would never report,
+and the PR could not be merged without weakening branch protection for every PR
+in the repository. An App installation token is not `GITHUB_TOKEN`, so the PR it
+opens is checked like any other, and unlike a PAT it is short-lived and scoped
+to this repository.
+
+The App needs Contents: read & write and Pull requests: read & write, and it
+must be *installed* here — creating it is not enough. Without an installation
+the token step fails with a 404 from
+`get-a-repository-installation-for-the-authenticated-app`, which is a different
+failure from the 401 that bad credentials produce. Its credentials are the
+`RELEASE_APP_CLIENT_ID` and `RELEASE_APP_PRIVATE_KEY` secrets — `client-id`
+rather than `app-id`, since v3 of the action deprecated the numeric App ID in
+favour of the client id on the same settings page.
+
+## Dependencies
+
+`@evolution-sdk/evolution` and Effect both move fast, and a dependency left
+alone for a quarter stops being a one-line bump and becomes an afternoon. So
+Dependabot runs weekly, configured in `.github/dependabot.yml`.
+
+Dependabot rather than Renovate: it is native to GitHub, so there is no app to
+install and no third party holding write access here.
+
+**Nothing merges itself.** Dependabot opens pull requests; they pass the same
+four checks as any other PR and a human merges them. Auto-merge is deliberately
+not configured — neither in that file, which cannot express it, nor as a
+workflow that would. Everything moving within its major arrives as one Monday
+pull request; majors come one at a time, each with its own CI run and its own
+read of the changelog.
+
+Recent npm supply-chain compromises were caught within days of publish and
+nothing here is urgent enough to be a new version's first install, so releases
+sit in cooldown before we are offered them. Security updates skip it.
 
 ## Environments
 

@@ -391,3 +391,64 @@ describe("every response, whatever happened", () => {
     }
   })
 })
+
+describe("route params", () => {
+  const seen = (): { context?: DiscoveryContext; endpoint: ReturnType<typeof defineSlip> } => {
+    const captured: { context?: DiscoveryContext } = {}
+    const endpoint = slip({
+      get: (context) => {
+        captured.context = context
+        return payment
+      },
+      post: (context) => {
+        captured.context = context
+        return intent
+      }
+    })
+    return {
+      get context() {
+        return captured.context
+      },
+      endpoint
+    }
+  }
+
+  it("hands a handler the dynamic segments Next 15 resolves", async () => {
+    const under = seen()
+    await under.endpoint.GET(get(), { params: Promise.resolve({ handle: "corner-store" }) })
+    expect(under.context?.params).toEqual({ handle: "corner-store" })
+  })
+
+  it("takes the plain object Next 13 and 14 hand over instead", async () => {
+    const under = seen()
+    await under.endpoint.GET(get(), { params: { handle: "corner-store" } })
+    expect(under.context?.params).toEqual({ handle: "corner-store" })
+  })
+
+  it("carries a catch-all segment as its array", async () => {
+    const under = seen()
+    await under.endpoint.GET(get(), { params: Promise.resolve({ slug: ["pay", "corner-store"] }) })
+    expect(under.context?.params).toEqual({ slug: ["pay", "corner-store"] })
+  })
+
+  it("is an empty object on a route with no dynamic segment", async () => {
+    const under = seen()
+    await under.endpoint.GET(get())
+    expect(under.context?.params).toEqual({})
+  })
+
+  it("reaches post as well", async () => {
+    const under = seen()
+    await under.endpoint.POST(post(buildRequest), { params: Promise.resolve({ handle: "corner-store" }) })
+    expect(under.context?.params).toEqual({ handle: "corner-store" })
+  })
+
+  it("reports a params promise that rejects rather than letting it reach the person", async () => {
+    const onInternalError = vi.fn()
+    const response = await slip({ onInternalError }).GET(get(), { params: Promise.reject(new Error("boom")) })
+
+    expect(response.status).toBe(500)
+    expect((await body(response)).code).toBe("INTERNAL_ERROR")
+    expect(onInternalError).toHaveBeenCalled()
+  })
+})

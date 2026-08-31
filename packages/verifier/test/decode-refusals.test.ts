@@ -1,12 +1,7 @@
 /**
  * One case per fail-closed rule in ADR-0010, plus the rest of the refusal
- * vocabulary.
- *
- * This is the file that keeps the engine armed. A decoder that quietly starts
- * tolerating an unknown certificate type or an unmodelled body key derives
- * effects from a transaction it only partly understood, and the mismatch block
- * downstream never fires because nothing ever contradicts anything. Every rule
- * that stops being enforced shows up here as a green test that should be red.
+ * vocabulary. A decoder that quietly starts tolerating an unmodelled key
+ * derives effects from a transaction it only partly understood.
  */
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"

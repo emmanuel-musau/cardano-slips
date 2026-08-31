@@ -28,6 +28,7 @@ cardano-slips/
 │   ├── page/                  the slip page, hosted + self-hostable
 │   └── docs/                  docs site + the Slip tester
 ├── examples/
+│   ├── slips/                 the delegate and tip fixtures, shared by tests and docs
 │   └── adalink/               reference integration: USDM/USDCx payment Slip
 ├── docs/                      requirements, architecture, workflow, ADRs
 ├── .changeset/
@@ -60,12 +61,13 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 Zero runtime dependencies is the goal.
 
 ### `server`
-`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. One framework adapter in M1 (Next.js App Router): route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. Hono and Express adapters are deferred past M1.
+`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. Two framework adapters in M1: route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. A Web-standard runtime — Next.js App Router, Hono, SvelteKit, Bun, Workers — needs no adapter at all, because `defineSlip` already returns `(Request) => Promise<Response>`; what ships for Next is the `slips.json` helper, dynamic-segment params and the integration guide. Node's `IncomingMessage`/`ServerResponse` frameworks do need a bridge, and AdaLink serves its endpoints from NestJS, so that adapter is M1 rather than deferred. Fastify and Hono-specific bindings stay deferred. An endpoint that is not TypeScript at all — AdaLink's Laravel side — conforms against the normative JSON Schemas in `spec/CIP-XXXX/schemas/` rather than this package, and that it can is the protocol working as intended.
 
 | Module | Owns |
 |---|---|
 | `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in. The network is declared once beside them, which is what lets a `POST` check the three statements of network the spec requires to agree. |
-| `adapters/nextjs.ts` | Framework binding |
+| `domain-mapping.ts` | `defineDomainMapping({ rules })` → the `slips.json` handlers. Framework-neutral, so every Web-standard runtime gets it without an adapter. |
+| `adapters/node.ts` | The `IncomingMessage`/`ServerResponse` bridge for NestJS and Express. Takes the origin explicitly: `context.url` reaches the publisher's handlers and feeds the same-origin check in `checkTemplates`, and a spoofed `Host` corrupts both. |
 
 The whole developer-experience promise — a Slip in about twenty lines — is this package's job.
 
@@ -125,8 +127,13 @@ Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the wh
 ### `apps/docs`
 Documentation site and the Slip tester — paste an endpoint URL, see the rendered card alongside the raw GET/POST payloads. The tester is the single best adoption tool in the project: a developer verifies their endpoint in seconds without installing anything.
 
+### `examples/slips`
+The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs site read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
+
+The server's end-to-end tests live here too, beside the fixtures rather than in `packages/server/test`. They need both the fixtures and `server`, and this package already depends on `server` — so pointing `server` back at it would be a cycle, and the rule that apps and examples depend on packages and never the reverse is what forbids it. What they drive is an App Router tree's routing over the handlers `defineSlip` returns.
+
 ### `examples/adalink`
-Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions.
+Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions. It runs NestJS behind Laravel/Inertia, which is why the Node adapter is M1 work and not deferred.
 
 ## Dependency rules
 
@@ -140,7 +147,8 @@ core  ←  server
 
       page          →  (flow, core)
       docs          →  (flow, core)
-      adalink       →  (server)
+      slips         →  (server, core)
+      adalink       →  (server, via the Node adapter)
 ```
 
 - `core` depends on no workspace package.
@@ -157,7 +165,7 @@ Enforce the direction in review. The moment `verifier` imports from `flow`, the 
 
 Root `tsconfig.json` is a solution file: `include: []` plus one reference per package, so `tsc --build` at the root walks the workspace in dependency order. Add the reference when the package lands.
 
-Each package carries the same four files, mirroring evolution-sdk:
+Each package carries the same four files, mirroring evolution-sdk, plus one editor shim:
 
 | File | Role |
 |---|---|
@@ -165,6 +173,7 @@ Each package carries the same four files, mirroring evolution-sdk:
 | `tsconfig.src.json` | the sources: `include: ["src"]`, `rootDir: "src"`, `outDir: "build/src"`, own `tsBuildInfoFile` |
 | `tsconfig.build.json` | extends `tsconfig.src.json`, adds `outDir: "dist"` and `stripInternal` — what `pnpm build` runs, and the only config that writes `dist` |
 | `tsconfig.test.json` | extends the **root** `tsconfig.test.json`, `include`s the tests, references `tsconfig.src.json` |
+| `test/tsconfig.json` | editor shim. A referenced project must be composite and a composite project must emit, so `tsconfig.test.json` cannot hang off the solution file — tsserver then finds no project for a test file and falls back to defaults without `@types/node`. This is where tsserver looks first. `pnpm typecheck` still runs the config above. |
 
 ```jsonc
 // packages/core/tsconfig.src.json

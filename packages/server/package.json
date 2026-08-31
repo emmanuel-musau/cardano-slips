@@ -24,7 +24,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./adapters/node": {
+      "types": "./dist/adapters/node.d.ts",
+      "default": "./dist/adapters/node.js"
+    }
   },
   "types": "./dist/index.d.ts",
   "files": [
@@ -49,6 +53,7 @@
     "effect": "^3.22.1"
   },
   "devDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@types/node": "^26.2.0"
   }
 }

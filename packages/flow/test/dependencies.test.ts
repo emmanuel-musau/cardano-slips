@@ -4,14 +4,9 @@ import ts from "typescript"
 import { describe, expect, it } from "vitest"
 
 /**
- * Two dependency rules, failing in different places. `flow` never imports
- * `server`: a browser bundle pulling in a request handler would ship a
- * publisher's server code to everyone who opens a Slip. And React is a peer
- * dependency, never a dependency — two copies in one page throw from the copy
- * that did not render, with an error naming neither package.
- *
- * The scan reads the sources rather than the manifest: a dependency can be
- * undeclared and imported all the same.
+ * `flow` never imports `server` — a browser bundle would ship a publisher's
+ * server code to everyone who opens a Slip — and React is a peer dependency,
+ * never a dependency, since two copies in one page throw from the wrong one.
  */
 
 const packageRoot = join(import.meta.dirname, "..")

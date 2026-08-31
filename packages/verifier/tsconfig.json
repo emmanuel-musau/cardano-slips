@@ -1,11 +1,8 @@
 {
   "$schema": "http://json.schemastore.org/tsconfig",
 
-  // Solution file — owns no sources. `tsc -b` here walks the package in
-  // dependency order. Only composite projects can be referenced, so the test
-  // config is absent by necessity; `pnpm typecheck` runs it with `-p`. That
-  // absence is also why `test/tsconfig.json` exists: the editor resolves a
-  // file's project through these references, and a test file is in none of them.
+  // Solution file — owns no sources; `tsc -b` walks the package from here. Only
+  // composite projects can be referenced, so the test config is absent by necessity.
   "extends": "../../tsconfig.base.json",
   "include": [],
   "references": [{ "path": "./tsconfig.src.json" }]

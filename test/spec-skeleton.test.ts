@@ -4,10 +4,8 @@ import { parse } from "yaml"
 import { describe, expect, it } from "vitest"
 
 /**
- * Structural invariants for the CIP draft. A CIP editor checks a submission
- * against CIP-0001 before reading a word of the content, and everything here is
- * something that gets one bounced — a missing preamble field, an invented
- * top-level heading, template boilerplate left in place.
+ * Structural invariants for the CIP draft. Everything here is something that
+ * gets a submission bounced against CIP-0001 before a word of it is read.
  */
 
 const root = join(import.meta.dirname, "..")

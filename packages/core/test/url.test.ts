@@ -353,9 +353,8 @@ describe("the protocol-relative href the pattern admits", () => {
   const payment = JSON.parse(readFileSync(join(examples, "valid", "payment.json"), "utf8")) as Record<string, unknown>
 
   it("passes discovery and is caught here", () => {
-    // `//evil.example/x` satisfies the path-absolute alternative in the href
-    // pattern and resolves to another origin. slips.json's pattern excludes the
-    // form outright; this one does not, so the origin check is what stops it.
+    // `//evil.example/x` satisfies the href pattern but resolves to another
+    // origin, so the origin check is what has to stop it.
     const relative = Either.getOrThrow(
       decodeSlip({ ...payment, links: { actions: [{ label: "Pay", href: "//evil.example/x" }] } })
     )

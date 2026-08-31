@@ -1,11 +1,7 @@
 /**
- * A CBOR writer for tests only, and deliberately not in `src`: ADR-0010 keeps
- * an encoder out of the package, because a commit taken over a re-encode is the
+ * A CBOR writer for tests only, deliberately not in `src`: ADR-0010 keeps an
+ * encoder out of the package, because a commit taken over a re-encode is the
  * bug the byte range exists to prevent.
- *
- * It is here to build the shapes mainnet did not hand us — a committee
- * certificate, a reference script, a hard-fork proposal — so those readers are
- * exercised rather than assumed.
  */
 import { toHex } from "./bytes.js"
 

@@ -5,17 +5,9 @@ import ts from "typescript"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 /**
- * Hard invariant 1, over the real code: `verifier` is a pure function of (tx
- * CBOR, declared metadata, user addresses, resolved inputs, protocol
- * parameters). An engine that fetches mid-derivation can be made slow, made to
- * fail, or made to answer wrongly by whoever benefits from the wrong answer.
- *
- * Two checks, because neither alone is enough. The scan reads every source file
- * and rejects any way in, including a branch no test enters. The trap loads the
- * module with every route out of the process poisoned.
- *
- * Non-determinism is a separate concern: derivation is handed its validity
- * interval rather than asked to compare it against now.
+ * Hard invariant 1 over the real code: an engine that fetches mid-derivation
+ * can be made slow, made to fail, or made to answer wrongly by whoever benefits
+ * from the wrong answer. Two checks — a source scan, and a poisoned load.
  */
 
 const packageRoot = join(import.meta.dirname, "..")
@@ -211,8 +203,7 @@ const io = { reached: [] as string[] }
 /**
  * Built from the builtin's own export names: Vitest resolves named exports
  * against the factory's object, so a catch-all proxy would throw on the first
- * import instead of recording it. Recorders return rather than fail, so the
- * caller carries on and the whole list survives to the assertion.
+ * import instead of recording it. Recorders return, so the whole list survives.
  */
 async function ioTrap(specifier: string, importOriginal: () => Promise<unknown>): Promise<Record<string, unknown>> {
   const actual = (await importOriginal()) as Record<string, unknown>

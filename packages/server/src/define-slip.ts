@@ -1,13 +1,12 @@
 /**
- * `defineSlip` — two handlers in, a conforming Slip endpoint out.
- *
- * Everything a handler returns is decoded against the `core` schemas before a
- * response is built, so a publisher's mistake fails at their own deploy rather
- * than at a stranger's wallet. The failure path is validated the same way: a
- * body this protocol would reject is replaced, never sent.
+ * `defineSlip` — two handlers in, a conforming Slip endpoint out. Everything a
+ * handler returns is decoded against the `core` schemas first, failure bodies
+ * included, so a publisher's mistake fails at their deploy, not in a wallet.
  */
 import { Either } from "effect"
 import { TreeFormatter } from "effect/ParseResult"
+import { contained, internalErrorPayload, reportToConsole } from "./reporting.js"
+
 import {
   addressIsOnNetwork,
   checkTemplates,
@@ -29,10 +28,20 @@ export type Discovery = Omit<Slip, "type" | "version" | "network">
 /** What `post` returns: the publisher's side of a transaction, less the two constants. */
 export type Build = Omit<PartialIntent, "type" | "version">
 
+/** A catch-all segment matches more than one, so a value is a string or a list of them. */
+export type RouteParams = Record<string, string | ReadonlyArray<string>>
+
+/** Next 15 hands `params` as a promise and 13/14 hand the object; awaiting takes either. */
+export type RouteContext = {
+  readonly params?: RouteParams | Promise<RouteParams>
+}
+
 export type DiscoveryContext = {
   readonly request: Request
   /** Parameter values were substituted into the target before the request, so an endpoint reads them from here. */
   readonly url: URL
+  /** The route's own dynamic segments, so `/pay/[handle]` need not be picked back out of `url`. */
+  readonly params: RouteParams
 }
 
 export type BuildContext = DiscoveryContext & {
@@ -53,9 +62,8 @@ export type SlipFailure = {
 }
 
 /**
- * `message` is read by a person, so it carries no markup, no stack trace and no
- * name of anything inside the publisher's own systems. No schema can hold an
- * endpoint to that; it is a rule about what a string says.
+ * `message` is read by a person: no markup, no stack trace, no name of anything
+ * inside the publisher's systems. No schema can hold an endpoint to that.
  */
 export const fail = (
   code: EndpointErrorCode,
@@ -86,20 +94,10 @@ export type SlipDefinition = {
 
 /** Named for the exports a route file needs, so a publisher can destructure them straight out. */
 export type SlipEndpoint = {
-  readonly GET: (request: Request) => Promise<Response>
-  readonly POST: (request: Request) => Promise<Response>
+  readonly GET: (request: Request, context?: RouteContext) => Promise<Response>
+  readonly POST: (request: Request, context?: RouteContext) => Promise<Response>
   readonly OPTIONS: () => Response
 }
-
-// The default has to be loud: a defect reported nowhere is one a publisher
-// meets in a stranger's wallet instead of in their own deploy log.
-/* eslint-disable no-console */
-const reportToConsole = (detail: string, cause?: unknown): void => {
-  const line = `[cardano-slips] ${detail}`
-  if (cause === undefined) console.error(line)
-  else console.error(line, cause)
-}
-/* eslint-enable no-console */
 
 const json = (payload: unknown, status: number, cacheControl: string, extra: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(payload), {
@@ -114,15 +112,7 @@ const json = (payload: unknown, status: number, cacheControl: string, extra: Rec
     }
   })
 
-/** The one body this module can always send: it is a constant, so nothing can make it malformed. */
-const internalErrorBody = {
-  type: "error",
-  version: PROTOCOL_VERSION,
-  code: "INTERNAL_ERROR",
-  message: "The endpoint could not answer this request."
-} as const
-
-const internalError = (): Response => json(internalErrorBody, endpointErrorStatus.INTERNAL_ERROR, "no-store")
+const internalError = (): Response => json(internalErrorPayload, endpointErrorStatus.INTERNAL_ERROR, "no-store")
 
 const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: unknown) => void): Response => {
   const payload = {
@@ -143,11 +133,8 @@ const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: 
     return internalError()
   }
 
-  // A header is part of the response, so it is validated like the body. A
-  // client waits the interval this names, and `Retry-After: NaN` names none —
-  // RFC 9110 has delay-seconds as a non-negative integer. Both codes that reach
-  // here are transient, so rejecting one costs the person nothing and shows the
-  // publisher a bug that would otherwise leave silently.
+  // A header is validated like the body: a client waits the interval this
+  // names, and `Retry-After: NaN` names none. RFC 9110 wants whole seconds.
   if (failure.retryAfter !== undefined && !Number.isSafeInteger(failure.retryAfter)) {
     report(`Retry-After must be a whole number of seconds, and this endpoint gave ${String(failure.retryAfter)}`)
     return internalError()
@@ -166,27 +153,26 @@ const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: 
 }
 
 export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
-  const configured = definition.onInternalError ?? reportToConsole
+  const report = contained(definition.onInternalError ?? reportToConsole)
 
-  // A publisher's reporter is their code, and it can throw — a logger built
-  // against an environment variable nobody set. Uncontained, the failure this
-  // module exists to hide becomes the failure it causes: the exception leaves
-  // `GET`, and the framework renders its own error page over it.
-  const report = (detail: string, cause?: unknown): void => {
-    try {
-      configured(detail, cause)
-    } catch (reporterFailure) {
-      if (configured !== reportToConsole) reportToConsole(detail, cause)
-      reportToConsole("the onInternalError callback threw", reporterFailure)
-    }
-  }
+  // The framework resolves these, not the publisher, and awaiting a foreign
+  // thenable can reject — uncontained that reaches the person as a raw 500.
+  const paramsOf = async (context: RouteContext | undefined): Promise<RouteParams> => (await context?.params) ?? {}
 
-  const GET = async (request: Request): Promise<Response> => {
+  const GET = async (request: Request, context?: RouteContext): Promise<Response> => {
     const url = new URL(request.url)
+
+    let params: RouteParams
+    try {
+      params = await paramsOf(context)
+    } catch (cause) {
+      report("resolving the route params threw", cause)
+      return internalError()
+    }
 
     let result: Discovery | SlipFailure
     try {
-      result = await definition.get({ request, url })
+      result = await definition.get({ request, url, params })
     } catch (cause) {
       report("the get handler threw", cause)
       return internalError()
@@ -215,8 +201,16 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
     return json(payload, 200, "public, max-age=60")
   }
 
-  const POST = async (request: Request): Promise<Response> => {
+  const POST = async (request: Request, context?: RouteContext): Promise<Response> => {
     const url = new URL(request.url)
+
+    let params: RouteParams
+    try {
+      params = await paramsOf(context)
+    } catch (cause) {
+      report("resolving the route params threw", cause)
+      return internalError()
+    }
 
     let submitted: unknown
     try {
@@ -238,8 +232,7 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
     const { changeAddress, network } = built.right
 
     // Three statements of network have to agree, and each can be wrong on its
-    // own: a stale card, a wallet switched between discovery and submission, an
-    // address from another network.
+    // own: a stale card, a switched wallet, an address from another network.
     if (network !== definition.network) {
       return failureResponse(
         fail("WRONG_NETWORK", `This Slip is on ${definition.network}. Your wallet is on ${network}.`),
@@ -253,7 +246,7 @@ export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
 
     let result: Build | SlipFailure
     try {
-      result = await definition.post({ request, url, changeAddress, network })
+      result = await definition.post({ request, url, params, changeAddress, network })
     } catch (cause) {
       report("the post handler threw", cause)
       return internalError()

@@ -1,14 +1,7 @@
 /**
- * The shapes the chain did not hand us.
- *
- * Roughly seventeen hundred mainnet transactions were read while collecting
- * `test/fixtures/`, and some of the Conway CDDL never appeared in them:
- * committee certificates, the four combined registration-and-delegation
- * certificates, reference scripts in an output, a treasury donation. Those
- * readers would otherwise ship unexercised, so they are built here from the
- * CDDL instead. These are shape tests, not transactions — no commit is checked,
- * because there is no chain to check it against. Real bytes for them belong on
- * the honest-fixtures ticket.
+ * The shapes the chain did not hand us. Parts of the Conway CDDL never appeared
+ * in the transactions `test/fixtures/` was collected from, so they are built
+ * from the CDDL instead — shapes, not transactions, so no commit is checked.
  */
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"

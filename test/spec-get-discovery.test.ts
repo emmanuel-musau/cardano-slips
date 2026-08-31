@@ -1,8 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
-// Named rather than default: ajv is CommonJS, and its default export only
-// resolves to the class under `esModuleInterop`, which the base tsconfig does
-// not enable. The named class is the same object and typechecks as one.
+// Named rather than default: ajv is CommonJS, and its default export resolves
+// to the class only under `esModuleInterop`, which the base tsconfig omits.
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js"
 import { describe, expect, it } from "vitest"
 
@@ -25,10 +24,9 @@ const fixtures = (dir: string): Array<string> => readdirSync(join(examples, dir)
 const fixture = (dir: string, file: string): unknown => readJson(join(examples, dir, file))
 
 /**
- * Strict mode rejects keywords that look like they constrain something and
- * quietly do not. `strictRequired` is off because it cannot see through `$ref`,
- * and the `disabled`/`reason` conditional is a shared definition used at two
- * levels; a misspelled `required` is caught by the text-versus-schema comparison instead.
+ * `strictRequired` is off because it cannot see through `$ref`, and the
+ * `disabled`/`reason` conditional is a shared definition used at two levels. A
+ * misspelled `required` is caught by the text-versus-schema comparison instead.
  */
 const ajv = new Ajv2020({ strict: true, strictRequired: false, allErrors: true })
 const validate: ValidateFunction = ajv.compile(schema)

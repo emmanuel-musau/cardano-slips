@@ -1,11 +1,7 @@
 /**
- * The `slips.json` domain mapping — the executable form of
- * `spec/CIP-XXXX/schemas/slips-json.schema.json`, the two rules the JSON Schema
- * cannot express, the fetch that brings the file in, and the resolution that
- * turns a shared human URL into the endpoint behind it.
- *
- * Resolution is held to `spec/examples/slips-json/resolution.json`, the same
- * table the CIP publishes and `test/spec-domain-mapping.test.ts` runs.
+ * The `slips.json` domain mapping: the schema, the two rules JSON Schema cannot
+ * express, the fetch, and the resolution from a shared human URL to the
+ * endpoint behind it. Held to `spec/examples/slips-json/resolution.json`.
  */
 import { Data, Effect, Either, Schema } from "effect"
 
@@ -47,10 +43,9 @@ const duplicatePattern =
   "the same `pathPattern` twice: the second rule can never be reached, which makes it a mistake about the file rather than a choice within it"
 
 /**
- * No `version` and no `type`: it maps paths for a whole origin, which is free to
- * serve a version 1 endpoint at one path and a version 2 endpoint at another,
- * and it is fetched from a fixed filename rather than returned by a negotiated
- * endpoint, so there is nothing it could be confused with.
+ * No `version` and no `type`: one origin may map a version 1 endpoint at one
+ * path and a version 2 at another, and a fixed filename leaves nothing this
+ * could be confused with.
  */
 export const SlipsJson = Schema.Struct({
   rules: Schema.Array(MappingRule).pipe(Schema.minItems(1), Schema.maxItems(100))
@@ -150,9 +145,8 @@ const readBounded = async (response: Response, maxBytes: number): Promise<string
 
 /**
  * `404` and `410` mean the origin has no mapping and the link is its own
- * endpoint. Every other failure is `UNREACHABLE`: a client cannot tell an origin
- * with no mapping from one whose mapping it failed to read, and guessing sends
- * the person to a human path that was never meant to answer.
+ * endpoint. Everything else is `UNREACHABLE`, because guessing sends the person
+ * to a human path that was never meant to answer.
  */
 export const fetchDomainMapping = (
   link: string,

@@ -7,15 +7,8 @@ import { describe, expect, it } from "vitest"
 
 /**
  * The `slips.json` domain mapping (#16) — the one mechanism that lets one URL
- * stand for another, which is the hijack CIP-13's security considerations name.
- *
- * The safety property is structural: `apiPath` is a path-absolute reference, so
- * another host is unrepresentable rather than forbidden, and there is no origin
- * comparison for an implementation to skip.
- *
- * A shape test proves little about a rewriting algorithm, so the spec publishes
- * a resolution table and this runs it against a reference resolver.
- * `core`'s `slips-json.ts` runs the same table.
+ * stand for another. A shape test proves little about a rewriting algorithm, so
+ * this runs the spec's resolution table, as `core`'s `slips-json.ts` does.
  */
 
 const root = join(import.meta.dirname, "..")
