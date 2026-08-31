@@ -1,5 +1,23 @@
 # @cardano-slips/server
 
+## 0.2.0
+
+### Minor Changes
+
+- [#140](https://github.com/emmanuel-musau/cardano-slips/pull/140) [`c4e420d`](https://github.com/emmanuel-musau/cardano-slips/commit/c4e420dd4126c4cfc00669d6eb57281f313767c3) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Add `toNodeHandler`, the bridge for NestJS and Express.
+  
+  Those frameworks serve Node's `IncomingMessage`/`ServerResponse` rather than the Web `Request`/`Response` that `defineSlip` returns. `toNodeHandler(endpoint, { origin })` returns one function they both mount directly. It ships as its own entry, `@cardano-slips/server/adapters/node`, so the package root stays free of Node's types for the runtimes that need no adapter at all.
+  
+  It reads the body from wherever a framework left it — a parser that already ran leaves the stream drained and the value on `req.body`, and reading the stream again would hang — carries matched route parameters into the handlers as `params`, and reads the path from `req.originalUrl` where a framework rewrote `req.url` for a mounted handler. Request headers reach the handlers, less the hop-by-hop ones. `HEAD` answers as the `GET` does without the body.
+  
+  The origin is required, either stated outright or opted into with `originFromHeaders: true`, and only the path and query are ever taken from the request. `Host` and `X-Forwarded-Host` are the client's to set, and the origin both reaches the publisher's handlers as `context.url` and fixes what counts as same-origin when a linked action is checked, so neither a spoofed header nor a protocol-relative target can move it.
+
+- [#137](https://github.com/emmanuel-musau/cardano-slips/pull/137) [`11bead8`](https://github.com/emmanuel-musau/cardano-slips/commit/11bead87075dee3cf082994fe521bfbd88c9d656) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Serve `slips.json` with `defineDomainMapping`, and hand route params to the handlers.
+  
+  `defineDomainMapping({ rules })` returns the `GET` a publisher mounts at their origin root. The rules are fixed at deploy, so they are decoded when the module loads — a mapping the spec rejects throws where the publisher can see it instead of serving a file no client will accept. It sets `Access-Control-Allow-Origin: *` and defaults to the `max-age=300` the spec's own example carries.
+  
+  `defineSlip` handlers now receive `params`, the route's dynamic segments, resolved from either the promise Next 15 and 16 pass or the plain object 13 and 14 pass. On a route with no dynamic segment it is `{}`, so nothing existing changes.
+
 ## 0.1.0
 
 ### Minor Changes
