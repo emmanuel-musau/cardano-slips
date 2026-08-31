@@ -5,6 +5,8 @@
  */
 import { Either } from "effect"
 import { TreeFormatter } from "effect/ParseResult"
+import { contained, internalErrorPayload, reportToConsole } from "./reporting.js"
+
 import {
   addressIsOnNetwork,
   checkTemplates,
@@ -97,16 +99,6 @@ export type SlipEndpoint = {
   readonly OPTIONS: () => Response
 }
 
-// The default has to be loud: a defect reported nowhere is one a publisher
-// meets in a stranger's wallet instead of in their own deploy log.
-/* eslint-disable no-console */
-const reportToConsole = (detail: string, cause?: unknown): void => {
-  const line = `[cardano-slips] ${detail}`
-  if (cause === undefined) console.error(line)
-  else console.error(line, cause)
-}
-/* eslint-enable no-console */
-
 const json = (payload: unknown, status: number, cacheControl: string, extra: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(payload), {
     status,
@@ -120,15 +112,7 @@ const json = (payload: unknown, status: number, cacheControl: string, extra: Rec
     }
   })
 
-/** The one body this module can always send: it is a constant, so nothing can make it malformed. */
-const internalErrorBody = {
-  type: "error",
-  version: PROTOCOL_VERSION,
-  code: "INTERNAL_ERROR",
-  message: "The endpoint could not answer this request."
-} as const
-
-const internalError = (): Response => json(internalErrorBody, endpointErrorStatus.INTERNAL_ERROR, "no-store")
+const internalError = (): Response => json(internalErrorPayload, endpointErrorStatus.INTERNAL_ERROR, "no-store")
 
 const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: unknown) => void): Response => {
   const payload = {
@@ -169,18 +153,7 @@ const failureResponse = (failure: SlipFailure, report: (detail: string, cause?: 
 }
 
 export const defineSlip = (definition: SlipDefinition): SlipEndpoint => {
-  const configured = definition.onInternalError ?? reportToConsole
-
-  // A publisher's reporter is their code and can throw. Uncontained, the
-  // failure this module exists to hide becomes the failure it causes.
-  const report = (detail: string, cause?: unknown): void => {
-    try {
-      configured(detail, cause)
-    } catch (reporterFailure) {
-      if (configured !== reportToConsole) reportToConsole(detail, cause)
-      reportToConsole("the onInternalError callback threw", reporterFailure)
-    }
-  }
+  const report = contained(definition.onInternalError ?? reportToConsole)
 
   // The framework resolves these, not the publisher, and awaiting a foreign
   // thenable can reject — uncontained that reaches the person as a raw 500.
