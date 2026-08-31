@@ -63,9 +63,9 @@ Tier 1 is in M1 unconditionally. Tier 2 carries an explicit go/no-go at end of M
 
 ## 6. M1 scope (mainnet in 3 months)
 
-**In:** spec + CIP draft; `core`; `server` with one adapter (Next.js); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to the Month 1 go/no-go); AdaLink USDM/USDCx payment Slip live on mainnet; public attack examples.
+**In:** spec + CIP draft; `core`; `server` with two adapters (Next.js App Router, and a Node bridge for the NestJS that AdaLink runs on); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to the Month 1 go/no-go); AdaLink USDM/USDCx payment Slip live on mainnet; public attack examples.
 
-**Deferred (roadmap — do not build in M1):** mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); additional framework adapters; additional Slip types.
+**Deferred (roadmap — do not build in M1):** mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); further framework adapters beyond those two; additional Slip types.
 
 On mobile, a shared link opened in a phone browser reaches a wallet through CIP-158 `//browse` — Active, with VESPR and Begin as implementors — which lands the slip page in the wallet's in-app browser where CIP-30 is injected and the desktop flow runs unchanged. Wallet URI handlers are unreliable in practice, so that entry is verified per wallet rather than assumed (#98). The fallback is narrower than it sounds: a phone browser injects no CIP-30, so a link that stays there degrades to reading the slip and moving it — copy the link, or a QR to a desktop — never to signing in place. `//browse` is the only mobile route to a signature, and the two platforms take it differently; `docs/ECOSYSTEM.md` §1 carries what each does. CIP-186 is a separate case — the transport a *native mobile app* would use to be a client — and cannot carry the slip page, because its source-app attestation requires an installed app. See `docs/ECOSYSTEM.md` §3.
 

@@ -60,12 +60,13 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 Zero runtime dependencies is the goal.
 
 ### `server`
-`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. One framework adapter in M1 (Next.js App Router): route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. Hono and Express adapters are deferred past M1.
+`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. Two framework adapters in M1: route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. A Web-standard runtime — Next.js App Router, Hono, SvelteKit, Bun, Workers — needs no adapter at all, because `defineSlip` already returns `(Request) => Promise<Response>`; what ships for Next is the `slips.json` helper, dynamic-segment params and the integration guide. Node's `IncomingMessage`/`ServerResponse` frameworks do need a bridge, and AdaLink serves its endpoints from NestJS, so that adapter is M1 rather than deferred. Fastify and Hono-specific bindings stay deferred. An endpoint that is not TypeScript at all — AdaLink's Laravel side — conforms against the normative JSON Schemas in `spec/CIP-XXXX/schemas/` rather than this package, and that it can is the protocol working as intended.
 
 | Module | Owns |
 |---|---|
 | `define-slip.ts` | The core helper: `get` + `post` handlers → validated, spec-compliant endpoint with CORS and error handling built in. The network is declared once beside them, which is what lets a `POST` check the three statements of network the spec requires to agree. |
-| `adapters/nextjs.ts` | Framework binding |
+| `domain-mapping.ts` | `defineDomainMapping({ rules })` → the `slips.json` handlers. Framework-neutral, so every Web-standard runtime gets it without an adapter. |
+| `adapters/node.ts` | The `IncomingMessage`/`ServerResponse` bridge for NestJS and Express. Takes the origin explicitly: `context.url` reaches the publisher's handlers and feeds the same-origin check in `checkTemplates`, and a spoofed `Host` corrupts both. |
 
 The whole developer-experience promise — a Slip in about twenty lines — is this package's job.
 
@@ -126,7 +127,7 @@ Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the wh
 Documentation site and the Slip tester — paste an endpoint URL, see the rendered card alongside the raw GET/POST payloads. The tester is the single best adoption tool in the project: a developer verifies their endpoint in seconds without installing anything.
 
 ### `examples/adalink`
-Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions.
+Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions. It runs NestJS behind Laravel/Inertia, which is why the Node adapter is M1 work and not deferred.
 
 ## Dependency rules
 
@@ -140,7 +141,7 @@ core  ←  server
 
       page          →  (flow, core)
       docs          →  (flow, core)
-      adalink       →  (server)
+      adalink       →  (server, via the Node adapter)
 ```
 
 - `core` depends on no workspace package.
