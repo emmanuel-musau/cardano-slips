@@ -14,7 +14,8 @@ export default defineConfig({
         }
       },
       "packages/*",
-      "apps/*"
+      "apps/*",
+      "examples/*"
     ],
 
     // Explicit imports over ambient globals; the base tsconfig ships `types: []`.
