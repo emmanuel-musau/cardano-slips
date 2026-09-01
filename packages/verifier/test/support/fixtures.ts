@@ -25,6 +25,34 @@ export type ChainReading = {
   readonly invalidAfter: string | null
   readonly votingProcedures: number
   readonly proposalProcedures: number
+  /** Deposits less refunds, as the chain accounts for them. Negative where a refund is the larger side. */
+  readonly deposit: string
+  readonly treasuryDonation: string
+}
+
+/** The output each input points at, which the body itself only references. */
+export type ResolvedFixtureInput = {
+  readonly transactionId: string
+  readonly index: number
+  readonly address: string
+  readonly coin: string
+  readonly assets: ReadonlyArray<{ readonly policyId: string; readonly name: string; readonly quantity: string }>
+}
+
+/**
+ * Whoever holds the inputs is the user here, which is who signs in Mode A —
+ * so in every fixture the user owns every input, and `spent` restates
+ * `resolved` rather than checking it. `received` is the figure that carries
+ * weight: eight of these transactions pay someone else, and the derivation has
+ * to tell those outputs from change by matching bytes. An input the signer does
+ * not own is covered by the generated transactions, not by a fixture.
+ */
+export type FixtureUser = {
+  readonly addresses: ReadonlyArray<string>
+  readonly spent: string
+  readonly received: string
+  /** `spent - received`: positive is lovelace leaving, the direction the spec states. */
+  readonly ada: string
 }
 
 export type Fixture = {
@@ -33,6 +61,8 @@ export type Fixture = {
   /** What this transaction is here for. Every claim is asserted, so a fixture cannot quietly stop covering it. */
   readonly exercises: ReadonlyArray<string>
   readonly chain: ChainReading
+  readonly user: FixtureUser
+  readonly resolved: ReadonlyArray<ResolvedFixtureInput>
   readonly cbor: string
 }
 

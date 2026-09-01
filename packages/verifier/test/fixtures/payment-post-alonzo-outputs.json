@@ -17,7 +17,24 @@
     "invalidBefore": null,
     "invalidAfter": "1787831819",
     "votingProcedures": 0,
-    "proposalProcedures": 0
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
   },
+  "user": {
+    "addresses": ["61c9f2b66ea34148b4d3f95c03fed7eac8791a6aa39149681156350501"],
+    "spent": "31024477272",
+    "received": "30999068765",
+    "ada": "25408507"
+  },
+  "resolved": [
+    {
+      "transactionId": "3d273694081d5eeceb7ab4836459b2e43aff31d08b781d9cf9e079bd5afc6c26",
+      "index": 2,
+      "address": "61c9f2b66ea34148b4d3f95c03fed7eac8791a6aa39149681156350501",
+      "coin": "31024477272",
+      "assets": []
+    }
+  ],
   "cbor": "84a400818258203d273694081d5eeceb7ab4836459b2e43aff31d08b781d9cf9e079bd5afc6c26020182a2005839010befd3bad33dfc7ec9999e3f0a5f7c8d5dfc4de0134d88517a5e7c43033bb18f466224caf35de4ea8c500c37f6d9fea7aff5b2079304e655011a01810b4aa200581d61c9f2b66ea34148b4d3f95c03fed7eac8791a6aa39149681156350501011b0000000737b0405d021a0002a8b1031a6a90260ba100818258200499e1da87cfaed47a0582367634056ee6a552f7fe9370cbeef43a9dc128c45a58408cec5e469f1830f828ddf54c234dcfdcd3d342b0a0c66bb2ed8311a8e3ae3de5799774fd3e581a87800b03365c3a8753ec128bd722f281b3d68104e9f1b7060bf5f6"
 }
