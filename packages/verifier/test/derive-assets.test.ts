@@ -55,7 +55,10 @@ describe("a real USDM payment", () => {
   })
 
   it("counts the thirteen tokens that came straight back as no effect at all", () => {
-    const held = new Set(usdm.resolved.flatMap((input) => input.assets.map((asset) => asset.policyId)))
+    // Counted the way a delta is keyed, on the policy and the name together.
+    const held = new Set(
+      usdm.resolved.flatMap((input) => input.assets.map((asset) => `${asset.policyId}.${asset.name}`))
+    )
     expect(held.size).toBe(14)
     expect(derived(usdm).user).toHaveLength(1)
   })

@@ -66,7 +66,7 @@ const assetPool: ReadonlyArray<{ policyId: Uint8Array; name: Uint8Array; key: st
   key: `${policy}.${name}`
 }))
 
-const toKey = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16)).join("")
+const toKey = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")
 
 const bundle = (held: ReadonlyMap<string, bigint>): MultiAsset => {
   const byPolicy = new Map<string, { policyId: Uint8Array; assets: Array<{ name: Uint8Array; quantity: bigint }> }>()

@@ -141,16 +141,20 @@ here is what the inputs hold plus what the body mints, less what the outputs
 hold; the mint is read for that sum alone, and rendering what a transaction
 creates or destroys belongs elsewhere.
 
+## What both derivations hold to
+
 **An address the wallet did not report is someone else's.** That overstates what
 leaves and understates what returns, which is the safe direction: the other one
 would hide a payment to a stranger by calling it change. An address sharing a
 payment credential but not a stake part is a different address, and is treated
 as one.
 
-The derivation refuses rather than guesses. An input with no supplied value
-would otherwise count as zero, which is how a spend gets hidden; two readings of
-one input disagree about what to show; and a transaction whose is-valid flag is
+**They refuse rather than guess.** An input with no supplied value would
+otherwise count as zero, which is how a spend gets hidden; two readings of one
+input disagree about what to show; and a transaction whose is-valid flag is
 false spends collateral instead of its inputs, which is different arithmetic.
+Both derivations resolve the body's inputs through one shared step, so neither
+can grow its own idea of when to stop.
 
 ## Standalone by design
 

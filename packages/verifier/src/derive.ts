@@ -256,7 +256,9 @@ type Tally = {
 
 /**
  * The assets. Every quantity is a raw on-chain count — a token's decimals are a
- * display concern and belong nowhere near this arithmetic.
+ * display concern and belong nowhere near this arithmetic. It takes the whole
+ * derivation, protocol parameters included, though no asset rule reads them:
+ * the four terms are the engine's signature, not a per-function shopping list.
  */
 export const deriveAssets = (derivation: Derivation): Either.Either<AssetEffects, DerivationError> => {
   const start = spending(derivation)
