@@ -25,7 +25,8 @@
     "addresses": ["61c2fcdd9af95c0ba61a8db76fbd2d5233b38ce66ca2b93012fba4d574"],
     "spent": "1828223",
     "received": "1638054",
-    "ada": "190169"
+    "ada": "190169",
+    "assets": []
   },
   "resolved": [
     {

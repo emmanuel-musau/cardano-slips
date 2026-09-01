@@ -53,6 +53,14 @@ export type FixtureUser = {
   readonly received: string
   /** `spent - received`: positive is lovelace leaving, the direction the spec states. */
   readonly ada: string
+  /** The same, per policy and asset name. Assets that net to zero are absent, as they are in the derivation. */
+  readonly assets: ReadonlyArray<{
+    readonly policyId: string
+    readonly name: string
+    readonly spent: string
+    readonly received: string
+    readonly delta: string
+  }>
 }
 
 export type Fixture = {

@@ -111,16 +111,50 @@ outputs, fee, deposits and any treasury donation. It is `0n` for a transaction
 the engine understands completely, and anything else is the engine saying the
 arithmetic a person would be shown does not add up.
 
+## The assets
+
+`deriveAssets` is the same arithmetic per policy and asset name, and takes the
+same four arguments.
+
+```ts
+import { deriveAssets } from "@cardano-slips/verifier"
+
+const derived = deriveAssets({ transaction, userAddresses, resolvedInputs, protocolParameters })
+
+if (Either.isRight(derived)) {
+  derived.right.user // [{ policyId, name, spent, received, delta }]
+  derived.right.unaccounted // [] for a transaction the engine reads completely
+}
+```
+
+`delta` runs the same way as `user.ada`: positive is the asset leaving,
+negative is the asset arriving, so the person paying and the person being paid
+read the same transaction with opposite signs.
+
+**Every quantity is the raw on-chain count.** A token's decimals are a display
+concern; ten USDM is `10000000n` here and nowhere is it `10`.
+
+**An asset that comes in and goes straight back out is not an effect.** A
+wallet holding fourteen tokens and moving one has one delta, not fourteen —
+`test/fixtures/usdm-payment.json` is exactly that transaction. `unaccounted`
+here is what the inputs hold plus what the body mints, less what the outputs
+hold; the mint is read for that sum alone, and rendering what a transaction
+creates or destroys belongs elsewhere.
+
+## What both derivations hold to
+
 **An address the wallet did not report is someone else's.** That overstates what
 leaves and understates what returns, which is the safe direction: the other one
 would hide a payment to a stranger by calling it change. An address sharing a
 payment credential but not a stake part is a different address, and is treated
 as one.
 
-The derivation refuses rather than guesses. An input with no supplied value
-would otherwise count as zero, which is how a spend gets hidden; two readings of
-one input disagree about what to show; and a transaction whose is-valid flag is
+**They refuse rather than guess.** An input with no supplied value would
+otherwise count as zero, which is how a spend gets hidden; two readings of one
+input disagree about what to show; and a transaction whose is-valid flag is
 false spends collateral instead of its inputs, which is different arithmetic.
+Both derivations resolve the body's inputs through one shared step, so neither
+can grow its own idea of when to stop.
 
 ## Standalone by design
 

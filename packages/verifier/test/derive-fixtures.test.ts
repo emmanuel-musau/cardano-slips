@@ -1,5 +1,5 @@
 /**
- * The lovelace arithmetic, run over the same twenty-six mainnet transactions
+ * The lovelace arithmetic, run over the same twenty-seven mainnet transactions
  * the decoder is held to, with the inputs they spend resolved from the chain.
  * Every figure here is checked against Koios's own reading of the transaction.
  */
