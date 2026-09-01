@@ -148,7 +148,7 @@ Four more, taking the same argument and refusing on the same terms.
 ```ts
 import { deriveCertificates, deriveMint, deriveValidity, deriveWithdrawals } from "@cardano-slips/verifier"
 
-deriveCertificates(derivation) // [{ kind, credential, ours, pool, drep, deposit, refund, index }]
+deriveCertificates(derivation) // [{ kind, credential, role, ours, pool, drep, deposit, refund, index }]
 deriveWithdrawals(derivation) // [{ rewardAccount, amount, ours }]
 deriveMint(derivation) // [{ policyId, name, quantity }] — a burn is negative
 deriveValidity(derivation) // { validFrom, validUntil }, each a slot and the instant it begins
@@ -156,13 +156,20 @@ deriveValidity(derivation) // { validFrom, validUntil }, each a slot and the ins
 
 **A certificate carries what a person needs to read it**: what it is, the
 credential it acts on, the pool or DRep it names, and the deposit or refund the
-ledger applies to it, already joined from `deposits.ts`. `ours` is true only
-where the wallet reported a reward account for that credential — a credential it
-did not report is someone else's, the same rule the addresses follow.
+ledger applies to it, already joined from `deposits.ts`.
 
-**A withdrawal is summed per reward account.** The ledger writes one entry an
-account, but the bytes are a map nothing forces to be distinct, and two entries
-rendered as two withdrawals would show one account's rewards twice.
+**Read `role` before rendering `credential`.** Three different namespaces arrive
+in that one field — a stake credential, a DRep's own, and a committee cold key —
+and a DRep or committee key shown as a `stake1…` address is an address the
+person does not hold. `ours` is true where the wallet reported that credential,
+in a reward account or in the stake half of one of its addresses; a credential
+it did not report is someone else's, the same rule the addresses follow.
+
+**A withdrawal is summed per reward account, and a mint per asset.** The ledger
+writes one entry each, but both are CBOR maps nothing forces to have distinct
+keys: two withdrawal entries rendered separately would show one account's
+rewards twice, and a policy written twice in a mint would show as a mint and a
+burn of an asset the transaction creates none of.
 
 **`validUntil` is when the transaction expires**, not the last moment it is
 good for: the body's `invalid_hereafter` is the first slot it is no longer

@@ -50,13 +50,44 @@ const chainWords: Partial<Record<Certificate["_tag"], ReadonlyArray<string>>> = 
 }
 
 describe.each(fixtures.map((one) => [one.name, one] as const))("%s", (_name, one) => {
-  it("reads the same certificates the chain does, in the same order", () => {
+  it("reads the same certificates the chain does, at the positions the chain gives them", () => {
+    // The chain records each certificate's own position in the body, and this
+    // is where our order is held to it: a decoder that emitted them in a
+    // different order would put the wrong type at a position below.
     const derived = certificates(one)
-    expect(derived.map((effect) => effect.index)).toEqual(one.chain.certificates.map((c) => c.index))
-    for (const [position, effect] of derived.entries()) {
-      const said = one.chain.certificates[position]
+    expect(one.chain.certificates.map((c) => c.index)).toEqual(derived.map((_, position) => position))
+
+    for (const said of one.chain.certificates) {
+      const effect = derived[said.index]
+      expect(effect, `nothing at position ${said.index}`).toBeDefined()
       expect(chainWords[effect.kind], `no chain word for ${effect.kind}`).toBeDefined()
-      expect(chainWords[effect.kind], `${effect.kind} at ${effect.index}`).toContain(said.type)
+      expect(chainWords[effect.kind], `${effect.kind} at ${said.index}`).toContain(said.type)
+    }
+  })
+
+  it("names the DRep the chain names", () => {
+    for (const effect of certificates(one)) {
+      const said = one.chain.certificates[effect.index]
+      if (effect.drep === null) continue
+      if (effect.drep._tag === "Abstain" || effect.drep._tag === "NoConfidence") {
+        expect(said.drep).toBe(effect.drep._tag === "Abstain" ? "drep_always_abstain" : "drep_always_no_confidence")
+        continue
+      }
+      // A DRep the chain writes as a CIP-129 id: a header byte, then the
+      // credential we read straight out of the certificate.
+      expect(said.drepCredential).not.toBeNull()
+      expect({ kind: effect.drep._tag === "KeyHash" ? "key" : "script", hash: toHex(effect.drep.hash) }).toEqual(
+        said.drepCredential
+      )
+    }
+  })
+
+  it("attaches the deposit the chain says the certificate carries", () => {
+    for (const effect of certificates(one)) {
+      const said = one.chain.certificates[effect.index].deposit
+      if (said === null) continue
+      expect(effect.deposit ?? effect.refund, `certificate ${effect.index}`).not.toBeNull()
+      expect(String((effect.deposit ?? effect.refund)!.amount)).toBe(said)
     }
   })
 
@@ -138,18 +169,26 @@ describe("a delegation", () => {
     expect(delegation.deposit).toBeNull()
   })
 
-  it("knows the credential is the signer's own", () => {
-    // The wallet reported no reward account for this fixture, so nothing here
-    // is confirmable and every certificate reads as someone else's.
-    expect(certificates(one).every((effect) => !effect.ours)).toBe(true)
+  it("knows the credential is the signer's own, from the base address alone", () => {
+    // This wallet reported no reward account — only the 57-byte address it
+    // spends from, whose second half is the very credential being delegated.
+    const [address] = derivationOf(one).userAddresses
+    expect(address).toHaveLength(57)
+    expect(toHex(address.subarray(29))).toBe(one.chain.certificates[0].credential!.hash)
+    expect(certificates(one).every((effect) => effect.ours)).toBe(true)
+  })
 
+  it("reads it from a reward account too", () => {
     const account = fromHex(`e1${one.chain.certificates[0].credential!.hash}`)
-    const withAccount = deriveCertificates({
-      ...derivationOf(one),
-      userAddresses: [...derivationOf(one).userAddresses, account]
-    })
-    expect(Either.isRight(withAccount)).toBe(true)
-    if (Either.isRight(withAccount)) expect(withAccount.right.every((effect) => effect.ours)).toBe(true)
+    const derived = deriveCertificates({ ...derivationOf(one), userAddresses: [account] })
+    expect(Either.isRight(derived)).toBe(true)
+    if (Either.isRight(derived)) expect(derived.right.every((effect) => effect.ours)).toBe(true)
+  })
+
+  it("is someone else's when the wallet reported neither", () => {
+    const derived = deriveCertificates({ ...derivationOf(one), userAddresses: [] })
+    expect(Either.isRight(derived)).toBe(true)
+    if (Either.isRight(derived)) expect(derived.right.every((effect) => !effect.ours)).toBe(true)
   })
 })
 
@@ -229,6 +268,118 @@ describe("a body that writes one reward account twice", () => {
   })
 })
 
+describe("a vote delegated to a real DRep", () => {
+  const one = fixture("vote-delegation-to-drep")
+
+  it("carries the DRep's own credential, not an abstention", () => {
+    const [effect] = certificates(one)
+    expect(effect.kind).toBe("VoteDelegation")
+    expect(effect.drep).toMatchObject({ _tag: "KeyHash" })
+    expect(toHex((effect.drep as { hash: Uint8Array }).hash)).toBe(one.chain.certificates[0].drepCredential!.hash)
+  })
+
+  it("acts on a stake credential, and says which namespace that is", () => {
+    // The credential delegating and the DRep being delegated to are different
+    // things in the same certificate, and only the first is the signer's stake.
+    const [effect] = certificates(one)
+    expect(effect.role).toBe("stake")
+    expect(toHex(effect.credential!.hash)).toBe(one.chain.certificates[0].credential!.hash)
+    expect(toHex(effect.credential!.hash)).not.toBe(one.chain.certificates[0].drepCredential!.hash)
+  })
+})
+
+describe("the pool registration the chain charged nothing for", () => {
+  it("is the one place our deposit and the chain's disagree, on purpose", () => {
+    // A re-registration pays nothing and a first registration pays 500 ADA, and
+    // the body reads the same either way. `basis` is where we say so.
+    const one = fixture("pool-registration")
+    expect(one.chain.certificates[0].deposit).toBeNull()
+    expect(certificates(one)[0].deposit).toMatchObject({ basis: "assumed", amount: mainnetParameters.poolDeposit })
+  })
+})
+
+describe("certificates the chain window did not hold", () => {
+  // Committee certificates do not appear in the fixtures, and a mint map with
+  // one policy written twice is not something the ledger writes — both are
+  // built here rather than left untested.
+  const base = derivationOf(fixture("payment-legacy-outputs"))
+  const hash = fromHex("ab".repeat(28))
+  const account = fromHex(`e1${"ab".repeat(28)}`)
+  const credential = { _tag: "KeyHash" as const, hash }
+
+  const rolesOf = (certificates: ReadonlyArray<Certificate>, addresses: ReadonlyArray<Uint8Array>) => {
+    const result = deriveCertificates({
+      ...base,
+      transaction: transaction({ ...base.transaction.body, certificates }),
+      userAddresses: addresses
+    })
+    if (Either.isLeft(result)) throw new Error(result.left.message)
+    return result.right
+  }
+
+  it("says which namespace each credential comes from", () => {
+    const derived = rolesOf(
+      [
+        { _tag: "StakeDeregistration", credential },
+        { _tag: "UpdateDrep", credential, anchor: null },
+        { _tag: "AuthorizeCommitteeHot", cold: credential, hot: credential },
+        { _tag: "PoolRetirement", poolKeyHash: hash, epoch: 651n }
+      ],
+      []
+    )
+    expect(derived.map((effect) => effect.role)).toEqual(["stake", "drep", "committee-cold", null])
+    expect(derived[3].credential).toBeNull()
+  })
+
+  it("still calls a credential the wallet reported its own, whatever the namespace", () => {
+    const derived = rolesOf(
+      [
+        { _tag: "UpdateDrep", credential, anchor: null },
+        { _tag: "ResignCommitteeCold", cold: credential, anchor: null }
+      ],
+      [account]
+    )
+    expect(derived.map((effect) => effect.ours)).toEqual([true, true])
+  })
+
+  it("adds a policy written twice in the mint into one line", () => {
+    const policyId = fromHex("cd".repeat(28))
+    const name = fromHex("01")
+    const derived = deriveMint({
+      ...base,
+      transaction: transaction({
+        ...base.transaction.body,
+        mint: [
+          { policyId, assets: [{ name, quantity: 1n }] },
+          { policyId, assets: [{ name, quantity: 999n }] }
+        ]
+      })
+    })
+    expect(Either.isRight(derived)).toBe(true)
+    if (Either.isRight(derived)) {
+      expect(derived.right).toHaveLength(1)
+      expect(derived.right[0].quantity).toBe(1000n)
+    }
+  })
+
+  it("does not turn a policy that nets to nothing into a mint and a burn", () => {
+    const policyId = fromHex("cd".repeat(28))
+    const name = fromHex("01")
+    const derived = deriveMint({
+      ...base,
+      transaction: transaction({
+        ...base.transaction.body,
+        mint: [
+          { policyId, assets: [{ name, quantity: 1000n }] },
+          { policyId, assets: [{ name, quantity: -1000n }] }
+        ]
+      })
+    })
+    expect(Either.isRight(derived)).toBe(true)
+    if (Either.isRight(derived)) expect(derived.right.map((asset) => asset.quantity)).toEqual([0n])
+  })
+})
+
 describe("what the fixtures cover", () => {
   it("reaches a certificate, a withdrawal, a mint and both ends of a validity interval", () => {
     expect(fixtures.some((one) => certificates(one).length > 0)).toBe(true)
@@ -243,6 +394,9 @@ describe("what the fixtures cover", () => {
     const all = fixtures.flatMap((one) => certificates(one))
     expect(all.some((effect) => effect.pool !== null)).toBe(true)
     expect(all.some((effect) => effect.drep !== null)).toBe(true)
+    expect(all.some((effect) => effect.drep?._tag === "KeyHash")).toBe(true)
+    expect(all.some((effect) => effect.drep?._tag === "Abstain")).toBe(true)
+    expect(new Set(all.map((effect) => effect.role))).toEqual(new Set(["stake", "drep", null]))
     expect(all.some((effect) => effect.deposit !== null)).toBe(true)
     expect(all.some((effect) => effect.refund !== null)).toBe(true)
   })

@@ -329,20 +329,30 @@ export const deriveAssets = (derivation: Derivation): Either.Either<AssetEffects
 
 // What a transaction does besides move value
 
+/** Whose namespace a certificate's credential comes from. They are not interchangeable. */
+export type CredentialRole = "stake" | "drep" | "committee-cold"
+
 /**
- * A certificate as a person needs to read it: what it is, whose stake
- * credential it acts on, the pool or DRep it names, and the deposit or refund
- * the ledger applies to it.
+ * A certificate as a person needs to read it: what it is, whose credential it
+ * acts on, the pool or DRep it names, and the deposit or refund the ledger
+ * applies to it.
  */
 export type CertificateEffect = {
   readonly kind: Certificate["_tag"]
   /**
-   * The credential the certificate acts on — a stake credential, or a DRep's
-   * own on the three that register, update or retire one. Null where it acts on
-   * no credential at all, which is the two that only name a pool.
+   * The credential the certificate acts on. Null where it acts on none, which
+   * is the two that only name a pool. Read `role` before rendering it: three
+   * different namespaces arrive in this field and a DRep or committee key shown
+   * as a stake address is an address the person does not hold.
    */
   readonly credential: Credential | null
-  /** True where that credential is one the wallet reported a reward account for. */
+  /** Which namespace `credential` belongs to. Null exactly where the credential is. */
+  readonly role: CredentialRole | null
+  /**
+   * True where the wallet reported that credential, in a reward account or in
+   * the stake half of one of its addresses — whichever namespace `role` says
+   * the certificate uses it in.
+   */
   readonly ours: boolean
   /** The pool it names — the one delegated to, or the one being registered or retired. */
   readonly pool: Uint8Array | null
@@ -378,18 +388,28 @@ export type ValidityWindow = {
 }
 
 /**
- * The stake credentials the wallet reported, taken from the reward accounts
- * among its addresses. A reward account is a header byte and a 28-byte
- * credential, and bit 0x10 of the header says whether that credential is a
- * script. Nothing else counts: a credential we cannot confirm is someone
- * else's, the same rule the addresses follow.
+ * The stake credentials the wallet reported, from two places. A reward account
+ * is 29 bytes, a header then the credential, and bit 0x10 of the header says
+ * the credential is a script. A base address is 57 bytes and carries the same
+ * credential in its second half, with bit 0x20 saying the same thing — read
+ * because a wallet that reports its addresses but not its reward account would
+ * otherwise be told its own delegation belongs to a stranger.
+ *
+ * Nothing else counts. A credential we cannot confirm is someone else's, the
+ * same rule the addresses follow.
  */
-const stakeCredentials = (userAddresses: ReadonlyArray<Uint8Array>): ReadonlySet<string> =>
-  new Set(
-    userAddresses
-      .filter((address) => address.length === 29 && (address[0] & 0xf0) >= 0xe0)
-      .map((address) => `${(address[0] & 0x10) === 0 ? "key" : "script"}.${toHex(address.subarray(1))}`)
-  )
+const stakeCredentials = (userAddresses: ReadonlyArray<Uint8Array>): ReadonlySet<string> => {
+  const found = new Set<string>()
+  const add = (isScript: boolean, hash: Uint8Array): void => {
+    found.add(`${isScript ? "script" : "key"}.${toHex(hash)}`)
+  }
+  for (const address of userAddresses) {
+    const header = address[0] & 0xf0
+    if (address.length === 29 && header >= 0xe0) add((address[0] & 0x10) !== 0, address.subarray(1))
+    if (address.length === 57 && header <= 0x30) add((address[0] & 0x20) !== 0, address.subarray(29))
+  }
+  return found
+}
 
 const credentialKey = (credential: Credential): string =>
   `${credential._tag === "KeyHash" ? "key" : "script"}.${toHex(credential.hash)}`
@@ -397,32 +417,43 @@ const credentialKey = (credential: Credential): string =>
 /** Exhaustive by type: a certificate the decoder learns to read must be answered for here too. */
 const acts = (
   certificate: Certificate
-): { readonly credential: Credential | null; readonly pool: Uint8Array | null; readonly drep: DRep | null } => {
+): {
+  readonly credential: Credential | null
+  readonly role: CredentialRole | null
+  readonly pool: Uint8Array | null
+  readonly drep: DRep | null
+} => {
   switch (certificate._tag) {
     case "StakeRegistration":
     case "StakeDeregistration":
     case "Registration":
     case "Deregistration":
+      return { credential: certificate.credential, role: "stake", pool: null, drep: null }
     case "RegisterDrep":
     case "UnregisterDrep":
     case "UpdateDrep":
-      return { credential: certificate.credential, pool: null, drep: null }
+      return { credential: certificate.credential, role: "drep", pool: null, drep: null }
     case "StakeDelegation":
     case "StakeRegistrationDelegation":
-      return { credential: certificate.credential, pool: certificate.poolKeyHash, drep: null }
+      return { credential: certificate.credential, role: "stake", pool: certificate.poolKeyHash, drep: null }
     case "VoteDelegation":
     case "VoteRegistrationDelegation":
-      return { credential: certificate.credential, pool: null, drep: certificate.drep }
+      return { credential: certificate.credential, role: "stake", pool: null, drep: certificate.drep }
     case "StakeVoteDelegation":
     case "StakeVoteRegistrationDelegation":
-      return { credential: certificate.credential, pool: certificate.poolKeyHash, drep: certificate.drep }
+      return {
+        credential: certificate.credential,
+        role: "stake",
+        pool: certificate.poolKeyHash,
+        drep: certificate.drep
+      }
     case "PoolRegistration":
-      return { credential: null, pool: certificate.params.operator, drep: null }
+      return { credential: null, role: null, pool: certificate.params.operator, drep: null }
     case "PoolRetirement":
-      return { credential: null, pool: certificate.poolKeyHash, drep: null }
+      return { credential: null, role: null, pool: certificate.poolKeyHash, drep: null }
     case "AuthorizeCommitteeHot":
     case "ResignCommitteeCold":
-      return { credential: certificate.cold, pool: null, drep: null }
+      return { credential: certificate.cold, role: "committee-cold", pool: null, drep: null }
     default:
       return Function.absurd(certificate)
   }
@@ -447,10 +478,14 @@ export const deriveCertificates = (
 
   return Either.right(
     body.certificates.map((certificate, index) => {
-      const { credential, drep, pool } = acts(certificate)
+      const { credential, drep, pool, role } = acts(certificate)
       return {
         kind: certificate._tag,
         credential,
+        role,
+        // Namespace does not decide this: a DRep credential the wallet
+        // reported is a key it holds, and calling an honest DRep registration
+        // someone else's would block one.
         ours: credential !== null && mine.has(credentialKey(credential)),
         pool,
         drep,
@@ -493,15 +528,26 @@ export const deriveMint = (derivation: Derivation): Either.Either<ReadonlyArray<
   const start = spending(derivation)
   if (Either.isLeft(start)) return Either.left(start.left)
 
-  return Either.right(
-    derivation.transaction.body.mint
-      .flatMap((policy) =>
-        policy.assets.map((asset) => ({ policyId: policy.policyId, name: asset.name, quantity: asset.quantity }))
+  // Added together per asset, for the reason the withdrawals are: the mint is a
+  // CBOR map nothing forces to be distinct, and a policy written twice would
+  // otherwise render as two lines — or as a mint and a burn of an asset the
+  // transaction creates none of.
+  const summed = new Map<string, AssetAmount>()
+  for (const policy of derivation.transaction.body.mint) {
+    for (const asset of policy.assets) {
+      const key = assetKey(policy.policyId, asset.name)
+      const held = summed.get(key)
+      summed.set(
+        key,
+        held === undefined
+          ? { policyId: policy.policyId, name: asset.name, quantity: asset.quantity }
+          : { ...held, quantity: held.quantity + asset.quantity }
       )
-      .sort((left, right) => {
-        const [a, b] = [assetKey(left.policyId, left.name), assetKey(right.policyId, right.name)]
-        return a < b ? -1 : a > b ? 1 : 0
-      })
+    }
+  }
+
+  return Either.right(
+    [...summed].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)).map(([, asset]) => asset)
   )
 }
 
