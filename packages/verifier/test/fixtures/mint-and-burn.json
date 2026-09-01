@@ -54,7 +54,23 @@
     ],
     "spent": "15916830",
     "received": "2305850",
-    "ada": "13610980"
+    "ada": "13610980",
+    "assets": [
+      {
+        "policyId": "533bb94a8850ee3ccbe483106489399112b74c905342cb1792a797a0",
+        "name": "494e4459",
+        "spent": "200000000",
+        "received": "0",
+        "delta": "200000000"
+      },
+      {
+        "policyId": "f9b162ea9529e639a083595294006a833473883a75d6df1e4c22dd4f",
+        "name": "504f4c4c5f4d414e41474552",
+        "spent": "1",
+        "received": "0",
+        "delta": "1"
+      }
+    ]
   },
   "resolved": [
     {

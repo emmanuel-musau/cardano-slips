@@ -1,7 +1,8 @@
 /**
- * What a transaction does to a person's lovelace, derived from the body, the
- * values of the inputs it spends and the protocol parameters in force. Nothing
- * here asks anything of the network: every term arrives as an argument.
+ * What a transaction does to a person's lovelace and to their native assets,
+ * derived from the body, the values of the inputs it spends and the protocol
+ * parameters in force. Nothing here asks anything of the network: every term
+ * arrives as an argument.
  */
 import { Either } from "effect"
 
@@ -81,11 +82,48 @@ export type LovelaceEffects = {
 
 const outpoint = (input: TransactionInput): string => `${toHex(input.transactionId)}#${input.index}`
 
+/** A policy, an asset name, and a signed quantity of it. */
+export type AssetAmount = {
+  readonly policyId: Uint8Array
+  readonly name: Uint8Array
+  readonly quantity: bigint
+}
+
+export type AssetDelta = {
+  readonly policyId: Uint8Array
+  readonly name: Uint8Array
+  /** Held by the inputs the body spends out of the user's own outputs. */
+  readonly spent: bigint
+  /** Held by the outputs the body pays back to the user's addresses, change included. */
+  readonly received: bigint
+  /** `spent - received`, the same direction as `user.ada`: positive is the asset leaving. */
+  readonly delta: bigint
+}
+
+export type AssetEffects = {
+  /**
+   * Net per policy and asset name across the user's addresses, ordered by
+   * policy then name. An asset that comes in and goes back out unchanged is
+   * absent: a delta of zero is not an effect, and a wallet holding a hundred
+   * tokens would otherwise render ninety-nine lines of nothing.
+   */
+  readonly user: ReadonlyArray<AssetDelta>
+  /**
+   * Assets the reading cannot place: what the inputs hold plus what the body
+   * mints, less what the outputs hold. Empty for a transaction the engine reads
+   * completely, and the asset-side counterpart of `unaccounted` on the
+   * lovelace. The mint is read here for that sum alone — rendering what a
+   * transaction creates or destroys is not this function's job.
+   */
+  readonly unaccounted: ReadonlyArray<AssetAmount>
+}
+
+/** A policy and an asset name together, which is what a delta is counted per. */
+const assetKey = (policyId: Uint8Array, name: Uint8Array): string => `${toHex(policyId)}.${toHex(name)}`
+
 const assetKeys = (assets: MultiAsset): string =>
   assets
-    .flatMap((policy) =>
-      policy.assets.map((asset) => `${toHex(policy.policyId)}.${toHex(asset.name)}=${asset.quantity}`)
-    )
+    .flatMap((policy) => policy.assets.map((asset) => `${assetKey(policy.policyId, asset.name)}=${asset.quantity}`))
     .sort()
     .join(",")
 
@@ -123,15 +161,18 @@ const byOutpoint = (
 }
 
 /**
- * The one way in. Refuses rather than guesses: an input with no supplied value
- * would otherwise count as zero, which is exactly how a spend gets hidden.
+ * What the body actually spends, in body order, and whose each address is.
+ * Both derivations start here: refusing rather than guessing is the whole point
+ * of the step, so neither may have its own version of it.
  */
-export const deriveLovelace = ({
-  protocolParameters,
+const spending = ({
   resolvedInputs,
   transaction,
   userAddresses
-}: Derivation): Either.Either<LovelaceEffects, DerivationError> => {
+}: Derivation): Either.Either<
+  { readonly spends: ReadonlyArray<ResolvedInput>; readonly ours: (address: Uint8Array) => boolean },
+  DerivationError
+> => {
   if (!transaction.isValid) {
     return Either.left(
       cannotDerive(
@@ -144,35 +185,51 @@ export const deriveLovelace = ({
   const resolved = byOutpoint(resolvedInputs)
   if (Either.isLeft(resolved)) return Either.left(resolved.left)
 
-  const ours = new Set(userAddresses.map(toHex))
-  const { body } = transaction
-
-  let spent = 0n
-  let inputs = 0n
-  for (const input of body.inputs) {
+  const spends: Array<ResolvedInput> = []
+  for (const input of transaction.body.inputs) {
     const found = resolved.right.get(outpoint(input))
     if (found === undefined) {
       return Either.left(cannotDerive("UnresolvedInput", `no value was supplied for ${outpoint(input)}`))
     }
+    spends.push(found)
+  }
+
+  const owned = new Set(userAddresses.map(toHex))
+  return Either.right({ spends, ours: (address) => owned.has(toHex(address)) })
+}
+
+/**
+ * The lovelace. Refuses rather than guesses: an input with no supplied value
+ * would otherwise count as zero, which is exactly how a spend gets hidden.
+ */
+export const deriveLovelace = (derivation: Derivation): Either.Either<LovelaceEffects, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { ours, spends } = start.right
+  const { body } = derivation.transaction
+
+  let spent = 0n
+  let inputs = 0n
+  for (const found of spends) {
     inputs += found.value.coin
-    if (ours.has(toHex(found.address))) spent += found.value.coin
+    if (ours(found.address)) spent += found.value.coin
   }
 
   let received = 0n
   let outputs = 0n
   for (const output of body.outputs) {
     outputs += output.value.coin
-    if (ours.has(toHex(output.address))) received += output.value.coin
+    if (ours(output.address)) received += output.value.coin
   }
 
   let withdrawn = 0n
   let withdrawnInTotal = 0n
   for (const withdrawal of body.withdrawals) {
     withdrawnInTotal += withdrawal.amount
-    if (ours.has(toHex(withdrawal.rewardAccount))) withdrawn += withdrawal.amount
+    if (ours(withdrawal.rewardAccount)) withdrawn += withdrawal.amount
   }
 
-  const { deposits, refunds } = readDeposits(body, protocolParameters)
+  const { deposits, refunds } = readDeposits(body, derivation.protocolParameters)
   const deposited = totalOf(deposits)
   const refunded = totalOf(refunds)
   const donation = body.donation ?? 0n
@@ -185,5 +242,76 @@ export const deriveLovelace = ({
     user: { spent, received, ada: spent - received, withdrawn },
     total: { inputs, outputs, withdrawn: withdrawnInTotal, deposited, refunded },
     unaccounted: inputs + withdrawnInTotal + refunded - (outputs + body.fee + deposited + donation)
+  })
+}
+
+type Tally = {
+  readonly policyId: Uint8Array
+  readonly name: Uint8Array
+  spent: bigint
+  received: bigint
+  /** Inputs plus mint, less outputs: zero for an asset the reading places completely. */
+  loose: bigint
+}
+
+/**
+ * The assets. Every quantity is a raw on-chain count — a token's decimals are a
+ * display concern and belong nowhere near this arithmetic.
+ */
+export const deriveAssets = (derivation: Derivation): Either.Either<AssetEffects, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { ours, spends } = start.right
+  const { body } = derivation.transaction
+
+  const tallies = new Map<string, Tally>()
+  const at = (policyId: Uint8Array, name: Uint8Array): Tally => {
+    const key = assetKey(policyId, name)
+    const held = tallies.get(key) ?? { policyId, name, spent: 0n, received: 0n, loose: 0n }
+    tallies.set(key, held)
+    return held
+  }
+
+  const each = (assets: MultiAsset, count: (held: Tally, quantity: bigint) => void): void => {
+    for (const policy of assets) {
+      for (const asset of policy.assets) count(at(policy.policyId, asset.name), asset.quantity)
+    }
+  }
+
+  for (const found of spends) {
+    const mine = ours(found.address)
+    each(found.value.assets, (held, quantity) => {
+      held.loose += quantity
+      if (mine) held.spent += quantity
+    })
+  }
+  each(body.mint, (held, quantity) => {
+    held.loose += quantity
+  })
+  for (const output of body.outputs) {
+    const mine = ours(output.address)
+    each(output.value.assets, (held, quantity) => {
+      held.loose -= quantity
+      if (mine) held.received += quantity
+    })
+  }
+
+  const ordered = [...tallies]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([, held]) => held)
+
+  return Either.right({
+    user: ordered
+      .filter((held) => held.spent !== held.received)
+      .map((held) => ({
+        policyId: held.policyId,
+        name: held.name,
+        spent: held.spent,
+        received: held.received,
+        delta: held.spent - held.received
+      })),
+    unaccounted: ordered
+      .filter((held) => held.loose !== 0n)
+      .map((held) => ({ policyId: held.policyId, name: held.name, quantity: held.loose }))
   })
 }

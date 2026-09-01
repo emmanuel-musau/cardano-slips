@@ -1,12 +1,13 @@
 /**
  * Balanced transactions built to a seed, for the arithmetic that has to hold
- * over every transaction rather than over the twenty-six we happen to have.
+ * over every transaction rather than over the ones we happen to have.
  * The generator funds the transaction itself, so a run that does not balance is
  * the derivation disagreeing with the ledger's equation, never the fixture.
  */
 import type {
   Certificate,
   Credential,
+  MultiAsset,
   PoolParams,
   TransactionBody,
   TransactionInput,
@@ -46,6 +47,39 @@ const poolParams = (next: Stream): PoolParams => ({
   relays: [],
   metadata: null
 })
+
+/**
+ * Six assets across three policies, so a policy holding more than one name and
+ * an output holding more than one policy both turn up. Two names under one
+ * policy is the case a delta keyed on the policy alone gets wrong.
+ */
+const assetPool: ReadonlyArray<{ policyId: Uint8Array; name: Uint8Array; key: string }> = [
+  [0x11, 0x01],
+  [0x11, 0x02],
+  [0x22, 0x01],
+  [0x22, 0x02],
+  [0x33, 0x01],
+  [0x33, 0x02]
+].map(([policy, name]) => ({
+  policyId: new Uint8Array(28).fill(policy),
+  name: Uint8Array.of(name),
+  key: `${policy}.${name}`
+}))
+
+const toKey = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16)).join("")
+
+const bundle = (held: ReadonlyMap<string, bigint>): MultiAsset => {
+  const byPolicy = new Map<string, { policyId: Uint8Array; assets: Array<{ name: Uint8Array; quantity: bigint }> }>()
+  for (const asset of assetPool) {
+    const quantity = held.get(asset.key) ?? 0n
+    if (quantity === 0n) continue
+    const policy = toKey(asset.policyId)
+    const group = byPolicy.get(policy) ?? { policyId: asset.policyId, assets: [] }
+    group.assets.push({ name: asset.name, quantity })
+    byPolicy.set(policy, group)
+  }
+  return [...byPolicy.values()]
+}
 
 /** What the generator has to fund for a certificate, which is the answer `deposits.ts` must reach independently. */
 export type GeneratedCertificate = {
@@ -181,7 +215,12 @@ export const certificateKindCount = certificateKinds.length
 export type Generated = {
   readonly body: TransactionBody
   readonly userAddresses: ReadonlyArray<Uint8Array>
-  readonly resolved: ReadonlyArray<{ input: TransactionInput; address: Uint8Array; coin: bigint }>
+  readonly resolved: ReadonlyArray<{
+    input: TransactionInput
+    address: Uint8Array
+    coin: bigint
+    assets: MultiAsset
+  }>
   readonly certificateTags: ReadonlyArray<Certificate["_tag"]>
   /** What the generator funded, which is what `deposits.ts` has to reach on its own. */
   readonly funded: { readonly deposits: bigint; readonly refunds: bigint }
@@ -191,8 +230,16 @@ export type Generated = {
    * derivation reaches the same figures by matching bytes, which is the part
    * being tested.
    */
-  readonly expected: { readonly spent: bigint; readonly received: bigint; readonly withdrawn: bigint }
+  readonly expected: {
+    readonly spent: bigint
+    readonly received: bigint
+    readonly withdrawn: bigint
+    /** Per asset, keyed the way `assetPool` keys them: what the user's side nets to. */
+    readonly assets: ReadonlyMap<string, { readonly spent: bigint; readonly received: bigint }>
+  }
 }
+
+export const assetKeys: ReadonlyArray<string> = assetPool.map((asset) => asset.key)
 
 /**
  * A transaction that satisfies the ledger's equation by construction:
@@ -239,17 +286,48 @@ export const generate = (seed: number, parameters: ProtocolParameters): Generate
     certificates.reduce((running, one) => running + one.refund, 0n)
 
   let expectedSpent = 0n
+  const spentAssets = new Map<string, bigint>()
+  const heldAssets = new Map<string, bigint>()
   const resolved = Array.from({ length: 1 + upTo(next, 4) }, (_, index) => {
     const mine = next() < 0.8
     const coin = between(next, 1_000_000n, 20_000_000_000n)
     if (mine) expectedSpent += coin
+    const held = new Map<string, bigint>()
+    for (const asset of assetPool) {
+      if (next() > 0.3) continue
+      const quantity = between(next, 1n, 1_000_000n)
+      held.set(asset.key, (held.get(asset.key) ?? 0n) + quantity)
+      heldAssets.set(asset.key, (heldAssets.get(asset.key) ?? 0n) + quantity)
+      if (mine) spentAssets.set(asset.key, (spentAssets.get(asset.key) ?? 0n) + quantity)
+    }
     return {
       input: { transactionId: bytes(next, 32), index: BigInt(index) },
       address: oneOf(next, mine ? userAddresses : strangers),
       coin,
+      assets: bundle(held),
       mine
     }
   })
+
+  // Mint what nobody holds, burn out of what the inputs do: both leave the
+  // asset equation satisfiable, which is what the derivation has to reach.
+  const minted = new Map<string, bigint>()
+  for (const asset of assetPool) {
+    const held = heldAssets.get(asset.key) ?? 0n
+    const roll = next()
+    if (roll < 0.15) {
+      minted.set(asset.key, between(next, 1n, 500_000n))
+    } else if (roll > 0.85 && held > 0n) {
+      // Never more than the inputs hold: a burn of what nothing carries is a
+      // transaction the ledger would not accept.
+      minted.set(asset.key, -between(next, 1n, held))
+    }
+  }
+  const available = new Map<string, bigint>()
+  for (const asset of assetPool) {
+    const total = (heldAssets.get(asset.key) ?? 0n) + (minted.get(asset.key) ?? 0n)
+    if (total > 0n) available.set(asset.key, total)
+  }
   const funded = resolved.reduce((running, one) => running + one.coin, 0n)
   // Top the first input up where the obligations outrun what was drawn, so the
   // shape stays random but the transaction always balances.
@@ -260,27 +338,45 @@ export const generate = (seed: number, parameters: ProtocolParameters): Generate
   }
 
   let remaining = resolved.reduce((running, one) => running + one.coin, 0n) + broughtIn - owedOut
-  let expectedReceived = 0n
-  const outputs: Array<TransactionOutput> = []
-  const payTo = (coin: bigint): void => {
-    const mine = next() < 0.6
-    if (mine) expectedReceived += coin
-    outputs.push({
-      form: "legacy",
-      address: oneOf(next, mine ? userAddresses : strangers),
-      value: { coin, assets: [] },
-      datum: null,
-      scriptRef: null
-    })
-  }
-
-  const wanted = upTo(next, 4)
-  for (let index = 0; index < wanted && remaining > 0n; index++) {
+  // Always at least one, so every asset the inputs and the mint bring has
+  // somewhere to go even when the lovelace has all been spent on obligations.
+  const wanted = 1 + upTo(next, 3)
+  const shares: Array<bigint> = []
+  for (let index = 0; index < wanted; index++) {
     const share = index === wanted - 1 ? remaining : between(next, 0n, remaining)
     remaining -= share
-    payTo(share)
+    shares.push(share)
   }
-  if (remaining > 0n) payTo(remaining)
+
+  const mineByOutput = shares.map(() => next() < 0.6)
+  const heldByOutput = shares.map(() => new Map<string, bigint>())
+  for (const [key, quantity] of available) {
+    let left = quantity
+    for (let index = 0; index < shares.length; index++) {
+      const share = index === shares.length - 1 ? left : between(next, 0n, left)
+      left -= share
+      if (share > 0n) heldByOutput[index].set(key, (heldByOutput[index].get(key) ?? 0n) + share)
+    }
+  }
+
+  let expectedReceived = 0n
+  const receivedAssets = new Map<string, bigint>()
+  const outputs: Array<TransactionOutput> = shares.map((coin, index) => {
+    const mine = mineByOutput[index]
+    if (mine) {
+      expectedReceived += coin
+      for (const [key, quantity] of heldByOutput[index]) {
+        receivedAssets.set(key, (receivedAssets.get(key) ?? 0n) + quantity)
+      }
+    }
+    return {
+      form: "legacy" as const,
+      address: oneOf(next, mine ? userAddresses : strangers),
+      value: { coin, assets: bundle(heldByOutput[index]) },
+      datum: null,
+      scriptRef: null
+    }
+  })
 
   return {
     body: {
@@ -294,7 +390,7 @@ export const generate = (seed: number, parameters: ProtocolParameters): Generate
       validityIntervalEnd: null,
       auxiliaryDataHash: null,
       validityIntervalStart: null,
-      mint: [],
+      mint: bundle(minted),
       scriptDataHash: null,
       collateralInputs: [],
       requiredSigners: [],
@@ -314,6 +410,16 @@ export const generate = (seed: number, parameters: ProtocolParameters): Generate
         proposals.reduce((running, one) => running + one.deposit, 0n),
       refunds: certificates.reduce((running, one) => running + one.refund, 0n)
     },
-    expected: { spent: expectedSpent, received: expectedReceived, withdrawn: expectedWithdrawn }
+    expected: {
+      spent: expectedSpent,
+      received: expectedReceived,
+      withdrawn: expectedWithdrawn,
+      assets: new Map(
+        assetPool.map((asset) => [
+          asset.key,
+          { spent: spentAssets.get(asset.key) ?? 0n, received: receivedAssets.get(asset.key) ?? 0n }
+        ])
+      )
+    }
   }
 }

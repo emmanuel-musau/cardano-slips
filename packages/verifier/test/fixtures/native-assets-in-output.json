@@ -27,7 +27,16 @@
     ],
     "spent": "1825680",
     "received": "0",
-    "ada": "1825680"
+    "ada": "1825680",
+    "assets": [
+      {
+        "policyId": "aa1ea1f35a7b5c24377ee7dfc8316278595e3ab7af9c4b342011b9b3",
+        "name": "41534e454b",
+        "spent": "2400000",
+        "received": "0",
+        "delta": "2400000"
+      }
+    ]
   },
   "resolved": [
     {

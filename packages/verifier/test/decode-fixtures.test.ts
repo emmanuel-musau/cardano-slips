@@ -1,5 +1,5 @@
 /**
- * Twenty-six mainnet transactions, read by this decoder and by Koios. The
+ * Twenty-seven mainnet transactions, read by this decoder and by Koios. The
  * commit carries the most weight: BLAKE2b-256 over the extracted body must
  * equal the chain's transaction id, and fails on a single byte of drift.
  */
@@ -22,7 +22,7 @@ const decoded = (fixture: Fixture): DecodedTransaction => {
 const commit = (bodyBytes: Uint8Array): string => toHex(blake2b(bodyBytes, { dkLen: 32 }))
 
 it("has fixtures to read", () => {
-  expect(fixtures.length).toBeGreaterThanOrEqual(26)
+  expect(fixtures.length).toBeGreaterThanOrEqual(27)
 })
 
 describe.each(fixtures.map((fixture) => [fixture.name, fixture] as const))("%s", (_name, fixture) => {
