@@ -51,7 +51,7 @@ describe.each(fixtures.map((fixture) => [fixture.name, fixture] as const))("%s",
     const { body } = decoded(fixture)
     expect(body.certificates.length).toBe(fixture.chain.certificates.length)
     expect(body.withdrawals.map((withdrawal) => String(withdrawal.amount)).sort()).toEqual(
-      [...fixture.chain.withdrawals].sort()
+      fixture.chain.withdrawals.map((withdrawal) => withdrawal.amount).sort()
     )
   })
 

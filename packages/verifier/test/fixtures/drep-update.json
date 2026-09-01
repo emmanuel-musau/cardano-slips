@@ -5,13 +5,28 @@
   "chain": {
     "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
     "blockHeight": 13788442,
+    "absoluteSlot": 194746092,
+    "timestamp": 1786312383,
     "fee": "183761",
     "totalOutput": "504266892",
     "outputs": 1,
     "inputs": 1,
     "collateralInputs": 0,
     "referenceInputs": 0,
-    "certificates": ["drep_update"],
+    "certificates": [
+      {
+        "index": 0,
+        "type": "drep_update",
+        "credential": null,
+        "pool": null,
+        "drep": "drep1ygegl2th7u5r7nn8gtpe8req6jdyxaqk0p9ypz3m3m7ge6q8wfass",
+        "deposit": null,
+        "drepCredential": {
+          "kind": "key",
+          "hash": "328fa977f7283f4e6742c3938f20d49a437416784a408a3b8efc8ce8"
+        }
+      }
+    ],
     "withdrawals": [],
     "mint": [],
     "invalidBefore": null,

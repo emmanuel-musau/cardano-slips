@@ -5,6 +5,8 @@
   "chain": {
     "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
     "blockHeight": 13858521,
+    "absoluteSlot": 196178397,
+    "timestamp": 1787744688,
     "fee": "171353",
     "totalOutput": "373151975",
     "outputs": 1,
@@ -12,7 +14,12 @@
     "collateralInputs": 0,
     "referenceInputs": 0,
     "certificates": [],
-    "withdrawals": ["127814215"],
+    "withdrawals": [
+      {
+        "rewardAccount": "e15dea4c0d93db46312d6655655426e3210963bb5c38c4a9bbaf01ce1d",
+        "amount": "127814215"
+      }
+    ],
     "mint": [],
     "invalidBefore": null,
     "invalidAfter": "196181962",

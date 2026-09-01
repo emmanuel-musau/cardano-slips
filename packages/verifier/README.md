@@ -141,7 +141,43 @@ here is what the inputs hold plus what the body mints, less what the outputs
 hold; the mint is read for that sum alone, and rendering what a transaction
 creates or destroys belongs elsewhere.
 
-## What both derivations hold to
+## What it does besides move value
+
+Four more, taking the same argument and refusing on the same terms.
+
+```ts
+import { deriveCertificates, deriveMint, deriveValidity, deriveWithdrawals } from "@cardano-slips/verifier"
+
+deriveCertificates(derivation) // [{ kind, credential, role, ours, pool, drep, deposit, refund, index }]
+deriveWithdrawals(derivation) // [{ rewardAccount, amount, ours }]
+deriveMint(derivation) // [{ policyId, name, quantity }] — a burn is negative
+deriveValidity(derivation) // { validFrom, validUntil }, each a slot and the instant it begins
+```
+
+**A certificate carries what a person needs to read it**: what it is, the
+credential it acts on, the pool or DRep it names, and the deposit or refund the
+ledger applies to it, already joined from `deposits.ts`.
+
+**Read `role` before rendering `credential`.** Three different namespaces arrive
+in that one field — a stake credential, a DRep's own, and a committee cold key —
+and a DRep or committee key shown as a `stake1…` address is an address the
+person does not hold. `ours` is true where the wallet reported that credential,
+in a reward account or in the stake half of one of its addresses; a credential
+it did not report is someone else's, the same rule the addresses follow.
+
+**A withdrawal is summed per reward account, and a mint per asset.** The ledger
+writes one entry each, but both are CBOR maps nothing forces to have distinct
+keys: two withdrawal entries rendered separately would show one account's
+rewards twice, and a policy written twice in a mint would show as a mint and a
+burn of an asset the transaction creates none of.
+
+**`validUntil` is when the transaction expires**, not the last moment it is
+good for: the body's `invalid_hereafter` is the first slot it is no longer
+valid. Both ends convert through the slot mapping in the protocol parameters,
+anchored at the first slot of the era in force — mainnet's Shelley era begins at
+slot 4492800, and using slot zero would put every conversion two hours out.
+
+## What every derivation holds to
 
 **An address the wallet did not report is someone else's.** That overstates what
 leaves and understates what returns, which is the safe direction: the other one
@@ -153,8 +189,8 @@ as one.
 otherwise count as zero, which is how a spend gets hidden; two readings of one
 input disagree about what to show; and a transaction whose is-valid flag is
 false spends collateral instead of its inputs, which is different arithmetic.
-Both derivations resolve the body's inputs through one shared step, so neither
-can grow its own idea of when to stop.
+Every derivation resolves the body's inputs through one shared step, so none of
+them can grow its own idea of when to stop.
 
 ## Standalone by design
 

@@ -12,14 +12,27 @@ const root = join(import.meta.dirname, "..", "fixtures")
 export type ChainReading = {
   readonly source: string
   readonly blockHeight: number
+  readonly absoluteSlot: number
+  /** Unix seconds the block was minted, which is what the slot mapping has to land on. */
+  readonly timestamp: number
   readonly fee: string
   readonly totalOutput: string
   readonly outputs: number
   readonly inputs: number
   readonly collateralInputs: number
   readonly referenceInputs: number
-  readonly certificates: ReadonlyArray<string>
-  readonly withdrawals: ReadonlyArray<string>
+  /** Position, the chain's own word for the type, and what it says the certificate acts on. */
+  readonly certificates: ReadonlyArray<{
+    readonly index: number
+    readonly type: string
+    readonly credential: { readonly kind: "key" | "script"; readonly hash: string } | null
+    readonly pool: string | null
+    readonly drep: string | null
+    /** The DRep id above, decoded: CIP-129 writes a header byte then the 28-byte credential. */
+    readonly drepCredential: { readonly kind: "key" | "script"; readonly hash: string } | null
+    readonly deposit: string | null
+  }>
+  readonly withdrawals: ReadonlyArray<{ readonly rewardAccount: string; readonly amount: string }>
   readonly mint: ReadonlyArray<{ readonly policyId: string; readonly name: string; readonly quantity: string }>
   readonly invalidBefore: string | null
   readonly invalidAfter: string | null

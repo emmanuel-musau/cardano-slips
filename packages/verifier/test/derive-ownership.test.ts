@@ -34,7 +34,7 @@ describe("an address the wallet did not report", () => {
   it("counts a withdrawal from it as someone else's rewards", () => {
     const effects = derived([paymentAddress])
     expect(effects.user.withdrawn).toBe(0n)
-    expect(String(effects.total.withdrawn)).toBe(withdrawal.chain.withdrawals[0])
+    expect(String(effects.total.withdrawn)).toBe(withdrawal.chain.withdrawals[0].amount)
   })
 
   it("leaves the ledger's own equation alone either way", () => {
@@ -68,7 +68,7 @@ describe("the whole address set", () => {
       spent: withdrawal.user.spent,
       received: withdrawal.user.received,
       ada: withdrawal.user.ada,
-      withdrawn: withdrawal.chain.withdrawals[0]
+      withdrawn: withdrawal.chain.withdrawals[0].amount
     })
   })
 })

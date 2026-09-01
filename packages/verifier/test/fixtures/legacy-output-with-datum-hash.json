@@ -5,6 +5,8 @@
   "chain": {
     "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
     "blockHeight": 13858495,
+    "absoluteSlot": 196177979,
+    "timestamp": 1787744270,
     "fee": "175709",
     "totalOutput": "557993834",
     "outputs": 2,
