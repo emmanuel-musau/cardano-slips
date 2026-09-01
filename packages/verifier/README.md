@@ -66,6 +66,62 @@ caller that needs the commit and not the contents.
 The reasoning is in [ADR-0010](../../docs/DECISIONS/0010-cbor-decode-approach.md);
 [ADR-0012](../../docs/DECISIONS/0012-decode-test-oracle.md) covers how it is tested.
 
+## Working out the lovelace
+
+`deriveLovelace` is the arithmetic: what the transaction does to a person's ADA,
+the fee it states, and the deposits it locks up or hands back.
+
+```ts
+import { decodeTransaction, deriveLovelace } from "@cardano-slips/verifier"
+import { Either } from "effect"
+
+const derived = deriveLovelace({
+  transaction, // from decodeTransaction
+  userAddresses, // every address the wallet reports, its reward account included
+  resolvedInputs, // the output each input points at, with its value
+  protocolParameters
+})
+
+if (Either.isRight(derived)) {
+  derived.right.user.ada // spent less received: positive is lovelace leaving
+  derived.right.fee // exactly what the body states
+  derived.right.deposits // "Deposit 2.00 ADA (refundable)"
+  derived.right.unaccounted // 0n for a transaction the engine reads completely
+}
+```
+
+**A deposit is not a cost.** It comes back, so it is listed apart from what is
+spent rather than folded into `user.ada`, and each entry says where its number
+came from: `stated` off the certificate, `parameter` from the protocol
+parameters, or `assumed` where the body cannot settle whether the parameter
+applies — a pool already registered pays nothing to re-register, and a
+credential registered before the parameter last changed is refunded what it
+paid rather than what the parameter says now. Each entry also carries `source`
+and `index`, which say where in the body it came from: proposal deposits and
+certificate deposits share one array and can share a position.
+
+**Collateral is not in these figures.** It is consumed only when a script
+fails, which is the is-valid-false case the derivation refuses, so it takes no
+part in the arithmetic — but a transaction can still put collateral at risk
+without that showing up anywhere here. Showing that risk is not modelled yet.
+
+**`unaccounted` is the engine checking itself.** What the ledger consumes less
+what it produces, under this reading: inputs and withdrawals and refunds against
+outputs, fee, deposits and any treasury donation. It is `0n` for a transaction
+the engine understands completely, and anything else is the engine saying the
+arithmetic a person would be shown does not add up.
+
+**An address the wallet did not report is someone else's.** That overstates what
+leaves and understates what returns, which is the safe direction: the other one
+would hide a payment to a stranger by calling it change. An address sharing a
+payment credential but not a stake part is a different address, and is treated
+as one.
+
+The derivation refuses rather than guesses. An input with no supplied value
+would otherwise count as zero, which is how a spend gets hidden; two readings of
+one input disagree about what to show; and a transaction whose is-valid flag is
+false spends collateral instead of its inputs, which is different arithmetic.
+
 ## Standalone by design
 
 A wallet or an explorer can take this package on its own, without the rest of the protocol. It depends on `core` for types and on no other workspace package — never on `flow`, `server`, or any network layer.
