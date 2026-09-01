@@ -1,18 +1,27 @@
 /**
- * What a transaction does to a person's lovelace and to their native assets,
- * derived from the body, the values of the inputs it spends and the protocol
- * parameters in force. Nothing here asks anything of the network: every term
- * arrives as an argument.
+ * What a transaction does — to a person's lovelace, to their native assets, and
+ * everything it does besides move value — derived from the body, the values of
+ * the inputs it spends and the protocol parameters in force. Nothing here asks
+ * anything of the network: every term arrives as an argument.
  */
-import { Either } from "effect"
+import { Either, Function } from "effect"
 
 import { toHex } from "./bytes.js"
-import type { DecodedTransaction, MultiAsset, TransactionInput, Value } from "./decode.js"
+import type {
+  Certificate,
+  Credential,
+  DecodedTransaction,
+  DRep,
+  MultiAsset,
+  TransactionInput,
+  Value
+} from "./decode.js"
 import type { DerivationError } from "./derive-error.js"
 import { cannotDerive } from "./derive-error.js"
 import type { Deposit } from "./deposits.js"
 import { readDeposits, totalOf } from "./deposits.js"
 import type { ProtocolParameters } from "./parameters.js"
+import { timeOfSlot } from "./parameters.js"
 
 /** An input the body names, with the output it points at. The body carries the reference only. */
 export type ResolvedInput = {
@@ -316,4 +325,193 @@ export const deriveAssets = (derivation: Derivation): Either.Either<AssetEffects
       .filter((held) => held.loose !== 0n)
       .map((held) => ({ policyId: held.policyId, name: held.name, quantity: held.loose }))
   })
+}
+
+// What a transaction does besides move value
+
+/**
+ * A certificate as a person needs to read it: what it is, whose stake
+ * credential it acts on, the pool or DRep it names, and the deposit or refund
+ * the ledger applies to it.
+ */
+export type CertificateEffect = {
+  readonly kind: Certificate["_tag"]
+  /**
+   * The credential the certificate acts on — a stake credential, or a DRep's
+   * own on the three that register, update or retire one. Null where it acts on
+   * no credential at all, which is the two that only name a pool.
+   */
+  readonly credential: Credential | null
+  /** True where that credential is one the wallet reported a reward account for. */
+  readonly ours: boolean
+  /** The pool it names — the one delegated to, or the one being registered or retired. */
+  readonly pool: Uint8Array | null
+  readonly drep: DRep | null
+  readonly deposit: Deposit | null
+  readonly refund: Deposit | null
+  /** Its position in the body, which is the order a person is shown them in. */
+  readonly index: number
+}
+
+export type WithdrawalEffect = {
+  readonly rewardAccount: Uint8Array
+  /** Every entry for this account added together. The ledger writes one; the bytes can carry more. */
+  readonly amount: bigint
+  readonly ours: boolean
+}
+
+/** A slot, and the wall-clock instant it begins. */
+export type SlotTime = {
+  readonly slot: bigint
+  /** Unix milliseconds. */
+  readonly time: bigint
+}
+
+export type ValidityWindow = {
+  /** `invalid_before`: the transaction cannot be accepted until this instant. */
+  readonly validFrom: SlotTime | null
+  /**
+   * `invalid_hereafter`: the transaction is invalid from this instant on, so
+   * this is the moment it expires rather than the last moment it is good for.
+   */
+  readonly validUntil: SlotTime | null
+}
+
+/**
+ * The stake credentials the wallet reported, taken from the reward accounts
+ * among its addresses. A reward account is a header byte and a 28-byte
+ * credential, and bit 0x10 of the header says whether that credential is a
+ * script. Nothing else counts: a credential we cannot confirm is someone
+ * else's, the same rule the addresses follow.
+ */
+const stakeCredentials = (userAddresses: ReadonlyArray<Uint8Array>): ReadonlySet<string> =>
+  new Set(
+    userAddresses
+      .filter((address) => address.length === 29 && (address[0] & 0xf0) >= 0xe0)
+      .map((address) => `${(address[0] & 0x10) === 0 ? "key" : "script"}.${toHex(address.subarray(1))}`)
+  )
+
+const credentialKey = (credential: Credential): string =>
+  `${credential._tag === "KeyHash" ? "key" : "script"}.${toHex(credential.hash)}`
+
+/** Exhaustive by type: a certificate the decoder learns to read must be answered for here too. */
+const acts = (
+  certificate: Certificate
+): { readonly credential: Credential | null; readonly pool: Uint8Array | null; readonly drep: DRep | null } => {
+  switch (certificate._tag) {
+    case "StakeRegistration":
+    case "StakeDeregistration":
+    case "Registration":
+    case "Deregistration":
+    case "RegisterDrep":
+    case "UnregisterDrep":
+    case "UpdateDrep":
+      return { credential: certificate.credential, pool: null, drep: null }
+    case "StakeDelegation":
+    case "StakeRegistrationDelegation":
+      return { credential: certificate.credential, pool: certificate.poolKeyHash, drep: null }
+    case "VoteDelegation":
+    case "VoteRegistrationDelegation":
+      return { credential: certificate.credential, pool: null, drep: certificate.drep }
+    case "StakeVoteDelegation":
+    case "StakeVoteRegistrationDelegation":
+      return { credential: certificate.credential, pool: certificate.poolKeyHash, drep: certificate.drep }
+    case "PoolRegistration":
+      return { credential: null, pool: certificate.params.operator, drep: null }
+    case "PoolRetirement":
+      return { credential: null, pool: certificate.poolKeyHash, drep: null }
+    case "AuthorizeCommitteeHot":
+    case "ResignCommitteeCold":
+      return { credential: certificate.cold, pool: null, drep: null }
+    default:
+      return Function.absurd(certificate)
+  }
+}
+
+/**
+ * Every certificate the body carries, in the order it carries them, with the
+ * deposit or refund `deposits.ts` reads for it attached.
+ */
+export const deriveCertificates = (
+  derivation: Derivation
+): Either.Either<ReadonlyArray<CertificateEffect>, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { body } = derivation.transaction
+
+  const { deposits, refunds } = readDeposits(body, derivation.protocolParameters)
+  const at = (of: ReadonlyArray<Deposit>, index: number): Deposit | null =>
+    of.find((one) => one.source === "certificate" && one.index === index) ?? null
+
+  const mine = stakeCredentials(derivation.userAddresses)
+
+  return Either.right(
+    body.certificates.map((certificate, index) => {
+      const { credential, drep, pool } = acts(certificate)
+      return {
+        kind: certificate._tag,
+        credential,
+        ours: credential !== null && mine.has(credentialKey(credential)),
+        pool,
+        drep,
+        deposit: at(deposits, index),
+        refund: at(refunds, index),
+        index
+      }
+    })
+  )
+}
+
+/** One entry per reward account, whatever the bytes wrote, ordered by account. */
+export const deriveWithdrawals = (
+  derivation: Derivation
+): Either.Either<ReadonlyArray<WithdrawalEffect>, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { ours } = start.right
+
+  const summed = new Map<string, { rewardAccount: Uint8Array; amount: bigint }>()
+  for (const withdrawal of derivation.transaction.body.withdrawals) {
+    const key = toHex(withdrawal.rewardAccount)
+    const held = summed.get(key) ?? { rewardAccount: withdrawal.rewardAccount, amount: 0n }
+    held.amount += withdrawal.amount
+    summed.set(key, held)
+  }
+
+  return Either.right(
+    [...summed]
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([, held]) => ({ ...held, ours: ours(held.rewardAccount) }))
+  )
+}
+
+/**
+ * Every asset the transaction creates or destroys, signed: a burn is negative.
+ * Ordered by policy then name, like every other list here.
+ */
+export const deriveMint = (derivation: Derivation): Either.Either<ReadonlyArray<AssetAmount>, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+
+  return Either.right(
+    derivation.transaction.body.mint
+      .flatMap((policy) =>
+        policy.assets.map((asset) => ({ policyId: policy.policyId, name: asset.name, quantity: asset.quantity }))
+      )
+      .sort((left, right) => {
+        const [a, b] = [assetKey(left.policyId, left.name), assetKey(right.policyId, right.name)]
+        return a < b ? -1 : a > b ? 1 : 0
+      })
+  )
+}
+
+/** The body's validity interval, as the instants a person can be shown. */
+export const deriveValidity = (derivation: Derivation): Either.Either<ValidityWindow, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { body } = derivation.transaction
+  const { slots } = derivation.protocolParameters
+
+  const at = (slot: bigint | null): SlotTime | null => (slot === null ? null : { slot, time: timeOfSlot(slot, slots) })
+  return Either.right({ validFrom: at(body.validityIntervalStart), validUntil: at(body.validityIntervalEnd) })
 }

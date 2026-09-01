@@ -2,16 +2,23 @@
  * The three places a derivation refuses rather than guesses. Each one is a case
  * where carrying on would show a person a number the transaction does not
  * support, which is worse than showing them nothing. Every case runs against
- * both derivations: they share one resolution step today, and this is what
- * fails if either grows its own.
+ * every derivation: they share one resolution step today, and this is what
+ * fails if any of them grows its own.
  */
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { DerivationError, DerivationRefusal } from "../src/derive-error.js"
 import { derivationRefusals } from "../src/derive-error.js"
-import type { AssetEffects, Derivation, LovelaceEffects } from "../src/derive.js"
-import { deriveAssets, deriveLovelace } from "../src/derive.js"
+import type { Derivation } from "../src/derive.js"
+import {
+  deriveAssets,
+  deriveCertificates,
+  deriveLovelace,
+  deriveMint,
+  deriveValidity,
+  deriveWithdrawals
+} from "../src/derive.js"
 import { fromHex } from "./support/bytes.js"
 import { derivationOf } from "./support/derivation.js"
 import { fixture } from "./support/fixtures.js"
@@ -23,10 +30,14 @@ const honest = (): Derivation => derivationOf(fixture("payment-legacy-outputs"))
 type Case = { readonly rule: string; readonly refusal: DerivationRefusal; readonly derivation: Derivation }
 
 const derivations: ReadonlyArray<
-  readonly [string, (derivation: Derivation) => Either.Either<AssetEffects | LovelaceEffects, DerivationError>]
+  readonly [string, (derivation: Derivation) => Either.Either<unknown, DerivationError>]
 > = [
   ["deriveLovelace", deriveLovelace],
-  ["deriveAssets", deriveAssets]
+  ["deriveAssets", deriveAssets],
+  ["deriveCertificates", deriveCertificates],
+  ["deriveWithdrawals", deriveWithdrawals],
+  ["deriveMint", deriveMint],
+  ["deriveValidity", deriveValidity]
 ]
 
 const cases: ReadonlyArray<Case> = [
