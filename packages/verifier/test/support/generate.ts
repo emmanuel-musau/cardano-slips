@@ -374,7 +374,9 @@ export const generate = (seed: number, parameters: ProtocolParameters): Generate
       address: oneOf(next, mine ? userAddresses : strangers),
       value: { coin, assets: bundle(heldByOutput[index]) },
       datum: null,
-      scriptRef: null
+      scriptRef: null,
+      // Generated as data rather than encoded, so there are no bytes to count.
+      size: 0
     }
   })
 

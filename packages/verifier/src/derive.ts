@@ -561,3 +561,105 @@ export const deriveValidity = (derivation: Derivation): Either.Either<ValidityWi
   const at = (slot: bigint | null): SlotTime | null => (slot === null ? null : { slot, time: timeOfSlot(slot, slots) })
   return Either.right({ validFrom: at(body.validityIntervalStart), validUntil: at(body.validityIntervalEnd) })
 }
+
+/** One of the body's outputs, with the two things the comparison needs beyond its contents. */
+export type OutputEffect = {
+  /** Its position in the body. */
+  readonly index: number
+  readonly address: Uint8Array
+  readonly value: Value
+  /** Whether it pays an address the wallet reported as its own, which is what makes it change. */
+  readonly mine: boolean
+  /** Bytes it occupies as encoded, which fixes its minimum ADA. */
+  readonly size: number
+}
+
+/**
+ * A body member this version has no way to describe to a person. Not a field
+ * that failed to match — a claim no endpoint could have made in the first
+ * place, which is why the whole list blocks.
+ */
+export type UnsupportedMember =
+  | "reference-input"
+  | "collateral"
+  | "required-signer"
+  | "vote"
+  | "proposal"
+  | "donation"
+  | "treasury-value"
+  | "script"
+  | "datum"
+
+/**
+ * Everything the comparison reads, in one value. The net ADA and asset deltas
+ * are deliberately absent: those are rendered to the person, never compared.
+ */
+export type Effects = {
+  /** The whole transaction's bytes, which fixes the minimum fee. */
+  readonly size: number
+  readonly outputs: ReadonlyArray<OutputEffect>
+  /** The fee the body states, exactly. */
+  readonly fee: bigint
+  readonly certificates: ReadonlyArray<CertificateEffect>
+  readonly withdrawals: ReadonlyArray<WithdrawalEffect>
+  readonly mint: ReadonlyArray<AssetAmount>
+  readonly unsupported: ReadonlyArray<UnsupportedMember>
+  readonly validity: ValidityWindow
+}
+
+/** In the order the spec names them, so a person reading a block reads a list, not a set. */
+const unsupportedMembers = (body: DecodedTransaction["body"]): ReadonlyArray<UnsupportedMember> => {
+  const found: Array<UnsupportedMember> = []
+  if (body.referenceInputs.length > 0) found.push("reference-input")
+  if (body.collateralInputs.length > 0 || body.collateralReturn !== null || body.totalCollateral !== null) {
+    found.push("collateral")
+  }
+  if (body.requiredSigners.length > 0) found.push("required-signer")
+  if (body.votingProcedures.length > 0) found.push("vote")
+  if (body.proposalProcedures.length > 0) found.push("proposal")
+  if (body.donation !== null) found.push("donation")
+  if (body.currentTreasuryValue !== null) found.push("treasury-value")
+  // A script data hash is redeemers in the witness set, which this engine does
+  // not read; the hash is the body's own evidence that they are there.
+  if (body.scriptDataHash !== null || body.outputs.some((output) => output.scriptRef !== null)) found.push("script")
+  if (body.outputs.some((output) => output.datum !== null)) found.push("datum")
+  return found
+}
+
+/**
+ * Everything `compare` reads, derived once. Assembling it here rather than in
+ * the comparison keeps one answer to whose an address is: a second opinion on
+ * ownership is a second security model.
+ */
+export const deriveEffects = (derivation: Derivation): Either.Either<Effects, DerivationError> => {
+  const start = spending(derivation)
+  if (Either.isLeft(start)) return Either.left(start.left)
+  const { ours } = start.right
+
+  const certificates = deriveCertificates(derivation)
+  if (Either.isLeft(certificates)) return Either.left(certificates.left)
+  const withdrawals = deriveWithdrawals(derivation)
+  if (Either.isLeft(withdrawals)) return Either.left(withdrawals.left)
+  const mint = deriveMint(derivation)
+  if (Either.isLeft(mint)) return Either.left(mint.left)
+  const validity = deriveValidity(derivation)
+  if (Either.isLeft(validity)) return Either.left(validity.left)
+
+  const { body, size } = derivation.transaction
+  return Either.right({
+    size,
+    outputs: body.outputs.map((output, index) => ({
+      index,
+      address: output.address,
+      value: output.value,
+      mine: ours(output.address),
+      size: output.size
+    })),
+    fee: body.fee,
+    certificates: certificates.right,
+    withdrawals: withdrawals.right,
+    mint: mint.right,
+    unsupported: unsupportedMembers(body),
+    validity: validity.right
+  })
+}

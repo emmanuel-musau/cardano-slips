@@ -37,6 +37,13 @@ const networkGlobals = [
   "require"
 ]
 
+/**
+ * A clock is not I/O, but it is an ambient input all the same: the present
+ * moment arrives as an argument to `compare`, so a gate that read one would
+ * answer differently depending on when it was asked.
+ */
+const clockGlobals = ["Date", "performance"]
+
 type Manifest = {
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
@@ -120,12 +127,12 @@ function isFreeIdentifier(node: ts.Identifier): boolean {
   return true
 }
 
-/** Names from `networkGlobals` used as values anywhere in the sources. */
-function globalUses(): Reference[] {
+/** Names from a list used as values anywhere in the sources. */
+function globalUses(names: ReadonlyArray<string>): Reference[] {
   return sources.flatMap(({ path, tree }) => {
     const found: Reference[] = []
     walk(tree, (node) => {
-      if (ts.isIdentifier(node) && networkGlobals.includes(node.text) && isFreeIdentifier(node)) {
+      if (ts.isIdentifier(node) && names.includes(node.text) && isFreeIdentifier(node)) {
         found.push({ file: path, what: node.text })
       }
     })
@@ -182,7 +189,14 @@ describe("the sources", () => {
 
   it("names no global that can leave the process", () => {
     // `fetch` and `navigator.sendBeacon` need no import; `process` is an ambient input.
-    expect(globalUses()).toEqual([])
+    expect(globalUses(networkGlobals)).toEqual([])
+  })
+
+  it("consults no clock", () => {
+    // `compare` takes the present moment as an argument. A `Date.now()` reached
+    // for anywhere in here would make the verdict depend on when it was asked,
+    // and `declared.ts` converts an instant by calendar arithmetic for that reason.
+    expect(globalUses(clockGlobals)).toEqual([])
   })
 })
 

@@ -14,6 +14,9 @@ export const mainnetParameters: ProtocolParameters = {
   poolDeposit: 500_000_000n,
   drepDeposit: 500_000_000n,
   governanceActionDeposit: 100_000_000_000n,
+  minFeeCoefficient: 44n,
+  minFeeConstant: 155_381n,
+  coinsPerUtxoByte: 4_310n,
   // Mainnet's Shelley era: slot 4492800 at 2020-07-29T21:44:51Z, one second a
   // slot. Every fixture's block time is checked against it.
   slots: { slot: 4_492_800n, time: 1_596_059_091_000n, slotLength: 1_000n }

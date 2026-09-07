@@ -1,7 +1,7 @@
 /**
- * The protocol parameters the engine is handed rather than fetches. The
- * minimum-fee coefficients and the per-byte cost that fixes an output's minimum
- * ADA arrive with the tickets that need them.
+ * The protocol parameters the engine is handed rather than fetches. Every
+ * bound the comparison enforces is computed from these, so a caller cannot
+ * reach the gate with a bound it worked out generously.
  */
 
 /**
@@ -27,6 +27,12 @@ export type ProtocolParameters = {
   readonly drepDeposit: bigint
   /** `govActionDeposit`: what submitting a governance proposal locks up. */
   readonly governanceActionDeposit: bigint
+  /** `minFeeA`: lovelace per byte of the transaction. */
+  readonly minFeeCoefficient: bigint
+  /** `minFeeB`: lovelace every transaction pays whatever its size. */
+  readonly minFeeConstant: bigint
+  /** `coinsPerUTxOByte`: what an output's own bytes cost it in locked ADA. */
+  readonly coinsPerUtxoByte: bigint
   readonly slots: SlotMapping
 }
 
