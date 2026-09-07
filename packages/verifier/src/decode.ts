@@ -35,6 +35,8 @@ export type TransactionOutput = {
   readonly value: Value
   readonly datum: DatumOption | null
   readonly scriptRef: Uint8Array | null
+  /** Bytes it occupies as encoded, which is what the ledger charges its minimum ADA on. */
+  readonly size: number
 }
 
 export type Credential =
@@ -190,6 +192,8 @@ export type TransactionBody = {
 
 /** Where the body sits in the bytes the caller handed us, and the is-valid flag beside it. */
 export type ExtractedBody = {
+  /** The whole transaction's bytes, which is what the minimum fee is charged on. */
+  readonly size: number
   readonly bodyBytes: Uint8Array
   readonly bodyRange: { readonly start: number; readonly end: number }
   /** Whether the transaction's scripts are expected to succeed — item 2 of the envelope. */
@@ -337,7 +341,8 @@ const readOutput = (value: CborValue): TransactionOutput => {
       address: asBytes(items[0], "an address"),
       value: readOutputValue(items[1]),
       datum: items.length === 3 ? { _tag: "DatumHash", hash: asBytes(items[2], "a datum hash", 32) } : null,
-      scriptRef: null
+      scriptRef: null,
+      size: value.span.end - value.span.start
     }
   }
   if (value._tag !== "Map") {
@@ -376,7 +381,7 @@ const readOutput = (value: CborValue): TransactionOutput => {
 
   if (address === undefined) throw refuse("MalformedField", value.span.start, "a post-alonzo output has no address")
   if (amount === undefined) throw refuse("MalformedField", value.span.start, "a post-alonzo output has no value")
-  return { form: "post-alonzo", address, value: amount, datum, scriptRef }
+  return { form: "post-alonzo", address, value: amount, datum, scriptRef, size: value.span.end - value.span.start }
 }
 
 const readCredential = (value: CborValue): Credential => {
@@ -743,6 +748,7 @@ const extract = (bytes: Uint8Array): ExtractedBody => {
 
   const range = envelope.items[0].span
   return {
+    size: bytes.length,
     bodyBytes: bytes.slice(range.start, range.end),
     bodyRange: { start: range.start, end: range.end },
     isValid: isValid.value
