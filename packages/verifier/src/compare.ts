@@ -64,7 +64,7 @@ export type Reason =
     }
   | { readonly code: "body.unsupported"; readonly members: ReadonlyArray<UnsupportedMember> }
   | { readonly code: "fee.excessive"; readonly fee: bigint; readonly ceiling: bigint }
-  | { readonly code: "interval.beyond-declared"; readonly validUntil: bigint; readonly declared: bigint }
+  | { readonly code: "interval.beyond-declared"; readonly validUntil: bigint | null; readonly declared: bigint }
   | { readonly code: "interval.not-yet-valid"; readonly validFrom: bigint; readonly now: bigint }
 
 /** The vocabulary a client renders a block from. Every one of them is in the CIP's own table. */
@@ -343,14 +343,14 @@ export const compare = ({
     minimumFee(effects.size, protocolParameters) + minimumChangeLovelace(change.right.bytes, protocolParameters)
   if (effects.fee > ceiling) reasons.push({ code: "fee.excessive", fee: effects.fee, ceiling })
 
+  // A body with no end at all is the extreme of the same rule, not an exception
+  // to it: it never stops being submittable, which is later than any instant the
+  // intent could have named.
   const until = readInstant(declared.validUntil)
   if (Either.isLeft(until)) return Either.left(until.left)
-  if (effects.validity.validUntil !== null && effects.validity.validUntil.time > until.right) {
-    reasons.push({
-      code: "interval.beyond-declared",
-      validUntil: effects.validity.validUntil.time,
-      declared: until.right
-    })
+  const validUntil = effects.validity.validUntil
+  if (validUntil === null || validUntil.time > until.right) {
+    reasons.push({ code: "interval.beyond-declared", validUntil: validUntil?.time ?? null, declared: until.right })
   }
   if (effects.validity.validFrom !== null && effects.validity.validFrom.time > now) {
     reasons.push({ code: "interval.not-yet-valid", validFrom: effects.validity.validFrom.time, now })
