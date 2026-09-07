@@ -246,7 +246,7 @@ Vitest 4 dropped `vitest.workspace.ts`; the workspace now lives in root `vitest.
 
 Test sources are typechecked but never emitted, so root `tsconfig.test.json` turns `composite`/`declaration` back off and adds `types: ["node"]`. Only tests get Node globals: `src/` stays on `types: []`, so a `process.env` read inside `core` is a compile error rather than a silent runtime dependency.
 
-**`passWithNoTests` is not set, anywhere.** A package that declares a `test` script and ships no test files fails its run — which is the intended outcome in a repo where code without tests is not finished work. Today `pnpm test` passes because there are no packages yet, not because empty suites are tolerated.
+**`passWithNoTests` is not set, anywhere.** A package that declares a `test` script and ships no test files fails its run — which is the intended outcome in a repo where code without tests is not finished work.
 
 ## The two data flows
 
@@ -260,7 +260,7 @@ Test sources are typechecked but never emitted, so root `tsconfig.test.json` tur
 
 Two halves of one answer, and neither is sufficient alone:
 
-- **Effects derivation** proves *what* the transaction does. Arithmetic on the tx body, not a simulation — possible because eUTxO transactions fully determine their own effects. Mismatch hard-blocks signing.
+- **Effects derivation** computes *what* the transaction does from the tx body, resolved inputs, user addresses, and protocol parameters. It compares those effects with the endpoint's declared transaction intent; a mismatch hard-blocks signing. It does not check the meaning of publisher-written titles, descriptions, or messages.
 - **Publisher attestation** proves *who* is asking — a domain manifest by default, a CIP-0170 KERI credential chain where legal identity matters. Resolved and verified client-side, rendered beside the effects. Unverified publishers are marked, not blocked — identity augments, effects gate.
 
 Effects without identity leaves users approving correct transactions from unknown parties. Identity without effects is the central registry Solana needed and we are avoiding.
@@ -275,4 +275,4 @@ Effects without identity leaves users approving correct transactions from unknow
 
 ## Deliberate non-architecture
 
-No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the slip page is self-hostable; the SDK is a library. The blast radius of a bug here is a failed transaction, not a drained wallet.
+No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the slip page is self-hostable; the SDK is a library. Effects checks and wallet authorisation remain necessary even though the protocol holds no funds.

@@ -65,9 +65,8 @@ during the release, and the merge is then yours to do.
 ## Branch, commit, PR
 
 One issue = one branch = one PR. Feature branches start from `dev` and target
-`dev`; only `dev` targets `main`. Note that GitHub bases a new pull request on
-`main` by default, so a branch meant for `dev` needs its base changed —
-`gh pr create --base dev` avoids the trip through the web UI.
+`dev`; only `dev` targets `main`. Use `gh pr create --base dev` to make the
+target explicit.
 
 The owner may commit small work straight to `dev` without a branch: docs, typo
 fixes, comments, chores. Anything with acceptance criteria still gets its issue,
@@ -87,7 +86,7 @@ feat(verifier): derive net ADA delta and exact fee
 Refs #36
 ```
 
-**Commit and PR text must never reference AI tooling** — no `Co-Authored-By` trailers for assistants, no "generated with" footers. The author is the human committer. See `CLAUDE.md`.
+**Commit and PR text belongs to the human committer** — no tool co-author trailers or generated-by credits. See [the shared working instructions](../AGENTS.md).
 
 **PRs** state what changed and why, link the issue (`Closes #36`), and tick that issue's acceptance criteria. Both permanent branches require the four checks; `main` additionally requires a code owner review and exempts nobody.
 

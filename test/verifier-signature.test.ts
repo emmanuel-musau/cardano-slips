@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * The verifier's stated signature, and the four places that state it (#107).
+ * The verifier's stated inputs across the working instructions, docs and spec.
  * A term reaching an implementation as "whatever else you need" gets fetched
  * mid-derivation, and the check acquires a way to fail open.
  */
@@ -11,7 +11,8 @@ import { describe, expect, it } from "vitest"
 const root = join(import.meta.dirname, "..")
 const read = (...path: Array<string>): string => readFileSync(join(root, ...path), "utf8")
 
-const claude = read("CLAUDE.md")
+const instructions = read("AGENTS.md")
+const contributing = read("CONTRIBUTING.md")
 const architecture = read("docs", "ARCHITECTURE.md")
 const requirements = read("docs", "REQUIREMENTS.md")
 const spec = read("spec", "CIP-XXXX", "README.md")
@@ -29,7 +30,8 @@ const expected = ["declared metadata", "protocol parameters", "resolved inputs",
 
 describe("the signature the docs state", () => {
   it.each([
-    { file: "CLAUDE.md", source: claude },
+    { file: "AGENTS.md", source: instructions },
+    { file: "CONTRIBUTING.md", source: contributing },
     { file: "docs/ARCHITECTURE.md", source: architecture }
   ])("$file names all five terms", ({ source }) => {
     const stated = signatures(source)
@@ -37,15 +39,16 @@ describe("the signature the docs state", () => {
     for (const terms of stated) expect(terms).toEqual(expected)
   })
 
-  it("says the same thing in both places", () => {
+  it("says the same thing in the instructions and architecture", () => {
     // The failure this file exists for: one document corrected, the other not.
-    expect(signatures(claude)).toEqual(signatures(architecture))
+    expect(signatures(instructions)).toEqual(signatures(architecture))
   })
 
   it("states in each that the terms are arguments rather than lookups", () => {
     // Purity is the claim; "takes five arguments" without it would be satisfied
     // by an engine that fetched all five itself.
-    expect(claude).toMatch(/arrive as arguments, never as lookups/)
+    expect(instructions).toMatch(/arrive as arguments, never as lookups/)
+    expect(contributing).toMatch(/arrive as arguments, never as lookups/)
     expect(architecture).toMatch(/performs no I\/O/)
     expect(requirements).toMatch(/supplied as arguments and never fetched mid-derivation/)
   })

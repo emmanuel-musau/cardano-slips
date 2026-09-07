@@ -32,9 +32,9 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **Deposit** — refundable ADA locked by certain certificates, notably stake key registration (2 ADA). Shown separately from fees in the effects panel because the user gets it back.
 
-**Derived effects** — what the `verifier` computes from a transaction body: ADA delta, per-asset deltas, fee, certificates, withdrawals, mint/burn, validity interval. Arithmetic, not simulation.
+**Derived effects** — what the `verifier` computes from the transaction body, resolved inputs, user addresses, and protocol parameters: ADA delta, per-asset deltas, fee, certificates, withdrawals, mint/burn, and validity interval.
 
-**Determinism** — on Cardano a transaction body fully determines its own effects and fee before submission. The property the entire security model rests on, and the one an account-model chain cannot copy.
+**Determinism** — given the same transaction body, resolved inputs, user addresses, and protocol parameters, the verifier derives the same effects before submission; this does not guarantee that the ledger will accept the transaction.
 
 **eUTxO** — Cardano's extended unspent-transaction-output ledger model. Source of both the input-selection constraint and the determinism advantage.
 
