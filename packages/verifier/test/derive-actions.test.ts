@@ -46,7 +46,34 @@ const chainWords: Partial<Record<Certificate["_tag"], ReadonlyArray<string>>> = 
   PoolRetirement: ["pool_retire"],
   RegisterDrep: ["drep_registration"],
   UnregisterDrep: ["drep_retire"],
-  UpdateDrep: ["drep_update"]
+  UpdateDrep: ["drep_update"],
+  StakeVoteRegistrationDelegation: ["stake_registration", "pool_delegation", "vote_delegation"]
+}
+
+/**
+ * The chain's rows for the certificate at each position. `db-sync` records a
+ * combined registration-and-delegation as its parts, so one body certificate
+ * can produce three rows — all carrying the position of the one that made them.
+ */
+const chainRows = (one: Fixture): Map<number, ReadonlyArray<Fixture["chain"]["certificates"][number]>> => {
+  const rows = new Map<number, Array<Fixture["chain"]["certificates"][number]>>()
+  for (const row of one.chain.certificates) rows.set(row.index, [...(rows.get(row.index) ?? []), row])
+  return rows
+}
+
+/**
+ * What a position's rows name, where the rows that name it must agree — the
+ * parts of a combined certificate repeat its credential and each carry their
+ * own share of the rest.
+ */
+const naming = <A>(
+  rows: ReadonlyArray<Fixture["chain"]["certificates"][number]>,
+  read: (row: Fixture["chain"]["certificates"][number]) => A | null
+): A | null => {
+  const named = rows.map(read).filter((value) => value !== null)
+  const spellings = new Set(named.map((value) => JSON.stringify(value)))
+  if (spellings.size > 1) throw new Error(`the chain names ${spellings.size} different things at one position`)
+  return named[0] ?? null
 }
 
 describe.each(fixtures.map((one) => [one.name, one] as const))("%s", (_name, one) => {
@@ -55,36 +82,44 @@ describe.each(fixtures.map((one) => [one.name, one] as const))("%s", (_name, one
     // is where our order is held to it: a decoder that emitted them in a
     // different order would put the wrong type at a position below.
     const derived = certificates(one)
-    expect(one.chain.certificates.map((c) => c.index)).toEqual(derived.map((_, position) => position))
+    const rows = chainRows(one)
+    expect([...rows.keys()].sort((left, right) => left - right)).toEqual(derived.map((_, position) => position))
 
-    for (const said of one.chain.certificates) {
-      const effect = derived[said.index]
-      expect(effect, `nothing at position ${said.index}`).toBeDefined()
+    for (const [position, group] of rows) {
+      const effect = derived[position]
+      expect(effect, `nothing at position ${position}`).toBeDefined()
       expect(chainWords[effect.kind], `no chain word for ${effect.kind}`).toBeDefined()
-      expect(chainWords[effect.kind], `${effect.kind} at ${said.index}`).toContain(said.type)
+      // Every word the chain writes at this position has to be one this
+      // certificate accounts for, and it writes each word at most once.
+      for (const said of group) expect(chainWords[effect.kind], `${effect.kind} at ${position}`).toContain(said.type)
+      expect(new Set(group.map((said) => said.type)).size).toBe(group.length)
     }
   })
 
   it("names the DRep the chain names", () => {
+    const rows = chainRows(one)
     for (const effect of certificates(one)) {
-      const said = one.chain.certificates[effect.index]
       if (effect.drep === null) continue
+      const group = rows.get(effect.index) ?? []
       if (effect.drep._tag === "Abstain" || effect.drep._tag === "NoConfidence") {
-        expect(said.drep).toBe(effect.drep._tag === "Abstain" ? "drep_always_abstain" : "drep_always_no_confidence")
+        expect(naming(group, (said) => said.drep)).toBe(
+          effect.drep._tag === "Abstain" ? "drep_always_abstain" : "drep_always_no_confidence"
+        )
         continue
       }
       // A DRep the chain writes as a CIP-129 id: a header byte, then the
       // credential we read straight out of the certificate.
-      expect(said.drepCredential).not.toBeNull()
+      const credential = naming(group, (said) => said.drepCredential)
+      expect(credential).not.toBeNull()
       expect({ kind: effect.drep._tag === "KeyHash" ? "key" : "script", hash: toHex(effect.drep.hash) }).toEqual(
-        said.drepCredential
+        credential
       )
     }
   })
 
   it("attaches the deposit the chain says the certificate carries", () => {
     for (const effect of certificates(one)) {
-      const said = one.chain.certificates[effect.index].deposit
+      const said = naming(chainRows(one).get(effect.index) ?? [], (row) => row.deposit)
       if (said === null) continue
       expect(effect.deposit ?? effect.refund, `certificate ${effect.index}`).not.toBeNull()
       expect(String((effect.deposit ?? effect.refund)!.amount)).toBe(said)
@@ -95,8 +130,8 @@ describe.each(fixtures.map((one) => [one.name, one] as const))("%s", (_name, one
     for (const effect of certificates(one)) {
       // A DRep certificate acts on the DRep's own credential, which the chain
       // reports as an id rather than as a stake address.
-      const chainCertificate = one.chain.certificates[effect.index]
-      const said = chainCertificate.credential ?? chainCertificate.drepCredential
+      const group = chainRows(one).get(effect.index) ?? []
+      const said = naming(group, (row) => row.credential) ?? naming(group, (row) => row.drepCredential)
       if (said === null) {
         expect(effect.credential).toBeNull()
         continue
@@ -109,7 +144,7 @@ describe.each(fixtures.map((one) => [one.name, one] as const))("%s", (_name, one
 
   it("names the pool the chain names", () => {
     for (const effect of certificates(one)) {
-      const said = one.chain.certificates[effect.index].pool
+      const said = naming(chainRows(one).get(effect.index) ?? [], (row) => row.pool)
       expect(effect.pool === null ? null : toHex(effect.pool)).toBe(said)
     }
   })

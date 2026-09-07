@@ -1,0 +1,70 @@
+{
+  "name": "assets-with-reference-inputs",
+  "transactionId": "7ef3420a4b61cfc1afba09391c48ee5fa231b2ce32ad06d919bb1569d879becf",
+  "exercises": [
+    "collateral-inputs",
+    "inline-datum",
+    "legacy-output",
+    "native-assets-in-output",
+    "post-alonzo-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash",
+    "validity-interval-end",
+    "validity-interval-start"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13909963,
+    "absoluteSlot": 197217015,
+    "timestamp": 1788783306,
+    "fee": "269643",
+    "totalOutput": "1517540713",
+    "outputs": 2,
+    "inputs": 2,
+    "collateralInputs": 1,
+    "referenceInputs": 1,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": "197216998",
+    "invalidAfter": "197217898",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "01e194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff1ba5a4dd8c3b9a1f42933fff0246391d2298ff8b5ad460edb61eb85e",
+      "7189829415a9cdfb32a05122b1f0c0f495b80f57b00087bb62116651e8"
+    ],
+    "spent": "1517810356",
+    "received": "1517540713",
+    "ada": "269643",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "4f4af2cb6278fdb39e887ea9680b2f32b2e7fa961d857ceedfe9176f6cd16b2f",
+      "index": 0,
+      "address": "7189829415a9cdfb32a05122b1f0c0f495b80f57b00087bb62116651e8",
+      "coin": "1792960",
+      "assets": [
+        {
+          "policyId": "815aca02042ba9188a2ca4f8ce7b276046e2376b4bce56391342299e",
+          "name": "446a65644f7261636c654e4654",
+          "quantity": "1"
+        }
+      ]
+    },
+    {
+      "transactionId": "4f4af2cb6278fdb39e887ea9680b2f32b2e7fa961d857ceedfe9176f6cd16b2f",
+      "index": 1,
+      "address": "01e194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff1ba5a4dd8c3b9a1f42933fff0246391d2298ff8b5ad460edb61eb85e",
+      "coin": "1516017396",
+      "assets": []
+    }
+  ],
+  "cbor": "84a900d90102828258204f4af2cb6278fdb39e887ea9680b2f32b2e7fa961d857ceedfe9176f6cd16b2f008258204f4af2cb6278fdb39e887ea9680b2f32b2e7fa961d857ceedfe9176f6cd16b2f010dd90102818258204f4af2cb6278fdb39e887ea9680b2f32b2e7fa961d857ceedfe9176f6cd16b2f0112d901028182582016ad2d08415d096af6c04a21ae9cfbe896ad7e861029732ce60406022c229212010182a300581d7189829415a9cdfb32a05122b1f0c0f495b80f57b00087bb62116651e801821a001b5bc0a1581c815aca02042ba9188a2ca4f8ce7b276046e2376b4bce56391342299ea14d446a65644f7261636c654e465401028201d81858a2d8799f5840d695e22deaad5574a0c8457645e90cef85840e07b73d0543d389b726a9a1a72d564df35725923c350361180f57cb8b8db3ace7e6011cc7401724cf154f5a110ed8799fd8799f19c350192b13ffd8799fd8799fd87a9f1b000001a07bcae2a8ffd87a80ffd8799fd87a9f1b000001a07bd89e48ffd87a80ffff43555344ff581c815aca02042ba9188a2ca4f8ce7b276046e2376b4bce56391342299eff82583901e194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff1ba5a4dd8c3b9a1f42933fff0246391d2298ff8b5ad460edb61eb85e1a5a5879a9021a00041d4b031a0bc14e6a081a0bc14ae60ed9010281581ce194b4052cfec7bb2910472606972edcafc64cbb104aafea7da026ff0b582069badf549e0f01a5dc1e8ab509344878940c0b4c443cee8fc493a1a23557dc0aa200d901028182582051f4ed3fc62618d6cc2a29f50efb6c8fbf4a6e65a02d90b9eae4a1196bafcb555840a7e8c6ff2f55620b23ac8afdc7920ddaad46261971123478949162bf9b4dc7a4ed69059b2a1f40240e6d935691ad429eff1c70527582de9ec359ff7cbdd5d00c05a182000082d87980821a00079f831a0b23ec18f5f6"
+}

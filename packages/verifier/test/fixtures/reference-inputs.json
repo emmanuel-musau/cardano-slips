@@ -1,0 +1,50 @@
+{
+  "name": "reference-inputs",
+  "transactionId": "e391321213fac25302d273d85b48267a67b3d756ce5cac476d280097940c85cd",
+  "exercises": [
+    "collateral-inputs",
+    "legacy-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash",
+    "validity-interval-end"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910209,
+    "absoluteSlot": 197221955,
+    "timestamp": 1788788246,
+    "fee": "226011",
+    "totalOutput": "2558895742",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 1,
+    "referenceInputs": 1,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "197223112",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": ["71c3e28c36c3447315ba5a56f33da6a6ddc1770a876a8d9f0cb3a97c4c"],
+    "spent": "2559121753",
+    "received": "0",
+    "ada": "2559121753",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "9096b9b2b2851f108241d6b56689e4050e01fc4695f0396ad0b6cd4ee0f08ec6",
+      "index": 0,
+      "address": "71c3e28c36c3447315ba5a56f33da6a6ddc1770a876a8d9f0cb3a97c4c",
+      "coin": "2559121753",
+      "assets": []
+    }
+  ],
+  "cbor": "84a800d90102818258209096b9b2b2851f108241d6b56689e4050e01fc4695f0396ad0b6cd4ee0f08ec600018182583901636d0d0118a8933ac167d4c448150bb325deaf7a4fdfb44adc7f2f5ae39b5f40aa85fbc121a625d777a776eca1cb4c923426949c997d88281a9885a67e021a000372db031a0bc162c80b58201b108af39af0d65e0672842148a6341db85786b3b888da985f9cd8dd64f886030dd9010281825820eb99abdc7212c0914aee5d165f8cfe5390833157c8134a6ff996d07fd8104b7d000ed9010281581c636d0d0118a8933ac167d4c448150bb325deaf7a4fdfb44adc7f2f5a12d9010281825820cf4ecddde0d81f9ce8fcc881a85eb1f8ccdaf6807f03fea4cd02da896a62177600a200d901028182582062e8297eae4d6a606981e93afec220dda426b38d38c3f504efe7ea44288a61945840d3850dba3ee0e7d8156ba6aadcd152ca10933112095fbe6833a5c41eae7d8a68d6448e4dbfc66bc186242edd8b3cc45e362494681928bf15fa0bc35bb5b9c50305a182000082d87a80821a000271001a02faf080f5f6"
+}

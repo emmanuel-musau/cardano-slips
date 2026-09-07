@@ -1,0 +1,106 @@
+{
+  "name": "burn-with-collateral-return",
+  "transactionId": "8cc1d0a714c1613fb4c7faf7e2d559a6c597093a551bf497e32b52cf5ffe99fd",
+  "exercises": [
+    "burn",
+    "collateral-inputs",
+    "collateral-return",
+    "inline-datum",
+    "legacy-output",
+    "mint",
+    "native-assets-in-output",
+    "post-alonzo-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash",
+    "total-collateral",
+    "validity-interval-end"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910166,
+    "absoluteSlot": 197220940,
+    "timestamp": 1788787231,
+    "fee": "513234",
+    "totalOutput": "8967271276158",
+    "outputs": 2,
+    "inputs": 3,
+    "collateralInputs": 1,
+    "referenceInputs": 5,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [
+      {
+        "policyId": "ee944b56bab503197bdfb929509a177c3ef9e5083ca7e65ffa1469c8",
+        "name": "01",
+        "quantity": "-1"
+      }
+    ],
+    "invalidBefore": null,
+    "invalidAfter": "197221822",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "018a73a178234fa9680e384d6da09dac6ad8f7f829d0327881727eb91f633b1a0b7d7aafb0303fe1057d429a5cfd189b04209246236cabb119",
+      "111a32c7c15a753e12bd58f29977720d209c0701c95b1bbb6d5c31af20fda79c6aa9bc492a7bf1055cad9dd55c1ff0df30e0ef5202d429e24d",
+      "7171391f18fb131f28a230fa7f3b6c6099e447602b2bd2df5d046c5e99"
+    ],
+    "spent": "8967271789392",
+    "received": "8967271276158",
+    "ada": "513234",
+    "assets": [
+      {
+        "policyId": "ee944b56bab503197bdfb929509a177c3ef9e5083ca7e65ffa1469c8",
+        "name": "01",
+        "spent": "1",
+        "received": "0",
+        "delta": "1"
+      }
+    ]
+  },
+  "resolved": [
+    {
+      "transactionId": "10423e4b4d6dabcabedcac88d1111550d96612bfc8ef70788ef5ea7439128490",
+      "index": 0,
+      "address": "018a73a178234fa9680e384d6da09dac6ad8f7f829d0327881727eb91f633b1a0b7d7aafb0303fe1057d429a5cfd189b04209246236cabb119",
+      "coin": "202072538",
+      "assets": []
+    },
+    {
+      "transactionId": "6372971d5d692b7238688b6d5f87c4419740b9b12d082031584a582e1a1479a5",
+      "index": 0,
+      "address": "111a32c7c15a753e12bd58f29977720d209c0701c95b1bbb6d5c31af20fda79c6aa9bc492a7bf1055cad9dd55c1ff0df30e0ef5202d429e24d",
+      "coin": "8967068079054",
+      "assets": [
+        {
+          "policyId": "7807209cec9f79c9f6cf5bea2ab7826e6e46b6a7583a337b7e20fb36",
+          "name": "",
+          "quantity": "1"
+        }
+      ]
+    },
+    {
+      "transactionId": "79ef86b997a22356966cd1669fd42c95d320324a64645cedc9066c96d605572e",
+      "index": 0,
+      "address": "7171391f18fb131f28a230fa7f3b6c6099e447602b2bd2df5d046c5e99",
+      "coin": "1637800",
+      "assets": [
+        {
+          "policyId": "6df63e2fdde8b2c3b3396265b0cc824aa4fb999396b1c154280f6b0c",
+          "name": "",
+          "quantity": "6488172586"
+        },
+        {
+          "policyId": "ee944b56bab503197bdfb929509a177c3ef9e5083ca7e65ffa1469c8",
+          "name": "01",
+          "quantity": "1"
+        }
+      ]
+    }
+  ],
+  "cbor": "84ab00d901028382582010423e4b4d6dabcabedcac88d1111550d96612bfc8ef70788ef5ea7439128490008258206372971d5d692b7238688b6d5f87c4419740b9b12d082031584a582e1a1479a50082582079ef86b997a22356966cd1669fd42c95d320324a64645cedc9066c96d605572e000182a3005839111a32c7c15a753e12bd58f29977720d209c0701c95b1bbb6d5c31af20fda79c6aa9bc492a7bf1055cad9dd55c1ff0df30e0ef5202d429e24d01821b00000827dacb6cf9a1581c7807209cec9f79c9f6cf5bea2ab7826e6e46b6a7583a337b7e20fb36a14001028201d818582082851a0dec6dc61b00000002927719583a0bdf46763a0003d2b3003a0a70e171825839018a73a178234fa9680e384d6da09dac6ad8f7f829d0327881727eb91f633b1a0b7d7aafb0303fe1057d429a5cfd189b04209246236cabb119821a00397185a1581c6df63e2fdde8b2c3b3396265b0cc824aa4fb999396b1c154280f6b0ca1401b0000000182b9a82a021a0007d4d2031a0bc15dbe09a1581cee944b56bab503197bdfb929509a177c3ef9e5083ca7e65ffa1469c8a14101200b58200b59c1cd282b0c9abbc6c1d814896ed23b71b01e9031d7c16c2f170317bac3020dd901028182582010423e4b4d6dabcabedcac88d1111550d96612bfc8ef70788ef5ea7439128490000ed9010281581c8a73a178234fa9680e384d6da09dac6ad8f7f829d0327881727eb91f10825839018a73a178234fa9680e384d6da09dac6ad8f7f829d0327881727eb91f633b1a0b7d7aafb0303fe1057d429a5cfd189b04209246236cabb1191a0bbf169a111a004c4b4012d9010285825820e18e160b140421f33e552256ad257d1990ae7c09281d8ae5fbd195f5b91794ed00825820fc08d1ad4c5c700008ab72e8ecb9d4f7e09bd0e6a172f77cd4d5135b823c2e9600825820e998343a461430d33794be38bbc2a6a1d82430d604460810bbed2ead74dc9b8501825820990f272276e4351770b9359ff0f9ca100ea5ee71c1e16ead80b0851f374177590082582003d39cd3a700d8c60b130fb1d6c7c6547bf5311af7b41a7305e8e05547e234a401a200d90102818258204994427ae2205273fc37f9548ca7eb11a10e9aae63c5d5570610ac5cbaf65d8558402cab73d84cc9823d56a73ba6ed4f8a25a97133519d91d7eda714cd9951a9e96cb0b784caaea8b1f1cdef414a910cb7c6f764dad0aae6ead76fd715d0470c89070583840001d87980821a00097aee1a0cda52fb840002d879808219b3381a00f5a04c840100d87980821a000d36f31a10e2cd1df5f6"
+}

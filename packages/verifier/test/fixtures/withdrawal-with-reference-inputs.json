@@ -1,0 +1,87 @@
+{
+  "name": "withdrawal-with-reference-inputs",
+  "transactionId": "75dcca2e850b541a45d6f05cef70c25bf6cf33165aefbede3e4ca8e71e1827b0",
+  "exercises": [
+    "auxiliary-data-hash",
+    "collateral-inputs",
+    "inline-datum",
+    "legacy-output",
+    "native-assets-in-output",
+    "post-alonzo-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash",
+    "withdrawal"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910027,
+    "absoluteSlot": 197217995,
+    "timestamp": 1788784286,
+    "fee": "396346",
+    "totalOutput": "185203654",
+    "outputs": 3,
+    "inputs": 2,
+    "collateralInputs": 1,
+    "referenceInputs": 3,
+    "certificates": [],
+    "withdrawals": [
+      {
+        "rewardAccount": "f1a5643b4a22a192d7691d05baf4a9bbb8acdbb5daa60be1f333e128f1",
+        "amount": "0"
+      }
+    ],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "11d9143ac63473b17a215d1b7484dfb6ac6b4a0005beb0e26a6ca02c964aa286185bb96ac504a3ffc89fa586f03615341a099e07b0cae5563f",
+      "31905ab869961b094f1b8197278cfe15b45cbe49fa8f32c6b014f85a2db2f6abf60ccde92eae1a2f4fdf65f2eaf6208d872c6f0e597cc10b07",
+      "f1a5643b4a22a192d7691d05baf4a9bbb8acdbb5daa60be1f333e128f1"
+    ],
+    "spent": "185600000",
+    "received": "3000003",
+    "ada": "182599997",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "1bb1888c2846b88783d91ad98e0808fdcb10d9464e9c8b451824a732675d3cb5",
+      "index": 2,
+      "address": "31905ab869961b094f1b8197278cfe15b45cbe49fa8f32c6b014f85a2db2f6abf60ccde92eae1a2f4fdf65f2eaf6208d872c6f0e597cc10b07",
+      "coin": "183000000",
+      "assets": [
+        {
+          "policyId": "63f947b8d9535bc4e4ce6919e3dc056547e8d30ada12f29aa5f826b8",
+          "name": "ad5fbee6101ae04dfcbdaae12d86435fdadf0db474297f8af9fbfb2f553de7e0",
+          "quantity": "1"
+        },
+        {
+          "policyId": "e61fc7dfb647dbc52dca442540e7f80d13ed9c38a84b63f74f515192",
+          "name": "574f4f4459",
+          "quantity": "933910348"
+        }
+      ]
+    },
+    {
+      "transactionId": "5e5dbdb501d9a28858e638c7df03819ff825e15bed81e0f74472529672419947",
+      "index": 0,
+      "address": "11d9143ac63473b17a215d1b7484dfb6ac6b4a0005beb0e26a6ca02c964aa286185bb96ac504a3ffc89fa586f03615341a099e07b0cae5563f",
+      "coin": "2600000",
+      "assets": [
+        {
+          "policyId": "e61fc7dfb647dbc52dca442540e7f80d13ed9c38a84b63f74f515192",
+          "name": "574f4f4459",
+          "quantity": "66089652"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a900d90102828258201bb1888c2846b88783d91ad98e0808fdcb10d9464e9c8b451824a732675d3cb5028258205e5dbdb501d9a28858e638c7df03819ff825e15bed81e0f74472529672419947000183a300583931905ab869961b094f1b8197278cfe15b45cbe49fa8f32c6b014f85a2db2f6abf60ccde92eae1a2f4fdf65f2eaf6208d872c6f0e597cc10b0701821a002dc6c3a2581c63f947b8d9535bc4e4ce6919e3dc056547e8d30ada12f29aa5f826b8a15820ad5fbee6101ae04dfcbdaae12d86435fdadf0db474297f8af9fbfb2f553de7e001581ce61fc7dfb647dbc52dca442540e7f80d13ed9c38a84b63f74f515192a145574f4f44591a3b9aca00028201d81858e3d87989d87982581c63f947b8d9535bc4e4ce6919e3dc056547e8d30ada12f29aa5f826b85820ad5fbee6101ae04dfcbdaae12d86435fdadf0db474297f8af9fbfb2f553de7e0d879824040d87982581ce61fc7dfb647dbc52dca442540e7f80d13ed9c38a84b63f74f51519245574f4f44591b0000001c871b063f1a0026d61e581ce865941988edcca559268b57b7ee939974fd42fd26c7e1acd7a506781b000000043c4abc40581c8807fbe6e36b1c35ad6f36f0993e2fc67ab6f2db06041cfa3a53c04a581c68be6aa2e9e116cdb94ab101ae84817e3ccccb37475cf6db9cfd00d4a200583901bc54f303c03df1646003019ef6dd3f61a76c56c0f7c9ac02322799664aa286185bb96ac504a3ffc89fa586f03615341a099e07b0cae5563f011a0aadc3be82581d61e865941988edcca559268b57b7ee939974fd42fd26c7e1acd7a506781a002e7145021a00060c3a05a1581df1a5643b4a22a192d7691d05baf4a9bbb8acdbb5daa60be1f333e128f100075820819970ae815fa793e61c673b3333849aa5ceabc07dbf6cc30ef18595b120839f0b5820567bed3dede43d92dde7edc81300bb6b74c86596883939979612d710e52bea340dd9010281825820b031ed6f0684fddf4e5b296960ec52327c0f0a28586b54d97b4c6b5b30daef3d000ed9010281581ce865941988edcca559268b57b7ee939974fd42fd26c7e1acd7a5067812d9010283825820e2ed9e953ebf98ca701fc93588d73cb9769f87b9d13712474f566a0743963e8b00825820c4a540ac2e06c217dd4fb3f39ca3863da394ba134677dafa9b98830ca71d584d03825820e2ed9e953ebf98ca701fc93588d73cb9769f87b9d13712474f566a0743963e8b01a200d90102818258207fc1ddf14da5f8fc63b3b133b3922fc5d63e697de9ba210a179d5b7b3d20387a58407cbb091aaea437ee4bdc801de4d8a713fa40ef26d16729acab244b215c8e0c533a715fc4de977e13cfcd28e8469114f3a19bdb2cd369a646ef6054f2a62d59020583840000d879830000d87980821a000864701a0d1cef00840001d87a80821a000278d01a0393870084030080821a0008be481a0c9446a0f5d90103a100a100420100"
+}
