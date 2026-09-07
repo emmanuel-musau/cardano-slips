@@ -1,14 +1,14 @@
 # Cardano Slips
 
-Turn any URL into a signable Cardano transaction. Share a link on X, WhatsApp, or a printed QR code — the recipient reviews exactly what they're signing and confirms in their own wallet. Open spec + TypeScript SDK.
+Turn a shareable link into a signable Cardano transaction. Share a link on X, WhatsApp, or a printed QR code — the recipient reviews the transaction's effects and confirms in their own wallet. Open spec + TypeScript SDK.
 
 > Developed in the open — the specification, the SDK, and the reasoning behind both. Track what is moving in [issues](https://github.com/emmanuel-musau/cardano-slips/issues).
 
 ## Why it's different
 
-Solana proved the format with Actions and Blinks. On an account-model chain, a client has to *simulate* a transaction and show the user a prediction. On Cardano the transaction body fully determines its own effects and fee, so a client can **derive** exact value movements, fees, certificates, and expiry as arithmetic — then **block the signature** if those effects contradict what the link claimed.
+Solana established the format with Actions and Blinks. Cardano's eUTxO model lets a client **derive** exact value movements, fees, certificates, and expiry from the transaction body, resolved inputs, the user's addresses, and protocol parameters. The client then **blocks signing** if those effects contradict the endpoint's declared transaction intent. Titles, descriptions, and messages are publisher-written text; the verifier does not check their meaning.
 
-That is why this needs no gatekeeping registry: the server's metadata is a claim, and the transaction is the truth. It is also not a port — it is the version other chains cannot build.
+The effects check applies to every publisher, so the protocol needs no registry of approved endpoints. Publisher identity is a separate check and never relaxes the signing block.
 
 ## How it works
 
@@ -16,7 +16,7 @@ That is why this needs no gatekeeping registry: the server's metadata is a claim
 2. Anyone shares the **link**. `slips.json` lets a human URL front a technical endpoint.
 3. A **client** — the slip page, a wallet, a bot — resolves the link, balances the transaction locally against the user's own UTxOs (the endpoint never sees them), derives the exact effects, shows them, and hands off to the wallet over CIP-30.
 
-Holds no user funds. No custody, no relayer, no treasury validator. The blast radius of a bug is a failed transaction, not a drained wallet.
+Holds no user funds. No custody, no relayer, no treasury validator. The client checks effects before requesting a signature; the user's wallet signs and submits the transaction.
 
 ## Packages
 
@@ -44,7 +44,7 @@ Plus `apps/page` (hosted, self-hostable fallback page) and `examples/adalink` (r
 
 ## Built on
 
-[`@evolution-sdk/evolution`](https://github.com/IntersectMBO/evolution-sdk) for transaction construction, CIP-30 for signing, CIP-13 for routing, a `.well-known` publisher manifest for identity with CIP-0170 above it for legal-entity assurance. This extends the ecosystem's own standards rather than replacing them.
+The M1 design uses [`@evolution-sdk/evolution`](https://github.com/IntersectMBO/evolution-sdk) for transaction construction, ordinary HTTPS links for routing, and CIP-30 for wallet signing. On mobile, CIP-158 `//browse` opens the slip page inside a compatible wallet's browser. A `.well-known` publisher manifest provides domain attestation; the higher-assurance CIP-0170 tier is subject to a separate go/no-go decision. The proposed CIP-13 `//slip` authority is deferred beyond M1. See [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) for scope.
 
 ## Standardisation
 

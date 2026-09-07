@@ -26,14 +26,14 @@ describing the intent and its parameters. `POST` returns a *partial
 transaction* carrying only the publisher's side of it. A client resolves the
 link, balances the transaction locally against the user's own unspent outputs
 — the endpoint never receives them — derives the transaction's exact effects
-from its body, and refuses to request a signature if those effects contradict
+from its body, resolved inputs, user addresses, and protocol parameters, and
+refuses to request a signature if those effects contradict
 the intent the endpoint declared.
 
-Because an eUTxO transaction fully determines its own effects and fee before
-submission, that comparison is arithmetic over the transaction body rather than
-a simulation of it. A client can therefore establish what a transaction does
-without trusting its publisher, and no registry of approved publishers is
-required.
+Given those inputs, the client can derive the transaction's effects and fee
+before submission without simulation. It compares the derived effects with the
+declared transaction intent, not the meaning of publisher-written titles,
+descriptions, or messages. No registry of approved publishers is required.
 
 This proposal defines a `slips.json` mapping from human-readable paths to
 endpoints, specifies the unavailable and failure states a client must render,
