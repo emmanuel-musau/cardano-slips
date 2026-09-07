@@ -1,0 +1,97 @@
+{
+  "name": "assets-across-policies",
+  "transactionId": "2825bfa272a384ee17b3635c8ae8bc6cef5c0c45d04bfa65efac5517eea470b3",
+  "exercises": [
+    "auxiliary-data-hash",
+    "collateral-inputs",
+    "legacy-output",
+    "native-assets-in-output",
+    "reference-inputs",
+    "required-signers",
+    "script-data-hash"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910112,
+    "absoluteSlot": 197219914,
+    "timestamp": 1788786205,
+    "fee": "300114",
+    "totalOutput": "543658665",
+    "outputs": 2,
+    "inputs": 2,
+    "collateralInputs": 1,
+    "referenceInputs": 1,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "01e1b02fa0c11f2a24de4bda81c0e0155d8739340966996bd0cfbd7f129b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd8",
+      "11dbe7a3d8a1d82990992a38eea1a2efaa68e931e252fc92ca1383809b9b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd8"
+    ],
+    "spent": "543958779",
+    "received": "543658665",
+    "ada": "300114",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "42bf7e2bc6edf84a4ec3ab18cd9556bebf2d22dd7f7f0ef799282e0195cac914",
+      "index": 1,
+      "address": "11dbe7a3d8a1d82990992a38eea1a2efaa68e931e252fc92ca1383809b9b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd8",
+      "coin": "503000000",
+      "assets": []
+    },
+    {
+      "transactionId": "abc2cde4167e2fcfb95a565b162ba2ccad9ac059a51bdac3db5d7c03a9cb036c",
+      "index": 1,
+      "address": "01e1b02fa0c11f2a24de4bda81c0e0155d8739340966996bd0cfbd7f129b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd8",
+      "coin": "40958779",
+      "assets": [
+        {
+          "policyId": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f",
+          "name": "534e454b",
+          "quantity": "600494"
+        },
+        {
+          "policyId": "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6",
+          "name": "4d494e74",
+          "quantity": "911579"
+        },
+        {
+          "policyId": "6e30b702dff799efe8d7f33fb548fc69a6e525b96c6377f7462a756c",
+          "name": "544c51",
+          "quantity": "1"
+        },
+        {
+          "policyId": "768742e4280981cd7a704f16d0a34ce116978e2f123d4528880777ba",
+          "name": "41434c4159",
+          "quantity": "1"
+        },
+        {
+          "policyId": "b76de2ba611586d06efdbdfb58a31954f2b61dbcfa87e4335feb5e28",
+          "name": "4f72646572206f66204f726465727320233935",
+          "quantity": "1"
+        },
+        {
+          "policyId": "cd5b9dd91319edbb19477ad00cbef673a221e70a17ef043951fc6786",
+          "name": "52656465656d61626c65",
+          "quantity": "3000000"
+        },
+        {
+          "policyId": "fe38ef97888dfde0292b7d2ed103543ecf92a419a29634f513a1d71f",
+          "name": "41534e454b",
+          "quantity": "1200000"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a8008282582042bf7e2bc6edf84a4ec3ab18cd9556bebf2d22dd7f7f0ef799282e0195cac91401825820abc2cde4167e2fcfb95a565b162ba2ccad9ac059a51bdac3db5d7c03a9cb036c01018282583901e1b02fa0c11f2a24de4bda81c0e0155d8739340966996bd0cfbd7f129b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd81a1dfb2bc082583901e1b02fa0c11f2a24de4bda81c0e0155d8739340966996bd0cfbd7f129b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd8821a026c66e9a7581c279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3fa144534e454b1a000929ae581c29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6a1444d494e741a000de8db581c6e30b702dff799efe8d7f33fb548fc69a6e525b96c6377f7462a756ca143544c5101581c768742e4280981cd7a704f16d0a34ce116978e2f123d4528880777baa14541434c415901581cb76de2ba611586d06efdbdfb58a31954f2b61dbcfa87e4335feb5e28a1534f72646572206f66204f72646572732023393501581ccd5b9dd91319edbb19477ad00cbef673a221e70a17ef043951fc6786a14a52656465656d61626c651a002dc6c0581cfe38ef97888dfde0292b7d2ed103543ecf92a419a29634f513a1d71fa14541534e454b1a00124f80021a000494520758205fe334c433c9411577a9e1112eb90506d6a99989450ff7efd9e4f47b6831571d0b58201b2efdc0822858cc38d54188a2d7a30d3ad2a3aca650b7de9dae5c53d24f86080d8182582020ee6bb5738e396ad8deb128dc53bad5ed4c0d8083a44336dc5d24d9f246e0ba000e82581ce1b02fa0c11f2a24de4bda81c0e0155d8739340966996bd0cfbd7f12581c9b3468fef80294c4b2ab52e27ecdd712d798435daa721aee62d12bd81281825820cb0a5c67993d3bfa965f2b948f9975e0308a25c6c47e05e61773656fc58ad13c00a200838258203e5e0a1fb6eb9f9f525ac5aa8869e2b34566ca0b2c0f74821c8a9efe8e44368b5840747ddc43a14f9e09d2d8734c7b68e54cd89befdc1e8dfbace355579df43797d1d3cd8dc084f23b7cc0f67dab5c7e058ed14e1c3d6cb9f9517d4dab4efc82f806825820fa273770e2c52fea80657a0d08f4b8519b083ab1dfa372eba9d71d5cecf3fe7c5840c2d36edcc36e3cba27f387ebcd1268c124ff465ffcad2b4b43305c5123500db28f1b26ec137d1cad02e9aa588a7c74ba85babd46b8c6159993d9053c77172b028258202b719eeef31795a52599283af2c774599bc26dac26738eb56bd438949501e5b55840299b54af61a3b105bed841c0f3373fa6dd47e688562029a6a9eff4ebd76d076a08bbea7dfae58fd8e759e5600d286ff1ab8b96692a43e39901ebae28daeb0c0e0581840000d87980821a00022ac41a030496d0f5a11902a2a1636d7367826f44657868756e7465722054726164656663616e63656c"
+}

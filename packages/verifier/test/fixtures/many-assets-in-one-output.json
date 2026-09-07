@@ -1,0 +1,81 @@
+{
+  "name": "many-assets-in-one-output",
+  "transactionId": "dc8acb87f1985add4c4305745f216032323a509e3b1e7b2fc0be64dbfaf65f2f",
+  "exercises": ["legacy-output", "native-assets-in-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910230,
+    "absoluteSlot": 197222396,
+    "timestamp": 1788788687,
+    "fee": "190763",
+    "totalOutput": "520366781",
+    "outputs": 3,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "197225975",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": ["617c9697f2d924c267b03244d519be715bed46e0a8fa2f33fea7061532"],
+    "spent": "520557544",
+    "received": "0",
+    "ada": "520557544",
+    "assets": [
+      {
+        "policyId": "8e4fe204533839c8f13a474408b55bdd89aa3fdc601f857734d632c0",
+        "name": "4b6f6265427279616e744e42414c6567656e64733131",
+        "spent": "1",
+        "received": "0",
+        "delta": "1"
+      },
+      {
+        "policyId": "98dc68b04026544619a251bc01aad2075d28433524ac36cbc75599a1",
+        "name": "686f736b",
+        "spent": "1",
+        "received": "0",
+        "delta": "1"
+      },
+      {
+        "policyId": "98dc68b04026544619a251bc01aad2075d28433524ac36cbc75599a1",
+        "name": "6d6963726f686f736b",
+        "spent": "1",
+        "received": "0",
+        "delta": "1"
+      }
+    ]
+  },
+  "resolved": [
+    {
+      "transactionId": "ebd632d9aa47f0a070440bdb728105fce7a297436d232faf51fd47690120babb",
+      "index": 0,
+      "address": "617c9697f2d924c267b03244d519be715bed46e0a8fa2f33fea7061532",
+      "coin": "520557544",
+      "assets": [
+        {
+          "policyId": "8e4fe204533839c8f13a474408b55bdd89aa3fdc601f857734d632c0",
+          "name": "4b6f6265427279616e744e42414c6567656e64733131",
+          "quantity": "1"
+        },
+        {
+          "policyId": "98dc68b04026544619a251bc01aad2075d28433524ac36cbc75599a1",
+          "name": "686f736b",
+          "quantity": "1"
+        },
+        {
+          "policyId": "98dc68b04026544619a251bc01aad2075d28433524ac36cbc75599a1",
+          "name": "6d6963726f686f736b",
+          "quantity": "1"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a400d9010281825820ebd632d9aa47f0a070440bdb728105fce7a297436d232faf51fd47690120babb000183825839011369f18675072682fe6bdcfa99ff0b751ed6d755faeb960fdd564c39038ee5fea9cff0e808c697e601121059bef4c7463544814671fd36c01a02e370cb82581d61d91ef01b73f3010bb173945cf5417257c00c002715a13052015ab54f1a1bfe40b982581d6188b778c22960c0b0eea7eca19645d9b2709d5b53220ec9e6477f2ab6821a00227939a2581c8e4fe204533839c8f13a474408b55bdd89aa3fdc601f857734d632c0a1564b6f6265427279616e744e42414c6567656e6473313101581c98dc68b04026544619a251bc01aad2075d28433524ac36cbc75599a1a244686f736b01496d6963726f686f736b01021a0002e92b031a0bc16df7a100d90102818258206f1541dfcffcc1194217fcb50b5a28ddbba024e66f219c4ad9fb612a6a54302a5840ce8bb9027b40255b2a1204cce24bdc6ca1cbf726b8a95fae9ceb4fb20d03ee9a6909bb89f73db9efc230193bd1115ce8a4a3d463eb8bef6b9b44b5ece3788c04f5f6"
+}

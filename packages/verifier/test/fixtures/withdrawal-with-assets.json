@@ -1,0 +1,57 @@
+{
+  "name": "withdrawal-with-assets",
+  "transactionId": "8122f38d6b4783a8cb41b24a6c76e705a4dccb9a3cdee32eb07bfe03335a3c5f",
+  "exercises": ["legacy-output", "native-assets-in-output", "validity-interval-end", "withdrawal"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910130,
+    "absoluteSlot": 197220178,
+    "timestamp": 1788786469,
+    "fee": "173764",
+    "totalOutput": "11201382377",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [
+      {
+        "rewardAccount": "e16b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d79",
+        "amount": "4176208"
+      }
+    ],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "197220342",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "01184fbddf9fdb40de3ec87f45f4bce0ca379104b8aeb29f24d481eff36b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d79",
+      "e16b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d79"
+    ],
+    "spent": "11197379933",
+    "received": "11201382377",
+    "ada": "-4002444",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "c3e439abc21612b9982e5397113575e528d37138f95963740835e6ca12fbfcc4",
+      "index": 0,
+      "address": "01184fbddf9fdb40de3ec87f45f4bce0ca379104b8aeb29f24d481eff36b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d79",
+      "coin": "11197379933",
+      "assets": [
+        {
+          "policyId": "5ee124a1347dedaa8385d14e6e8582f716aacca0d21a727a47a488a8",
+          "name": "474f4154",
+          "quantity": "1"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a50081825820c3e439abc21612b9982e5397113575e528d37138f95963740835e6ca12fbfcc400018182583901184fbddf9fdb40de3ec87f45f4bce0ca379104b8aeb29f24d481eff36b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d79821b000000029ba787e9a1581c5ee124a1347dedaa8385d14e6e8582f716aacca0d21a727a47a488a8a144474f415401021a0002a6c4031a0bc157f605a1581de16b381dee3724005c45fbe08f002c6f33842effc043e9ff6e77045d791a003fb950a100828258203e7e81f5c906a6f712303b4a43ef73edb9e2cfbae6deeed0e2203f543783212d5840a86d93f3cb575d892f8a8e2e08e7c726e6a25bc780e04a90d4dc66198a33f5fe99ae6038fc89373acd4f894d7523a200bbca6bd4bcf619df101b83b6189c9106825820822e25e3a1a35eed8886b70f45c6dabc778be551b73e56cdc92ce67c4771eb195840430830e2e8ca8fab92898f31097d6b9e97d2a9f65fa0c4eaa3f68e825d20c4917f01ea7f018fed9c42bc14d2140daa3187bd8d2cc5b26f6caa052f2fd7549008f5f6"
+}

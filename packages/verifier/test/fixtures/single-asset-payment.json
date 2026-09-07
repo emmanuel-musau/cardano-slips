@@ -1,0 +1,64 @@
+{
+  "name": "single-asset-payment",
+  "transactionId": "0f086becf0cced219c7853c38d6013fa15a24af3f3db34759d0da8fdfb8144f7",
+  "exercises": ["legacy-output", "native-assets-in-output"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910058,
+    "absoluteSlot": 197218729,
+    "timestamp": 1788785020,
+    "fee": "700000",
+    "totalOutput": "39001761",
+    "outputs": 1,
+    "inputs": 2,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": ["618a01bc7c88a3d41a28d7069289216c080ca3b88e8b201ca4905dab7e"],
+    "spent": "39701761",
+    "received": "0",
+    "ada": "39701761",
+    "assets": [
+      {
+        "policyId": "0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1fa",
+        "name": "4e49474854",
+        "spent": "120000000",
+        "received": "0",
+        "delta": "120000000"
+      }
+    ]
+  },
+  "resolved": [
+    {
+      "transactionId": "7dc302bf4be3feb61fec3f3aa8abe77c74c244989ba792a83f98eaef6643f90a",
+      "index": 0,
+      "address": "618a01bc7c88a3d41a28d7069289216c080ca3b88e8b201ca4905dab7e",
+      "coin": "38663051",
+      "assets": []
+    },
+    {
+      "transactionId": "fdd64e5e4e150b546b74ba5cbfd2185d4911c247390da6df81e417d3e04cf721",
+      "index": 0,
+      "address": "618a01bc7c88a3d41a28d7069289216c080ca3b88e8b201ca4905dab7e",
+      "coin": "1038710",
+      "assets": [
+        {
+          "policyId": "0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1fa",
+          "name": "4e49474854",
+          "quantity": "120000000"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a300828258207dc302bf4be3feb61fec3f3aa8abe77c74c244989ba792a83f98eaef6643f90a00825820fdd64e5e4e150b546b74ba5cbfd2185d4911c247390da6df81e417d3e04cf72100018182581d61ae43737cb94e9324a4ab6a229c11aff6b0a01d31b8552ee15126c98f821a02531ea1a1581c0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1faa1454e494748541a07270e00021a000aae60a100818258201f39708e8174a9e618e04ad558db19595491083bc672010cc40928592e28b93358408c8f2700e0bd81a03760eea362c26cbfceb81508c24ab108972d0994a65156d495a439f47dff7db99451cd709957f7920a0575c1809420766ae55db81620940df5f6"
+}

@@ -1,0 +1,43 @@
+{
+  "name": "payment-with-change",
+  "transactionId": "4d9086b6e40e9dbd7f2dc4ebd8185f1b9c5bc7a5c2d8ecad3398b28e2dd8de77",
+  "exercises": ["legacy-output"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910178,
+    "absoluteSlot": 197221144,
+    "timestamp": 1788787435,
+    "fee": "168431",
+    "totalOutput": "199999666438",
+    "outputs": 2,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": null,
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": ["61b2324bdebc7343e2ec02feceb847a31cba13b41b87cdb762c63bea85"],
+    "spent": "199999834869",
+    "received": "198726705525",
+    "ada": "1273129344",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "e89d7a6bc1432e308a90724a113e94e854d063fc7801982effccf80ce45668e4",
+      "index": 0,
+      "address": "61b2324bdebc7343e2ec02feceb847a31cba13b41b87cdb762c63bea85",
+      "coin": "199999834869",
+      "assets": []
+    }
+  ],
+  "cbor": "84a30081825820e89d7a6bc1432e308a90724a113e94e854d063fc7801982effccf80ce45668e400018282581d6156578cbb752e5833912e1de3658416f6bb9bab9c4216defeb4f2ad5e1a4bdfd79182581d61b2324bdebc7343e2ec02feceb847a31cba13b41b87cdb762c63bea851b0000002e4508e175021a000291efa10081825820a1a97234b452c23f7f9931eecf32d26a1686b2d8c139be52072fba5acf37be025840c33789df4491c2a4ec561495a4508d2f81eff919fd14d83eb6fc312acccd5d5926d76ffcb5221f9b89cb54724e40c2f7a5e87735ab52d98ed73636b172d06d08f5f6"
+}

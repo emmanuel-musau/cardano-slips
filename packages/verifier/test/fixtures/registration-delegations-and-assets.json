@@ -1,0 +1,103 @@
+{
+  "name": "registration-delegations-and-assets",
+  "transactionId": "58967f1838e4966551d44b681c4bd0c5df968b39d4f79071b2aa737efeb2d9f0",
+  "exercises": [
+    "certificate:StakeVoteRegistrationDelegation",
+    "legacy-output",
+    "native-assets-in-output",
+    "validity-interval-end"
+  ],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13909968,
+    "absoluteSlot": 197217053,
+    "timestamp": 1788783344,
+    "fee": "198229",
+    "totalOutput": "20785047011",
+    "outputs": 3,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [
+      {
+        "index": 0,
+        "type": "stake_registration",
+        "credential": {
+          "kind": "key",
+          "hash": "5f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1"
+        },
+        "pool": null,
+        "drep": null,
+        "drepCredential": null,
+        "deposit": "2000000"
+      },
+      {
+        "index": 0,
+        "type": "pool_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "5f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1"
+        },
+        "pool": "ac2d2d66a30cbb3163e68a7073bcd3f9cdd4a11a8af6e2c5653402c7",
+        "drep": null,
+        "drepCredential": null,
+        "deposit": null
+      },
+      {
+        "index": 0,
+        "type": "vote_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "5f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1"
+        },
+        "pool": null,
+        "drep": "drep_always_abstain",
+        "drepCredential": null,
+        "deposit": null
+      }
+    ],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "1000000000",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "2000000",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "015f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb15f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1"
+    ],
+    "spent": "20787245240",
+    "received": "20785047011",
+    "ada": "2198229",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "4bbe3a087de430b1cd8316416288f581ac93af0508d50e0b1004ba142653bed0",
+      "index": 0,
+      "address": "015f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb15f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1",
+      "coin": "20787245240",
+      "assets": [
+        {
+          "policyId": "25a549dffe519c58fb88f0c794f08a6b64f9e5aa505c4c09e3ffffb8",
+          "name": "5350465265776172645469636b657432303234",
+          "quantity": "16000"
+        },
+        {
+          "policyId": "6ac8ef33b510ec004fe11585f7c5a9f0c07f0c23428ab4f29c1d7d10",
+          "name": "4d454c44",
+          "quantity": "2753392441"
+        },
+        {
+          "policyId": "ea0424a4b35a1abe6dd11b903f34a80087c977a6c526706319fc2012",
+          "name": "544d454c44",
+          "quantity": "1"
+        }
+      ]
+    }
+  ],
+  "cbor": "84a500d90102818258204bbe3a087de430b1cd8316416288f581ac93af0508d50e0b1004ba142653bed0000183825839015f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb15f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb11a000f4240825839015f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb15f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb11b00000004d6ba76d1825839015f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb15f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1821a0018ecd2a3581c25a549dffe519c58fb88f0c794f08a6b64f9e5aa505c4c09e3ffffb8a1535350465265776172645469636b657432303234193e80581c6ac8ef33b510ec004fe11585f7c5a9f0c07f0c23428ab4f29c1d7d10a1444d454c441aa41d6f39581cea0424a4b35a1abe6dd11b903f34a80087c977a6c526706319fc2012a145544d454c4401021a00030655031a3b9aca000481850d8200581c5f2a7c1be958925582fd639469fa91e3b7dd81015148fb85510f0cb1581cac2d2d66a30cbb3163e68a7073bcd3f9cdd4a11a8af6e2c5653402c781021a001e8480a100d9010282825820dbc748aa92a221d31fa0d9e012c7efd7c106953ce7396d3780a3d337c42dfe9b5840a86a31b935eb6838e0a9d2fc25fced2314588bb0c525e4c055789099e88d8d9a0684f852875ee3610d92083489f2ca5bf1dda27b5aff254acb76ff4dd296c205825820dbc748aa92a221d31fa0d9e012c7efd7c106953ce7396d3780a3d337c42dfe9b5840a86a31b935eb6838e0a9d2fc25fced2314588bb0c525e4c055789099e88d8d9a0684f852875ee3610d92083489f2ca5bf1dda27b5aff254acb76ff4dd296c205f5f6"
+}

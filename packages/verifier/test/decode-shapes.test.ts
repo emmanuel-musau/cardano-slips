@@ -2,6 +2,12 @@
  * The shapes the chain did not hand us. Parts of the Conway CDDL never appeared
  * in the transactions `test/fixtures/` was collected from, so they are built
  * from the CDDL instead — shapes, not transactions, so no commit is checked.
+ *
+ * Four of them have since been found on mainnet and moved to real bytes: a
+ * combined stake-vote registration and delegation, a reference script in an
+ * output, a hard-fork initiation and a new constitution. They are kept here as
+ * well, because a shape test states the rule in one place where a transaction
+ * states it among twenty other things.
  */
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"

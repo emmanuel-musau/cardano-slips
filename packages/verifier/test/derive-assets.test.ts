@@ -87,7 +87,14 @@ describe("a real USDM payment", () => {
 describe("what the fixtures cover", () => {
   it("has transactions where assets move and transactions where none do", () => {
     const moving = fixtures.filter((one) => one.user.assets.length > 0)
-    expect(moving.map((one) => one.name).sort()).toEqual(["mint-and-burn", "native-assets-in-output", "usdm-payment"])
+    expect(moving.map((one) => one.name).sort()).toEqual([
+      "burn-with-collateral-return",
+      "many-assets-in-one-output",
+      "mint-and-burn",
+      "native-assets-in-output",
+      "single-asset-payment",
+      "usdm-payment"
+    ])
     expect(fixtures.length - moving.length).toBeGreaterThan(20)
   })
 
