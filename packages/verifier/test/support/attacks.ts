@@ -57,6 +57,15 @@ export type Slip = {
   readonly paid: ReadonlyArray<Payment>
   readonly carries?: ReadonlyArray<Carried>
   readonly withdraws?: ReadonlyArray<Withdrawn>
+  /** What the body creates, or destroys where the quantity is negative. */
+  readonly mints?: ReadonlyArray<Held>
+  /**
+   * The body's own interval, as instants. `validUntil` defaults to the
+   * deadline the intent declares, which is what an honest client builds to;
+   * `null` leaves the key off entirely.
+   */
+  readonly validFrom?: string
+  readonly validUntil?: string | null
 }
 
 export type Attack = Slip & {
@@ -111,7 +120,8 @@ const slotOf = (time: bigint): bigint => {
   return slot + (time - anchor) / slotLength
 }
 
-const multiAsset = (held: ReadonlyArray<Held>): string => {
+/** `signed` writes a burn as the negative integer the mint field carries; an output's value cannot hold one. */
+const multiAsset = (held: ReadonlyArray<Held>, signed = false): string => {
   const byPolicy = new Map<string, Array<Held>>()
   for (const asset of held) byPolicy.set(asset.policyId, [...(byPolicy.get(asset.policyId) ?? []), asset])
   return cbor.map(
@@ -119,7 +129,12 @@ const multiAsset = (held: ReadonlyArray<Held>): string => {
       ([policyId, assets]) =>
         [
           cbor.bytes(policyId),
-          cbor.map(...assets.map((asset) => [cbor.bytes(asset.assetName), cbor.uint(asset.quantity)] as const))
+          cbor.map(
+            ...assets.map(
+              (asset) =>
+                [cbor.bytes(asset.assetName), signed ? cbor.int(asset.quantity) : cbor.uint(asset.quantity)] as const
+            )
+          )
         ] as const
     )
   )
@@ -165,17 +180,21 @@ const locked = (carries: ReadonlyArray<Carried>): bigint =>
  * withdrawal hand back. A case that did not balance would not be a transaction
  * anyone could submit, and an example nobody can submit proves nothing.
  */
-const funding = ({ carries = [], paid, withdraws = [] }: Slip): ResolvedInput => {
+const funding = ({ carries = [], mints = [], paid, withdraws = [] }: Slip): ResolvedInput => {
   const held = new Map<string, Held>()
-  for (const payment of paid) {
-    for (const asset of payment.assets ?? []) {
-      const key = `${asset.policyId}.${asset.assetName}`
-      const running = held.get(key)
-      held.set(key, { ...asset, quantity: (running?.quantity ?? 0n) + asset.quantity })
-    }
+  const running = (asset: Held, by: bigint): void => {
+    const key = `${asset.policyId}.${asset.assetName}`
+    held.set(key, { ...asset, quantity: (held.get(key)?.quantity ?? 0n) + by })
   }
+  for (const payment of paid) for (const asset of payment.assets ?? []) running(asset, asset.quantity)
+  // What the body mints was never held, and what it burns had to be.
+  for (const asset of mints) running(asset, -asset.quantity)
+
   const byPolicy = new Map<string, Array<Held>>()
-  for (const asset of held.values()) byPolicy.set(asset.policyId, [...(byPolicy.get(asset.policyId) ?? []), asset])
+  for (const asset of held.values()) {
+    if (asset.quantity === 0n) continue
+    byPolicy.set(asset.policyId, [...(byPolicy.get(asset.policyId) ?? []), asset])
+  }
 
   return {
     input: { transactionId: new Uint8Array(32).fill(0xf0), index: 0n },
@@ -193,14 +212,21 @@ const funding = ({ carries = [], paid, withdraws = [] }: Slip): ResolvedInput =>
   }
 }
 
-/** The transaction a slip makes, as the bytes a wallet would be handed. */
-export const cborOf = ({ carries = [], paid, withdraws = [] }: Slip): string =>
+/** The transaction a slip makes, as the bytes a wallet would be handed. Body keys stay in order. */
+export const cborOf = ({
+  carries = [],
+  mints = [],
+  paid,
+  validFrom,
+  validUntil = DEADLINE,
+  withdraws = []
+}: Slip): string =>
   cbor.transaction(
     cbor.map(
       [cbor.uint(0), cbor.set(cbor.array(cbor.filler(32, 0xf0), cbor.uint(0)))],
       [cbor.uint(1), cbor.array(...paid.map(output), output({ address: signer, lovelace: CHANGE }))],
       [cbor.uint(2), cbor.uint(FEE)],
-      [cbor.uint(3), cbor.uint(slotOf(instant(DEADLINE)))],
+      ...(validUntil === null ? [] : [[cbor.uint(3), cbor.uint(slotOf(instant(validUntil)))] as const]),
       ...(carries.length === 0 ? [] : [[cbor.uint(4), cbor.set(...carries.map(certificate))] as const]),
       ...(withdraws.length === 0
         ? []
@@ -213,7 +239,9 @@ export const cborOf = ({ carries = [], paid, withdraws = [] }: Slip): string =>
                 )
               )
             ] as const
-          ])
+          ]),
+      ...(validFrom === undefined ? [] : [[cbor.uint(8), cbor.uint(slotOf(instant(validFrom)))] as const]),
+      ...(mints.length === 0 ? [] : [[cbor.uint(9), multiAsset(mints, true)] as const])
     )
   )
 

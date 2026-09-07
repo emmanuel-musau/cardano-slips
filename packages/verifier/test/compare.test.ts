@@ -78,6 +78,29 @@ describe("the present moment", () => {
   })
 })
 
+describe("the declared deadline", () => {
+  const ending = (validUntil: Comparison["effects"]["validity"]["validUntil"]): Comparison => {
+    const base = honest()
+    return { ...base, effects: { ...base.effects, validity: { ...base.effects.validity, validUntil } } }
+  }
+
+  it("signs a body ending exactly on it", () => {
+    const base = honest()
+    expect(codesOf(ending(base.effects.validity.validUntil))).toEqual([])
+  })
+
+  it("blocks a body carrying no end at all", () => {
+    // Not an exception to the rule but the extreme of it: a transaction with no
+    // end never stops being submittable, by whoever obtains it, which is later
+    // than any instant the intent could have named.
+    const verdict = verdictOf(ending(null))
+    expect(verdict).toEqual({
+      _tag: "mismatch",
+      reasons: [{ code: "interval.beyond-declared", validUntil: null, declared: expect.any(BigInt) }]
+    })
+  })
+})
+
 describe("a stake registration", () => {
   const registration = (kind: CertificateEffect["kind"]): Comparison => {
     const base = honest()
