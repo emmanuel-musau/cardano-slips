@@ -49,7 +49,8 @@
   },
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
-    "@cardano-slips/verifier": "workspace:^"
+    "@cardano-slips/verifier": "workspace:^",
+    "effect": "^3.22.1"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",

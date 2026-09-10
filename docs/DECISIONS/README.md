@@ -11,7 +11,7 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted |
 | [0002](0002-client-side-balancing-default.md) | Client-side balancing is the only v1 build mode | Accepted |
 | [0003](0003-mirror-evolution-sdk-toolchain.md) | Mirror the evolution-sdk toolchain | Accepted |
-| [0004](0004-cip30-wallet-layer.md) | Build the CIP-30 layer on evolution-sdk, not cardano-connect-with-wallet | Proposed |
+| [0004](0004-cip30-wallet-layer.md) | Build the CIP-30 layer on evolution-sdk, not cardano-connect-with-wallet | Accepted |
 | [0005](0005-package-names.md) | Name packages for the job they do, not the tier they sit in | Accepted |
 | [0006](0006-two-tier-publisher-identity.md) | Ship publisher identity in two tiers, with the domain manifest as the default | Accepted |
 | [0007](0007-action-authority.md) | Claim `//action` as the URI authority, register it through CPS-16, and keep it out of M1 | Superseded by ADR-0008 |
