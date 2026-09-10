@@ -43,6 +43,15 @@ export default tseslint.config(
     }
   },
 
+  {
+    // Repository tooling, not shipped code: it runs in Node and reports to a terminal.
+    files: ["**/scripts/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: { console: "readonly", fetch: "readonly", process: "readonly", setTimeout: "readonly" }
+    },
+    rules: { "no-console": "off" }
+  },
+
   // Must stay last: switches off every rule Prettier already decides.
   prettier
 )

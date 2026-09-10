@@ -44,6 +44,34 @@ jobs:
 
       - run: pnpm ${{ matrix.task }}
 
+  # Its own check rather than a line inside `test`: when this one goes red the
+  # name says the security proof broke, not that some test somewhere did.
+  attack-examples:
+    name: attack-examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v2
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm test:attacks
+
+      # Kept whether the run passed or failed: a report naming what got through
+      # is worth more than no report at all.
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: attack-examples
+          path: packages/verifier/build/reports/attack-examples.json
+          if-no-files-found: error
+
   changeset:
     name: changeset
     if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')

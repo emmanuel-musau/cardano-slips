@@ -1,0 +1,70 @@
+{
+  "name": "pool-and-vote-delegation",
+  "transactionId": "efb59ba6d7696c64207c2f7fced91fb368b8a072b5985bf053c79ad726b80b48",
+  "exercises": ["certificate:StakeDelegation", "certificate:VoteDelegation", "legacy-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910235,
+    "absoluteSlot": 197222485,
+    "timestamp": 1788788776,
+    "fee": "174961",
+    "totalOutput": "8039822179",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [
+      {
+        "index": 0,
+        "type": "pool_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c9"
+        },
+        "pool": "bd0b57d2fb64cc2558920fff14ea9f982fbf3b31e1758740ac108c21",
+        "drep": null,
+        "drepCredential": null,
+        "deposit": null
+      },
+      {
+        "index": 1,
+        "type": "vote_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c9"
+        },
+        "pool": null,
+        "drep": "drep_always_abstain",
+        "drepCredential": null,
+        "deposit": null
+      }
+    ],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "197229596",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "012d22ef9c122fa0ade2710859a4b01cac3bd589fc3f795d628efd6859466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c9"
+    ],
+    "spent": "8039997140",
+    "received": "8039822179",
+    "ada": "174961",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "64a21ca7a8badad455bf5f040d51a74b0fa30f6e538de2548404505802527298",
+      "index": 2,
+      "address": "012d22ef9c122fa0ade2710859a4b01cac3bd589fc3f795d628efd6859466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c9",
+      "coin": "8039997140",
+      "assets": []
+    }
+  ],
+  "cbor": "84a500d901028182582064a21ca7a8badad455bf5f040d51a74b0fa30f6e538de2548404505802527298020181825839012d22ef9c122fa0ade2710859a4b01cac3bd589fc3f795d628efd6859466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c91b00000001df35f363021a0002ab71031a0bc17c1c04d901028283028200581c466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c9581cbd0b57d2fb64cc2558920fff14ea9f982fbf3b31e1758740ac108c2183098200581c466e143ad28dd2e1a312e33d427b011a7297328690521954abfef0c98102a100d901028282582036fd3328dc767a4e0b98208b4c565da4de498f4f9695b00536de618e00b09a3c584074a778696ee34d43f18a1bed08545242fd22d1ac39dc79edae6d9b0787b76d4271eaa3618afeb0e6f8b63118a4d12ee82541bad9c65a22abe07031ff57299f04825820c07e46eec78041cdd7b1acb502713bf42e4d5a5c55e815c28be5bd1afb536b195840bae5f31502fcfba2025e226524094bbdfadc9328442da256c3b91af9e09c8b50742376df52d55c75d55fb5e6f878d9b766ea171be4371bbd939f8004b2881d0cf5f6"
+}

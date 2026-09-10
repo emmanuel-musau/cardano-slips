@@ -10,11 +10,12 @@ the security argument work.
 
 ## What this project is
 
-A client turns a shared URL into a signable Cardano transaction. Because a
-Cardano transaction body fully determines its own effects, the client
-**derives** exactly what a transaction does and blocks the signature when that
-contradicts what the link claimed. There is no registry, no custody, and no
-relayer. Nothing here ever holds user funds.
+A client turns a shared URL into a signable Cardano transaction. It **derives**
+the transaction's effects from its body, resolved inputs, the user's addresses,
+and protocol parameters, then blocks signing if those effects contradict the
+endpoint's declared transaction intent. It does not check the meaning of titles,
+descriptions, or messages. There is no registry, no custody, and no relayer.
+Nothing here ever holds user funds.
 
 That single idea sets most of the rules below. Start with
 [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) for scope and the security model,
@@ -65,12 +66,14 @@ you need to pick something up.
 
 ## Branch, commit, PR
 
-One issue, one branch, one PR.
+One issue, one branch, one PR. Feature branches start from `dev` and target
+`dev`; only `dev` targets the published branch, `main`.
 
 Branch names are `<type>/<purpose>` — the type, a slash, then the purpose in
 kebab-case. No issue numbers, no other punctuation:
 
 ```sh
+git switch dev
 git switch -c feat/ada-delta
 ```
 
@@ -87,15 +90,17 @@ Refs #36
 ```
 
 The PR body links the issue with `Closes #36` and ticks that issue's acceptance
-criteria. `main` is protected: PR required, CI green required, squash merge.
-Never push to `main`.
+criteria. Both permanent branches require four green checks on PRs; `main`
+also requires a code owner review. Feature PRs squash into `dev`; releases
+merge `dev` into `main` with a merge commit. Never push to `main`.
+See [docs/WORKFLOW.md](docs/WORKFLOW.md) for the full branch and release model.
 
 PRs open with an empty body. The definition-of-done checklist lives in
 `.github/PULL_REQUEST_TEMPLATE/default.md` and is opt-in — reach for it when a
 change is large enough that the checklist earns its space:
 
 ```sh
-gh pr create --template default.md
+gh pr create --base dev --template default.md
 ```
 
 On the web, append `?template=default.md` to the compare URL.
@@ -203,9 +208,9 @@ bump plus the `core` schema and test updates in the same change. Use the
 These are invariants, not preferences. A PR that breaks one is wrong even when
 the ticket asked for it — raise the conflict on the issue instead.
 
-1. `packages/verifier` stays a pure function of the transaction CBOR, the
-   declared metadata, and the user's addresses. It must not import from
-   `flow`, `server`, or any network layer.
+1. `packages/verifier` stays a pure function of (tx CBOR, declared metadata, user addresses, resolved inputs, protocol parameters).
+   All five terms arrive as arguments, never as lookups. It must not import
+   from `flow`, `server`, or any network layer.
 2. The client never sends the user's UTxO set to a Slip endpoint.
 3. A metadata/effects mismatch always hard-blocks signing. No override paths,
    no allowlists, no "advanced user" escape hatch.

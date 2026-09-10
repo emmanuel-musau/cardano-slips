@@ -1,5 +1,5 @@
 /**
- * Twenty-six mainnet transactions, read by this decoder and by Koios. The
+ * Fifty-three mainnet transactions, read by this decoder and by Koios. The
  * commit carries the most weight: BLAKE2b-256 over the extracted body must
  * equal the chain's transaction id, and fails on a single byte of drift.
  */
@@ -22,7 +22,7 @@ const decoded = (fixture: Fixture): DecodedTransaction => {
 const commit = (bodyBytes: Uint8Array): string => toHex(blake2b(bodyBytes, { dkLen: 32 }))
 
 it("has fixtures to read", () => {
-  expect(fixtures.length).toBeGreaterThanOrEqual(26)
+  expect(fixtures.length).toBeGreaterThanOrEqual(50)
 })
 
 describe.each(fixtures.map((fixture) => [fixture.name, fixture] as const))("%s", (_name, fixture) => {
@@ -49,9 +49,12 @@ describe.each(fixtures.map((fixture) => [fixture.name, fixture] as const))("%s",
 
   it("agrees with the chain on certificates and withdrawals", () => {
     const { body } = decoded(fixture)
-    expect(body.certificates.length).toBe(fixture.chain.certificates.length)
+    // Against the positions the chain reports rather than its rows: it records
+    // a combined registration-and-delegation as its parts, all at the position
+    // of the one certificate that produced them.
+    expect(body.certificates.length).toBe(new Set(fixture.chain.certificates.map((one) => one.index)).size)
     expect(body.withdrawals.map((withdrawal) => String(withdrawal.amount)).sort()).toEqual(
-      [...fixture.chain.withdrawals].sort()
+      fixture.chain.withdrawals.map((withdrawal) => withdrawal.amount).sort()
     )
   })
 

@@ -1,0 +1,64 @@
+{
+  "name": "withdrawal-with-vote-delegation",
+  "transactionId": "87b2514d5ab56381a43a9097be9563dff6ccb59a823c8a222d12a7651d8a21ac",
+  "exercises": ["certificate:VoteDelegation", "legacy-output", "validity-interval-end", "withdrawal"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13910067,
+    "absoluteSlot": 197219086,
+    "timestamp": 1788785377,
+    "fee": "173465",
+    "totalOutput": "2612727118",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [
+      {
+        "index": 0,
+        "type": "vote_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "0b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286"
+        },
+        "pool": null,
+        "drep": "drep_always_abstain",
+        "drepCredential": null,
+        "deposit": null
+      }
+    ],
+    "withdrawals": [
+      {
+        "rewardAccount": "e10b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286",
+        "amount": "86700583"
+      }
+    ],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "197222571",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "0102fbe9d2c0be50efab310dd97cada67cc926e0c32ef3b2556f0b1acc0b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286",
+      "e10b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286"
+    ],
+    "spent": "2526200000",
+    "received": "2612727118",
+    "ada": "-86527118",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "3f0b28e3415295b236913b79fc2a0984dd0111986872918137ef6f6ec1e2c675",
+      "index": 0,
+      "address": "0102fbe9d2c0be50efab310dd97cada67cc926e0c32ef3b2556f0b1acc0b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286",
+      "coin": "2526200000",
+      "assets": []
+    }
+  ],
+  "cbor": "84a600d90102818258203f0b28e3415295b236913b79fc2a0984dd0111986872918137ef6f6ec1e2c6750001818258390102fbe9d2c0be50efab310dd97cada67cc926e0c32ef3b2556f0b1acc0b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d25942861a9bbb0d4e021a0002a599031a0bc160ab04d901028183098200581c0b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d2594286810205a1581de10b0a5ddba9bb02f8cb9d5d857bb8bd00706f5fa338541c35d25942861a052af227a100d90102828258202879b9377633eebc657f0a38a06cafd57db75113440cc60bff94e35265951bde5840a4547b58694a7f0726e74ecbdd95bd4ed65b5a35e97cadc525ad4173d708bc02bf1870e86274d0ff44c4f23f5a6bffbbbd3ad88dda768cf86a31c90235a21e048258201a4f31021246c19bda931734cc058c73b68c1008d244b97d78a94f94b25e6c9f58404750ef88a39ac898a6b214ac63f8ff55fce6172fefe95e4e04dde638f60eaeb6dce884de182e1cc50903a1fb41e7ea7cb9786c91f2e800a7dfd8e046e52b6509f5f6"
+}

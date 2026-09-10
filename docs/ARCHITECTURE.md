@@ -94,8 +94,12 @@ Then compares derived effects against what the endpoint declared in the partial 
 | `decode.ts` | CBOR → structured transaction. Where the edge cases live; budget accordingly. |
 | `derive.ts` | Diffs inputs against outputs for the user's addresses → ADA delta, per-policy asset deltas, exact fee, certificates, withdrawals, mint/burn, validity interval. Takes four of the five terms — the declared metadata is the comparison's business, not the arithmetic's. |
 | `deposits.ts` | Separates refundable deposits (stake registration's 2 ADA) from spent value. Showing a deposit as a cost is wrong; hiding it is worse. |
+| `parameters.ts` | The protocol parameters the engine is handed rather than fetches: the deposits, the slot-to-time mapping, the minimum-fee coefficients and the per-byte cost. |
+| `minimums.ts` | The two bounds the comparison enforces, computed from those parameters — an output's minimum ADA from its encoded size, and the fee ceiling. A caller allowed to supply them could supply them generously. |
+| `bech32.ts` | CIP-19's encoding, both ways. An intent declares addresses and pool ids as text and a body carries bytes; a block that names an address has to write it back out in the form the person would recognise. |
+| `declared.ts` | Reading the endpoint's own strings — addresses, pool and DRep ids, the deadline — into the forms the comparison matches on. Strict: an address that can be written two ways is one a comparison can be walked past. |
 | `compare.ts` | Derived vs declared → verdict. This function is what blocks a signature. |
-| `test/fixtures/` | ~50 known-good mainnet transactions with expected outputs. Regression safety. Every fixture's derived commit must equal its known transaction id, and each fixture carries the chain's own reading of what the transaction does, recorded when it was collected, as the second opinion (ADR-0010, ADR-0012). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |
+| `test/fixtures/` | 53 known-good mainnet transactions with expected outputs, and a README stating the format and how to add one — `scripts/collect-fixture.mjs` writes a file from a transaction id and refuses to write one the suite would reject. Regression safety. Every fixture's derived commit must equal its known transaction id, and each fixture carries the chain's own reading of what the transaction does, recorded when it was collected, as the second opinion (ADR-0010, ADR-0012). CIP-0186's two published CBOR vectors are included as conformance checks on tx-body extraction and commit computation — they are shape tests over minimal bodies, not real transactions, so they pin the rule but do not stand in for the fixtures. |
 | `test/attacks/` | **The proof.** Transactions whose declared metadata contradicts what they do — hidden outputs, wrong pool, inflated fee, unexpected mint. Public, and the strongest single piece of evidence that the security claim holds. |
 
 Deliberately consumable standalone: a wallet or an explorer should be able to use `verifier` without adopting the rest of the protocol. That reusability is an argument in the CIP.
@@ -245,7 +249,7 @@ Vitest 4 dropped `vitest.workspace.ts`; the workspace now lives in root `vitest.
 
 Test sources are typechecked but never emitted, so root `tsconfig.test.json` turns `composite`/`declaration` back off and adds `types: ["node"]`. Only tests get Node globals: `src/` stays on `types: []`, so a `process.env` read inside `core` is a compile error rather than a silent runtime dependency.
 
-**`passWithNoTests` is not set, anywhere.** A package that declares a `test` script and ships no test files fails its run — which is the intended outcome in a repo where code without tests is not finished work. Today `pnpm test` passes because there are no packages yet, not because empty suites are tolerated.
+**`passWithNoTests` is not set, anywhere.** A package that declares a `test` script and ships no test files fails its run — which is the intended outcome in a repo where code without tests is not finished work.
 
 ## The two data flows
 
@@ -259,7 +263,7 @@ Test sources are typechecked but never emitted, so root `tsconfig.test.json` tur
 
 Two halves of one answer, and neither is sufficient alone:
 
-- **Effects derivation** proves *what* the transaction does. Arithmetic on the tx body, not a simulation — possible because eUTxO transactions fully determine their own effects. Mismatch hard-blocks signing.
+- **Effects derivation** computes *what* the transaction does from the tx body, resolved inputs, user addresses, and protocol parameters. It compares those effects with the endpoint's declared transaction intent; a mismatch hard-blocks signing. It does not check the meaning of publisher-written titles, descriptions, or messages.
 - **Publisher attestation** proves *who* is asking — a domain manifest by default, a CIP-0170 KERI credential chain where legal identity matters. Resolved and verified client-side, rendered beside the effects. Unverified publishers are marked, not blocked — identity augments, effects gate.
 
 Effects without identity leaves users approving correct transactions from unknown parties. Identity without effects is the central registry Solana needed and we are avoiding.
@@ -274,4 +278,4 @@ Effects without identity leaves users approving correct transactions from unknow
 
 ## Deliberate non-architecture
 
-No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the slip page is self-hostable; the SDK is a library. The blast radius of a bug here is a failed transaction, not a drained wallet.
+No treasury validator, no relayer, no fee tank, no custody, no central registry, no service we operate that the protocol depends on. dApps host their own endpoints; the slip page is self-hostable; the SDK is a library. Effects checks and wallet authorisation remain necessary even though the protocol holds no funds.

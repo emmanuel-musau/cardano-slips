@@ -40,6 +40,7 @@ describe("the rename record", () => {
 describe("the documents that are not records", () => {
   /** Everything a reader treats as current: the docs, the spec, the root files. */
   const current = [
+    join(root, "AGENTS.md"),
     join(root, "CLAUDE.md"),
     join(root, "README.md"),
     ...["REQUIREMENTS.md", "ARCHITECTURE.md", "WORKFLOW.md", "ECOSYSTEM.md", "GLOSSARY.md"].map((file) =>

@@ -1,0 +1,184 @@
+/*
+ * Every colour, type role, step of spacing and radius the client uses, taken
+ * from `1 · Tokens` on the design sheet. This is the only file in the package
+ * that writes a colour — `test/no-hard-coded-colours.test.ts` fails if another
+ * one does, and `test/tokens.test.ts` re-runs the sheet's contrast audit
+ * against these values.
+ *
+ * Scoped to a class, never `:root`: this ships into pages we do not own, and a
+ * package that writes tokens onto the document redefines whatever the host
+ * already called `--ink`. Put `slip-root` on the element that wraps the Slip.
+ *
+ * There is no reset here and no rule that selects an element. Nothing sets a
+ * font-family on anything — a component reads `var(--font-text)` — so a host
+ * page's own stack stays where it is until something of ours asks for a token.
+ *
+ * Three families of surface, and the difference is the point:
+ *   page / card    the ordinary ground, and what lifts off it
+ *   vault-*        the transaction preview, which separates itself by surface
+ *                  and border rather than by being dark
+ *   dark-*         code blocks and the Open Graph card, dark in both themes
+ */
+
+.slip-root {
+  color-scheme: light;
+
+  /* Surfaces. Depth is a border, never a shadow: there is no shadow token. */
+  --page: #f6f8fe; /* never pure white */
+  --card: #ffffff;
+  --subtle: rgba(114, 142, 243, 0.08); /* hover, chips */
+  --skeleton: rgba(114, 142, 243, 0.14);
+  --border: rgba(18, 23, 33, 0.12);
+  --divider: rgba(18, 23, 33, 0.1);
+
+  /* Ink */
+  --ink: #121721;
+  --muted: #5c6a9c;
+
+  /*
+   * The split rule: --accent-fill reaches 3.05:1 on the card and is a fill —
+   * it never carries text below 24px. An accent-coloured word uses
+   * --accent-text. It stays a fill in the dark theme too, where it would
+   * otherwise clear AA, because the rule is about what the colour is for.
+   */
+  --accent-fill: #728ef3;
+  --accent-text: #2f4bc4; /* links */
+  --accent-action: #4361e8; /* button background */
+  --accent-hover: #2f4bc4;
+  --accent-deep: #0c288d; /* headings */
+  --on-accent: #ffffff; /* anything drawn on --accent-action */
+  --focus: #4361e8;
+
+  /* Semantic, and rare. A page that colours everything says nothing. */
+  --pos: #1f7a5c; /* positive, refundable */
+  --warn: #8c5a12;
+  --bad: #b3261e;
+  --bad-tint: rgba(179, 38, 30, 0.06);
+  --bad-line: rgba(179, 38, 30, 0.24);
+  --warn-tint: rgba(233, 180, 76, 0.16);
+  --warn-line: rgba(233, 180, 76, 0.5);
+
+  /* The alternating rows of the effects list, on and off. */
+  --stripe-a: rgba(114, 142, 243, 0.16);
+  --stripe-b: rgba(114, 142, 243, 0.05);
+  --stripe-off-a: rgba(92, 106, 156, 0.12);
+  --stripe-off-b: rgba(92, 106, 156, 0.04);
+
+  /*
+   * The transaction preview. Its own family because it is the surface that
+   * judges the publisher, and `10 · Chrome rules` fixes it whoever hosts the
+   * page. It follows the theme like everything else.
+   */
+  --vault: #ffffff;
+  --vault-ink: #121721;
+  --vault-muted: #5c6a9c;
+  --vault-surface: rgba(114, 142, 243, 0.08);
+  --vault-border: rgba(18, 23, 33, 0.12);
+  --vault-chip: rgba(114, 142, 243, 0.16);
+  --vault-rule: rgba(114, 142, 243, 0.8);
+  --vault-pos: #1f7a5c;
+  --vault-warn: #8c5a12;
+  --vault-bad: #b3261e;
+  --vault-bad-tint: rgba(179, 38, 30, 0.06);
+  --vault-bad-line: rgba(179, 38, 30, 0.32);
+  --vault-bad-chip: rgba(179, 38, 30, 0.1);
+  --vault-warn-tint: rgba(233, 180, 76, 0.14);
+  --vault-warn-line: rgba(233, 180, 76, 0.55);
+
+  /*
+   * Dark in both themes, and nowhere else: code blocks in the docs and the
+   * Open Graph card. Deliberately absent from the dark theme below — a value
+   * that is fixed cannot also follow.
+   */
+  --dark-bg: #121721;
+  --dark-surface: rgba(255, 255, 255, 0.08);
+  --dark-text: #ffffff;
+  --dark-muted: #ccd6ff;
+
+  /* Type. Each stack ends in a generic family, so a missing webfont degrades. */
+  --font-display: Poppins, system-ui, sans-serif;
+  --font-text: Figtree, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Whole roles, so half a role cannot be applied without the other half. */
+  --type-h1: 700 44px/48px var(--font-display);
+  --type-h1-tracking: -0.01em;
+  --type-card-title: 700 18px/24px var(--font-display);
+  --type-numeral: 700 26px/32px var(--font-display); /* a figure is always Poppins 700 */
+  --type-body: 500 16px/24px var(--font-text);
+  --type-button: 500 14px/20px var(--font-text);
+  --type-button-tracking: 0.1px;
+  --type-label: 500 13px var(--font-text);
+  --type-mono: 400 12px/20px var(--font-mono); /* addresses, hashes, the tx block */
+
+  /* Spacing, on a 4px base. */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+
+  --radius-chip: 6px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+}
+
+/*
+ * The dark theme rebinds the roles rather than adding a second vocabulary. A
+ * component writes var(--ink) once and is correct on both grounds; a component
+ * choosing between a light token and a dark one is a component deciding the
+ * rule, and two of them will decide it differently.
+ *
+ * Whether dark follows the operating system is not settled by the sheet, so it
+ * is not decided here: the attribute is the only way in.
+ */
+.slip-root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #121721; /* the brand dark */
+  --card: #1b2231; /* lifted off the page */
+  --subtle: rgba(114, 142, 243, 0.16);
+  --skeleton: rgba(114, 142, 243, 0.18);
+  --border: rgba(255, 255, 255, 0.14);
+  --divider: rgba(255, 255, 255, 0.1);
+
+  --ink: #ffffff;
+  --muted: #ccd6ff;
+
+  --accent-text: #a8bcff;
+  --accent-hover: #5c79ee;
+  --accent-deep: #a8bcff;
+  --focus: #a8bcff;
+
+  --pos: #5fd1a6;
+  --warn: #e9b44c;
+  --bad: #ffa39b;
+  --bad-tint: rgba(255, 163, 155, 0.1);
+  --bad-line: rgba(255, 163, 155, 0.4);
+  --warn-tint: rgba(233, 180, 76, 0.14);
+  --warn-line: rgba(233, 180, 76, 0.45);
+
+  --stripe-a: rgba(114, 142, 243, 0.26);
+  --stripe-b: rgba(114, 142, 243, 0.1);
+  --stripe-off-a: rgba(204, 214, 255, 0.16);
+  --stripe-off-b: rgba(204, 214, 255, 0.05);
+
+  --vault: #080b12; /* still the gravest surface */
+  --vault-ink: #ffffff;
+  --vault-muted: #ccd6ff;
+  --vault-surface: rgba(255, 255, 255, 0.08);
+  --vault-border: rgba(255, 255, 255, 0.14);
+  --vault-chip: rgba(114, 142, 243, 0.24);
+  --vault-rule: rgba(114, 142, 243, 0.5);
+  --vault-pos: #5fd1a6;
+  --vault-warn: #e9b44c;
+  --vault-bad: #ffa39b;
+  --vault-bad-tint: rgba(255, 163, 155, 0.08);
+  --vault-bad-line: rgba(255, 163, 155, 0.45);
+  --vault-bad-chip: rgba(255, 163, 155, 0.2);
+  --vault-warn-tint: rgba(233, 180, 76, 0.08);
+  --vault-warn-line: rgba(233, 180, 76, 0.45);
+}

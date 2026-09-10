@@ -45,7 +45,7 @@ The server's metadata is a claim; the transaction is the truth. Before any signa
 - certificates (delegate → pool, register/deregister + deposit), withdrawals
 - mint/burn, validity interval (as wall-clock expiry)
 
-Derived effects are compared against what the endpoint declared in the partial intent — never against the title, description or message, which are words a schema cannot check and arithmetic cannot contradict. **Any contradiction hard-blocks signing** and shows the mismatch. This is why no gatekeeping registry is needed, and it is only possible because eUTxO transactions fully determine their own effects. The public **attack examples** — transactions whose metadata lies — with a proven 100% block rate are what make this claim credible.
+Derived effects are compared against what the endpoint declared in the partial intent — never against the title, description or message, which are words a schema cannot check and arithmetic cannot contradict. **Any contradiction hard-blocks signing** and shows the mismatch. Every endpoint faces the same check, so no registry of approved publishers is needed. The public **attack examples** — transactions whose metadata lies — must all be blocked; that result demonstrates coverage of those cases, not a guarantee against every possible bug.
 
 ## 5. Identity layer
 
@@ -83,4 +83,4 @@ Stablecoin payment Slip: recipient, amount, USDM/USDCx choice; parameterised tip
 
 ## 9. Non-goals, stated plainly
 
-No custody, no treasury validator, no relayer, no fee tank, no central registry. The blast radius of a bug is a failed transaction, never a drained wallet. Nothing we ship requires ongoing funding to keep running.
+No custody, no treasury validator, no relayer, no fee tank, no central registry. The client must check effects before requesting a signature and block every mismatch. No protocol-operated service is required; publishers and clients provide their own hosting and chain-data access.

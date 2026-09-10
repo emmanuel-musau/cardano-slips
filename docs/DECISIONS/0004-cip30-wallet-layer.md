@@ -1,8 +1,8 @@
 # ADR-0004: Build the CIP-30 layer on evolution-sdk, not cardano-connect-with-wallet
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-08-19
-**Issue:** TBD — `packages/flow` wallet layer
+**Issue:** #47 — `packages/flow` wallet layer
 
 ## Context
 

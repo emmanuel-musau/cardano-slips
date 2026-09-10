@@ -1,0 +1,61 @@
+{
+  "name": "vote-delegation-to-drep",
+  "transactionId": "4d91a9d420a138ee6ba26c71a9d9619e4078a1c2c715262d36a9ef7dc86029e2",
+  "exercises": ["certificate:VoteDelegation", "post-alonzo-output", "validity-interval-end"],
+  "chain": {
+    "source": "koios api.koios.rest/api/v1 tx_info, mainnet",
+    "blockHeight": 13866353,
+    "absoluteSlot": 196335720,
+    "timestamp": 1787902011,
+    "fee": "172981",
+    "totalOutput": "8769827019",
+    "outputs": 1,
+    "inputs": 1,
+    "collateralInputs": 0,
+    "referenceInputs": 0,
+    "certificates": [
+      {
+        "index": 0,
+        "type": "vote_delegation",
+        "credential": {
+          "kind": "key",
+          "hash": "cc54a6cc58115072e9fcc600071676e81ed9917cba55c38371691400"
+        },
+        "pool": null,
+        "drep": "drep1y20fpc0f6qjl4edtl9cxzrvqzd8jkzr6ja7p0p2n7cxragqkurae3",
+        "drepCredential": {
+          "kind": "key",
+          "hash": "9e90e1e9d025fae5abf970610d80134f2b087a977c178553f60c3ea0"
+        },
+        "deposit": null
+      }
+    ],
+    "withdrawals": [],
+    "mint": [],
+    "invalidBefore": null,
+    "invalidAfter": "196342793",
+    "votingProcedures": 0,
+    "proposalProcedures": 0,
+    "deposit": "0",
+    "treasuryDonation": "0"
+  },
+  "user": {
+    "addresses": [
+      "01262a71d2ec14f3ffa93ad3f8f2dc0c4378186a54850ff8c3c9b25142cc54a6cc58115072e9fcc600071676e81ed9917cba55c38371691400"
+    ],
+    "spent": "8770000000",
+    "received": "0",
+    "ada": "8770000000",
+    "assets": []
+  },
+  "resolved": [
+    {
+      "transactionId": "f2d808dca6d8cafc5828951e81eeaca59a57413f774d88f63b068ca4acc18b2c",
+      "index": 0,
+      "address": "01262a71d2ec14f3ffa93ad3f8f2dc0c4378186a54850ff8c3c9b25142cc54a6cc58115072e9fcc600071676e81ed9917cba55c38371691400",
+      "coin": "8770000000",
+      "assets": []
+    }
+  ],
+  "cbor": "84a50081825820f2d808dca6d8cafc5828951e81eeaca59a57413f774d88f63b068ca4acc18b2c000181a2005839018c79d6f274289a686b28b2c2e2e56481f822dca764204dac4bbcdfa3cc54a6cc58115072e9fcc600071676e81ed9917cba55c38371691400011b000000020ab8f0cb021a0002a3b5031a0bb3f409048183098200581ccc54a6cc58115072e9fcc600071676e81ed9917cba55c383716914008200581c9e90e1e9d025fae5abf970610d80134f2b087a977c178553f60c3ea0a100828258205ab0eb5759528b1d9613c457ba24d3c270a9380b5afcaec599ad3f9c3693a4075840e1d83136ab725613c29ccef94b25c7db6451075896d6db63dd68912a09d2847e7462f13849980f6c37030ef6306b0d52e2267f7b0f14ca1f5fd22dbba607d802825820deeca756c1d05677d0e75de1070553d174db172466dc9240594af3a4cb430b3558407ce1a0f2b206c68e0343c04824653ffc575738ea2a9479e55faa85f842fed755b3446e0f54f35b89a0f31ab33ade066c1f5222d972083ee7beb5ef248e48400df5f6"
+}
