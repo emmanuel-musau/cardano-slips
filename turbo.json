@@ -34,6 +34,14 @@
       "outputs": []
     },
 
+    // The block rate, as its own check. `outputs` carries the report because a
+    // cache hit that restored no file would leave CI's upload with nothing.
+    "//#attack-examples": {
+      "dependsOn": ["@cardano-slips/verifier#build"],
+      "inputs": ["packages/verifier/test/**", "spec/**", "vitest.config.ts"],
+      "outputs": ["packages/verifier/build/reports/**"]
+    },
+
     // Same for the repo tests' own types — no package tsconfig includes them.
     "//#typecheck:repo": {
       "inputs": ["test/**", "tsconfig.test.json"],
