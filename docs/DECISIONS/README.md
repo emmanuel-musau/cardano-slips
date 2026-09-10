@@ -20,5 +20,6 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0010](0010-cbor-decode-approach.md) | Decode transaction CBOR with our own strict reader, and keep CML as a test oracle | Accepted |
 | [0011](0011-cip-title.md) | Title the CIP by its mechanism — Endpoint-Built Transaction Requests | Accepted |
 | [0012](0012-decode-test-oracle.md) | Cross-check the decoder against the chain's own reading, not against CML | Accepted |
+| [0013](0013-stated-certificate-deposit.md) | Hold a stated deposit to the protocol parameter, and leave a stated refund uncompared | Accepted |
 
 One more is already ticketed as a decision and lands here when made: the CIP-0170 go/no-go (#63), which ADR-0006 narrows to the Tier-2 question only.
