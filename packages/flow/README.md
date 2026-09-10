@@ -30,6 +30,28 @@ These components are meant to be dropped into someone else's page. No fixed posi
 
 React is a **peer** dependency: your copy is the one that renders, and a second copy in the tree is the oldest breakage in the ecosystem.
 
+## Connecting a wallet
+
+`discoverWallets` reads `window.cardano` on demand — never while the module loads, so the package is safe to import into a page rendered on a server, where it simply finds nothing.
+
+```ts
+import { connectWallet, discoverWallets } from "@cardano-slips/flow"
+import { Effect } from "effect"
+
+const wallets = discoverWallets() // [{ key: "lace", name: "Lace", icon, install, … }]
+
+const connected = await Effect.runPromise(
+  connectWallet("lace", { network: slip.network })
+)
+// { api, network, networkId, changeAddress }  — changeAddress is bech32, ready for the POST body
+```
+
+The connection fails rather than throws, with one refusal per state a person can be shown: `NotInjected`, `NotCip30`, `Refused` (they declined — not a fault), `EnableFailed`, `Unreadable`, and `WrongNetwork`. A declined connection keeps the wallet's own CIP-30 `{ code, info }` on the error, so `-3` stays distinguishable from a crash.
+
+**The network is checked here, not later.** The wallet is held to the network the Slip declares, and the wallet's reported network id must also agree with the network its own change address encodes. A CIP-19 address separates mainnet from testnet and no further, so preprod and preview are one value at this layer — which is why a Slip states its network by name and the endpoint checks all three statements again.
+
+`getChangeAddress`, `getCollateral` and `getNetworkId` are called under our own CIP-30 typing, because evolution-sdk's `WalletApi` does not declare them ([ADR-0004](../../docs/DECISIONS/0004-cip30-wallet-layer.md)). Everything downstream of `enable()` — UTxOs, balancing, signing — goes through evolution-sdk with the API object this returns.
+
 ## Entry point
 
 One export, the package root. Deep imports into `dist/` are not a supported surface, so moving a file is never a breaking change:
