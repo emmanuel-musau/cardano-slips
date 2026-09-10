@@ -30,27 +30,32 @@ These components are meant to be dropped into someone else's page. No fixed posi
 
 React is a **peer** dependency: your copy is the one that renders, and a second copy in the tree is the oldest breakage in the ecosystem.
 
-## Connecting a wallet
-
-`discoverWallets` reads `window.cardano` on demand — never while the module loads, so the package is safe to import into a page rendered on a server, where it simply finds nothing.
+## Tokens
 
 ```ts
-import { connectWallet, discoverWallets } from "@cardano-slips/flow"
-import { Effect } from "effect"
-
-const wallets = discoverWallets() // [{ key: "lace", name: "Lace", icon, install, … }]
-
-const connected = await Effect.runPromise(
-  connectWallet("lace", { network: slip.network })
-)
-// { api, network, networkId, changeAddress }  — changeAddress is bech32, ready for the POST body
+import "@cardano-slips/flow/tokens.css"
 ```
 
-The connection fails rather than throws, with one refusal per state a person can be shown: `NotInjected`, `NotCip30`, `Refused` (they declined — not a fault), `EnableFailed`, `Unreadable`, and `WrongNetwork`. A declined connection keeps the wallet's own CIP-30 `{ code, info }` on the error, so `-3` stays distinguishable from a crash.
+```html
+<div class="slip-root">…</div>
+<div class="slip-root" data-theme="dark">…</div>
+```
 
-**The network is checked here, not later.** The wallet is held to the network the Slip declares, and the wallet's reported network id must also agree with the network its own change address encodes. A CIP-19 address separates mainnet from testnet and no further, so preprod and preview are one value at this layer — which is why a Slip states its network by name and the endpoint checks all three statements again.
+The tokens are scoped to `slip-root` rather than `:root`, because a package that writes `--ink` onto the document redefines whatever the host already called that. Put the class on the element that wraps the Slip. There is no reset in the file and no rule that selects an element, so an inherited font stack stays where it is until something of ours asks for a token.
 
-`getChangeAddress`, `getCollateral` and `getNetworkId` are called under our own CIP-30 typing, because evolution-sdk's `WalletApi` does not declare them ([ADR-0004](../../docs/DECISIONS/0004-cip30-wallet-layer.md)). Everything downstream of `enable()` — UTxOs, balancing, signing — goes through evolution-sdk with the API object this returns.
+`data-theme="dark"` is the whole of the theme rule: it rebinds the roles — surfaces, ink, accent and the semantic three — so a component writes `var(--ink)` once and is right in both. A component choosing between a light token and a dark one is a component deciding the rule, and two of them will decide it differently. Whether dark follows the operating system is not settled by the design sheet, so it is not decided here either; the attribute is the only way in.
+
+Three families of surface, and the difference is the point:
+
+| Family | What it is |
+| --- | --- |
+| `--page`, `--card` | the ordinary ground, and what lifts off it |
+| `--vault-*` | the transaction preview, which separates itself by surface and border rather than by being dark |
+| `--dark-*` | code blocks and the Open Graph card — dark in **both** themes, so they are the one thing the theme does not touch |
+
+Type arrives as whole roles — `font: var(--type-card-title)` carries family, weight, size and line-height together — because the sheet settles a pairing, not a size. Depth is a border; there is no shadow token.
+
+Two rules the tests keep: no colour is written anywhere but `tokens.css`, and the design sheet's contrast audit is recomputed against these values rather than trusted. `--accent-fill` is a fill — it does not clear AA on a light card, which is why `--accent-text` exists for any accent-coloured word, and it stays a fill in the dark theme where the ratio alone would allow otherwise.
 
 ## Entry point
 

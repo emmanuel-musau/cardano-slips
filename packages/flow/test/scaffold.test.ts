@@ -33,8 +33,13 @@ describe("the public entry point", () => {
   })
 
   it("is the only module the package exposes", () => {
-    // Keeping the map to the root subpath is what makes moving a file non-breaking.
-    expect(Object.keys(manifest.exports ?? {})).toEqual([".", "./package.json"])
+    // One module entry is what makes moving a source file non-breaking. The
+    // stylesheet is the one other subpath because a stylesheet cannot be
+    // re-exported through a module — and it stays not-a-module below.
+    expect(Object.keys(manifest.exports ?? {})).toEqual([".", "./tokens.css", "./package.json"])
+
+    const modules = exportTargets().filter((target) => target.endsWith(".js") || target.endsWith(".d.ts"))
+    expect(modules).toEqual(["./dist/index.d.ts", "./dist/index.js"])
   })
 })
 

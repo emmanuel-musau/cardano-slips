@@ -24,6 +24,7 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./tokens.css": "./dist/tokens.css",
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
@@ -38,7 +39,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -b tsconfig.build.json",
+    "build": "tsc -b tsconfig.build.json && mkdir -p dist && cp src/tokens.css dist/tokens.css",
     "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "lint": "eslint .",
