@@ -1,7 +1,9 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"
 
-import { compare } from "../src/compare.js"
+import { compare, reasonCodes } from "../src/compare.js"
 import { minimumChangeLovelace, minimumFee, minimumLovelace } from "../src/minimums.js"
 import { cases, comparisonOf } from "./support/verdicts.js"
 import { mainnetParameters } from "./support/derivation.js"
@@ -88,5 +90,27 @@ describe("the bounds the table states as parameters", () => {
         )
       }
     }
+  })
+})
+
+describe("the vocabulary the engine reports", () => {
+  /** The reason column of the CIP's own block table. */
+  const published = (): ReadonlyArray<string> => {
+    const cip = readFileSync(join(import.meta.dirname, "..", "..", "..", "spec", "CIP-XXXX", "README.md"), "utf8")
+    const start = cip.indexOf("### Blocking")
+    expect(start).toBeGreaterThan(-1)
+    const section = cip.slice(start, cip.indexOf("\n### ", start + 1))
+    return [...section.matchAll(/^\| `([a-z]+\.[a-z-]+)` \|/gm)].map((row) => row[1] ?? "")
+  }
+
+  it("is the vocabulary the CIP defines, in both directions", () => {
+    // Normative in both: a code the engine can report and the spec does not
+    // define is a block a client cannot render, and a code the spec defines and
+    // the engine cannot reach is a rule nothing enforces.
+    expect([...published()].sort()).toEqual(Object.keys(reasonCodes).sort())
+  })
+
+  it("read a table rather than an empty section", () => {
+    expect(published().length).toBeGreaterThanOrEqual(18)
   })
 })

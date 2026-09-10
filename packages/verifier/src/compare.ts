@@ -17,6 +17,7 @@ import type { ComparisonError } from "./compare-error.js"
 import { cannotCompare } from "./compare-error.js"
 import type { DRep, Value } from "./decode.js"
 import { readAddress, readDRep, readInstant, readPool } from "./declared.js"
+import type { Deposit } from "./deposits.js"
 import type { CertificateEffect, Effects, OutputEffect, UnsupportedMember } from "./derive.js"
 import { minimumChangeLovelace, minimumFee, minimumLovelace } from "./minimums.js"
 import type { ProtocolParameters } from "./parameters.js"
@@ -51,6 +52,12 @@ export type Reason =
   | { readonly code: "certificate.order" }
   | { readonly code: "certificate.target"; readonly index: number; readonly declared: string; readonly carried: string }
   | { readonly code: "certificate.credential"; readonly index: number }
+  | {
+      readonly code: "certificate.deposit"
+      readonly index: number
+      readonly stated: bigint
+      readonly parameter: bigint
+    }
   | { readonly code: "withdrawal.missing" }
   | { readonly code: "withdrawal.undeclared"; readonly carried: number }
   | { readonly code: "withdrawal.account"; readonly account: string }
@@ -69,6 +76,34 @@ export type Reason =
 
 /** The vocabulary a client renders a block from. Every one of them is in the CIP's own table. */
 export type ReasonCode = Reason["code"]
+
+/**
+ * Exhaustive by type: a reason added above without a line here fails to
+ * compile. The vocabulary is normative, so `test/verdicts.test.ts` holds this
+ * set to the one the CIP publishes — a code the engine can report and the spec
+ * does not define is a block a client cannot render, and a code the spec
+ * defines and the engine cannot reach is a rule nothing enforces.
+ */
+export const reasonCodes: Readonly<Record<ReasonCode, true>> = {
+  "output.missing": true,
+  "output.undeclared": true,
+  "output.lovelace": true,
+  "output.assets": true,
+  "certificate.missing": true,
+  "certificate.undeclared": true,
+  "certificate.order": true,
+  "certificate.target": true,
+  "certificate.credential": true,
+  "certificate.deposit": true,
+  "withdrawal.missing": true,
+  "withdrawal.undeclared": true,
+  "withdrawal.account": true,
+  "mint.undeclared": true,
+  "body.unsupported": true,
+  "fee.excessive": true,
+  "interval.beyond-declared": true,
+  "interval.not-yet-valid": true
+}
 
 export type Verdict =
   { readonly _tag: "match" } | { readonly _tag: "mismatch"; readonly reasons: ReadonlyArray<Reason> }
@@ -229,6 +264,54 @@ const carriedCertificate = (effect: CertificateEffect): { readonly type: string;
 })
 
 /**
+ * What the ledger will take for a deposit the certificate states itself. The
+ * two nulls are not the same fact: a pool deposit is never `stated` — a pool
+ * already registered pays nothing to re-register, so `deposits.ts` marks it
+ * `assumed` and it is filtered out before it arrives — and a governance action
+ * is a proposal rather than a certificate, already blocked as `body.unsupported`.
+ * Both are here because the switch is exhaustive by type.
+ */
+const parameterFor = (deposit: Deposit, parameters: ProtocolParameters): bigint | null => {
+  switch (deposit.kind) {
+    case "stake":
+      return parameters.stakeDeposit
+    case "drep":
+      return parameters.drepDeposit
+    case "pool":
+    case "governance-action":
+      return null
+  }
+}
+
+/**
+ * A Conway `reg_cert` states its own deposit, and the ledger fixes it at the
+ * current parameter exactly. A larger figure is lovelace the panel shows leaving
+ * the wallet, so holding it to the parameter is what makes the rendered delta
+ * true (ADR-0013).
+ *
+ * Read off the derived effects rather than off the match, so it holds for the
+ * combined registration-delegation and DRep forms this version cannot declare —
+ * and stays right if a later one can. A stated *refund* is deliberately absent:
+ * the ledger returns what the credential was registered under, which after a
+ * `keyDeposit` change is neither the current parameter nor recoverable from
+ * anything this engine is handed.
+ */
+const statedDeposits = (
+  carried: ReadonlyArray<CertificateEffect>,
+  parameters: ProtocolParameters
+): ReadonlyArray<Reason> => {
+  const reasons: Array<Reason> = []
+  for (const effect of carried) {
+    const deposit = effect.deposit
+    if (deposit === null || deposit.basis !== "stated") continue
+    const parameter = parameterFor(deposit, parameters)
+    if (parameter === null || deposit.amount === parameter) continue
+    reasons.push({ code: "certificate.deposit", index: effect.index, stated: deposit.amount, parameter })
+  }
+  return reasons
+}
+
+/**
  * The certificates. Order is part of it because the ledger applies them in
  * order: a registration that follows the delegation depending on it is a
  * different transaction from one that precedes it, and only one of the two
@@ -236,7 +319,8 @@ const carriedCertificate = (effect: CertificateEffect): { readonly type: string;
  */
 const compareCertificates = (
   declared: ReadonlyArray<DeclaredCertificate>,
-  carried: ReadonlyArray<CertificateEffect>
+  carried: ReadonlyArray<CertificateEffect>,
+  parameters: ProtocolParameters
 ): Either.Either<ReadonlyArray<Reason>, ComparisonError> => {
   const asked: Array<{ readonly type: string; readonly target: string }> = []
   for (const certificate of declared) {
@@ -273,6 +357,8 @@ const compareCertificates = (
   // someone else's is not a claim that failed to match — it is an effect
   // nothing could have declared.
   for (const effect of carried) if (!effect.ours) reasons.push({ code: "certificate.credential", index: effect.index })
+
+  reasons.push(...statedDeposits(carried, parameters))
 
   return Either.right(reasons)
 }
@@ -313,7 +399,7 @@ export const compare = ({
   if (Either.isLeft(outputs)) return Either.left(outputs.left)
   reasons.push(...outputs.right)
 
-  const certificates = compareCertificates(declared.certificates ?? [], effects.certificates)
+  const certificates = compareCertificates(declared.certificates ?? [], effects.certificates, protocolParameters)
   if (Either.isLeft(certificates)) return Either.left(certificates.left)
   reasons.push(...certificates.right)
 
