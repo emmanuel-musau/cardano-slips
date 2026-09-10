@@ -43,6 +43,21 @@ export const honest: Slip = {
   carries: [{ type: "stakeDelegation", pool }]
 }
 
+/**
+ * A deregistration whose stated refund is not the current parameter, and which
+ * must sign. The ledger returns what the credential was registered under, so
+ * after a `keyDeposit` change the honest figure is the old one — gating a refund
+ * on today's parameter would make every credential registered before that change
+ * permanently unsignable through a Slips client (ADR-0013). This case is the
+ * other half of `misstated-deposit`, and without it the false block is one
+ * careless edit away.
+ */
+export const statedRefund: Slip = {
+  declared: { certificates: [{ type: "stakeDeregistration" }], validUntil: DEADLINE },
+  paid: [],
+  carries: [{ type: "deregistration", refund: 4_000_000n }]
+}
+
 export const attacks: ReadonlyArray<Attack> = [
   {
     name: "wrong-pool",
@@ -80,6 +95,14 @@ export const attacks: ReadonlyArray<Attack> = [
       { code: "certificate.missing", declared: 1, carried: 1 },
       { code: "certificate.undeclared", declared: 1, carried: 1 }
     ]
+  },
+  {
+    name: "misstated-deposit",
+    lie: "the intent declares a registration, whose deposit the ledger fixes at two ADA, and the certificate states five hundred — so the panel shows five hundred ADA leaving for a registration that costs two",
+    declared: { certificates: [{ type: "stakeRegistration" }], validUntil: DEADLINE },
+    paid: [],
+    carries: [{ type: "registration", deposit: 500_000_000n }],
+    blocked: [{ code: "certificate.deposit", index: 0, stated: 500_000_000n, parameter: 2_000_000n }]
   },
   {
     name: "certificates-out-of-order",

@@ -63,7 +63,12 @@ type Asset = { readonly policyId: string; readonly assetName: string; readonly q
 type DeclaredOutput = { readonly address: string; readonly lovelace: string; readonly assets?: Array<Asset> }
 type DerivedOutput = DeclaredOutput & { readonly mine: boolean }
 type Certificate = { readonly type: string; readonly poolId?: string; readonly drep?: string }
-type DerivedCertificate = Certificate & { readonly mine: boolean }
+type DerivedCertificate = Certificate & {
+  readonly mine: boolean
+  /** The figure the Conway forms state themselves, where a case turns on one. */
+  readonly deposit?: string
+  readonly refund?: string
+}
 
 type Intent = {
   readonly outputs?: Array<DeclaredOutput>
@@ -94,6 +99,8 @@ type Parameters = {
   readonly minChangeLovelace: string
   /** The ledger minimum for each declared output, in the order they were declared. */
   readonly minLovelace: Array<string>
+  /** What a stated deposit is held to. Only where a case states one. */
+  readonly stakeDeposit?: string
 }
 
 type Case = {
@@ -185,6 +192,19 @@ const compare = (entry: Case): Array<string> => {
 
   for (const certificate of carried) if (!certificate.mine) reasons.add("certificate.credential")
 
+  // A deposit the certificate states itself is held to the protocol parameter.
+  // A stated refund is not: the ledger returns what the credential was
+  // registered under, which the client cannot compute. The asymmetry is the
+  // rule, not an omission.
+  for (const certificate of carried) {
+    if (certificate.deposit === undefined) continue
+    const parameter = entry.parameters.stakeDeposit
+    // Defaulting here would make a case that forgot the parameter block on
+    // nothing, and pass.
+    if (parameter === undefined) throw new Error(`${entry.name} states a deposit and no parameter to hold it to`)
+    if (BigInt(certificate.deposit) !== BigInt(parameter)) reasons.add("certificate.deposit")
+  }
+
   // The withdrawal.
   const withdrawals = entry.derived.withdrawals
   if (entry.declared.withdrawRewards === true) {
@@ -243,6 +263,16 @@ describe("the published comparison table", () => {
     // from the protocol parameters rather than an assumption.
     const short = cases
       .filter((entry) => entry.parameters.minLovelace.length !== (entry.declared.outputs ?? []).length)
+      .map((entry) => entry.name)
+    expect(short).toEqual([])
+  })
+
+  it("supplies the deposit parameter for every case that states a deposit", () => {
+    // The figure a stated deposit is held to. Absent, the case would be asking
+    // for a verdict against nothing.
+    const short = cases
+      .filter((entry) => entry.derived.certificates.some((certificate) => certificate.deposit !== undefined))
+      .filter((entry) => entry.parameters.stakeDeposit === undefined)
       .map((entry) => entry.name)
     expect(short).toEqual([])
   })
