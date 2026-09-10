@@ -1,5 +1,18 @@
 # @cardano-slips/flow
 
+## 0.1.0
+
+### Minor Changes
+
+- [#161](https://github.com/emmanuel-musau/cardano-slips/pull/161) [`862e553`](https://github.com/emmanuel-musau/cardano-slips/commit/862e55348b6c2065e4d7a19606ac6603ef395faf) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Add `tokens.css` — colour, type, spacing and radius as CSS custom properties, taken from the design sheet. Scoped to a `slip-root` class rather than `:root`, because a package dropped into someone else's page must not redefine what that page already calls `--ink`; there is no reset in it and no rule that selects an element, so an inherited font stack survives. `data-theme="dark"` is the whole of the theme rule, rebinding the roles so a component writes `var(--ink)` once and is right in both themes — with the fixed dark palette for code blocks and the Open Graph card deliberately outside it, since a value that is fixed cannot also follow. Exported as `@cardano-slips/flow/tokens.css`, so the hosted page and a third party resolve the same file. Two tests hold it: nothing outside the token file writes a colour, and the sheet's contrast audit is recomputed against the values rather than copied in.
+
+- [#160](https://github.com/emmanuel-musau/cardano-slips/pull/160) [`2d314ab`](https://github.com/emmanuel-musau/cardano-slips/commit/2d314ab6719a0d59cbe8e1280dafbfa0575935cb) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Discover and connect a CIP-30 wallet. `discoverWallets` reads `window.cardano` on demand — never at module load, so the package stays importable in a page rendered on a server — and names a wallet from our own registry, letting one it does not know name itself. `connectWallet` enables, then holds the wallet to the network the Slip declares: the reported network id and the network its own change address encodes must agree with it and with each other, and a change address comes back as bech32 ready for the `POST` body. Failure is a typed refusal per state a person can be shown, and a declined connection keeps the wallet's own CIP-30 `{ code, info }` so `-3` stays distinguishable from a crash.
+
+### Patch Changes
+
+- Updated dependencies [[`c6fd67a`](https://github.com/emmanuel-musau/cardano-slips/commit/c6fd67a51a5bba9e2c642d38629d28253e0249dc), [`c194003`](https://github.com/emmanuel-musau/cardano-slips/commit/c194003eeb2a68889a1bfe470b58ce000c7e459d), [`ce87c87`](https://github.com/emmanuel-musau/cardano-slips/commit/ce87c8787b93e4a3bde69776baa65f73b87c2f28), [`2241678`](https://github.com/emmanuel-musau/cardano-slips/commit/2241678462552eeec34d3c390893f072bb701fff), [`d1fdef8`](https://github.com/emmanuel-musau/cardano-slips/commit/d1fdef8a5863df9664dc3eea2d3a8a16e64b6589)]:
+  - @cardano-slips/verifier@0.2.0
+
 ## 0.0.3
 
 ### Patch Changes
