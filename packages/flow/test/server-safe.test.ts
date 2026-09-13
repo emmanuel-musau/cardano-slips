@@ -19,6 +19,8 @@ describe("the package outside a browser", () => {
   it("imports", async () => {
     const flow = await import("../src/index.js")
     expect(typeof flow.discoverWallets).toBe("function")
+    // evolution-sdk arrives with the balancer, and it reaches here too.
+    expect(typeof flow.balanceIntent).toBe("function")
   })
 
   it("finds no wallet and does not throw looking", async () => {
