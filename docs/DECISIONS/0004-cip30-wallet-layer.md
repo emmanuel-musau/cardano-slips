@@ -82,6 +82,22 @@ resulting object, the runtime value is the full CIP-30 API regardless of what
 evolution-sdk's interface declares. We can call those three methods on it under
 our own typing without patching upstream.
 
+### Two more, found building the balancer (2026-09-13)
+
+The five above are what the evaluation found at `enable()`. Building local
+balancing turned up two more, both inside the transaction path rather than
+upstream of it. They are recorded here so the count is one number and not a
+claim each caller makes for itself; neither changes the decision.
+
+6. **No usable CIP-30 unspent-output conversion.** `getUtxos` answers in CBOR
+   hex and the builder takes typed values. The SDK has the conversion —
+   `cip30UtxoFromCBORHex` — but only behind an export path its manifest blocks,
+   so `flow/src/utxo.ts` is our own until it is reachable.
+7. **`DRep.fromBech32` is declared and not exported.** The shipped declarations
+   carry the function and the shipped module does not, so calling it compiles
+   and throws at runtime. `Schema.decodeSync(DRep.FromBech32)` is the same
+   decode reached by a path that exists.
+
 ### Evidence: cardano-connect-with-wallet-core
 
 **1. Raw CBOR access — disqualifying.** The library does not expose the

@@ -3,6 +3,13 @@ packages:
   - "apps/*"
   - "examples/*"
 
+# Transitive native builds pulled in by @evolution-sdk/evolution's Node platform
+# layer. Nothing here runs them: the client is a browser bundle and the tests
+# run under happy-dom, so both stay unbuilt rather than compiled on install.
+allowBuilds:
+  "@parcel/watcher": false
+  msgpackr-extract: false
+
 # Fail the install on the wrong Node/pnpm rather than at a confusing NodeNext
 # resolution error later. Versions are pinned in package.json `engines`.
 engineStrict: true

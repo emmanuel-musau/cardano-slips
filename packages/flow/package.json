@@ -51,9 +51,11 @@
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
     "@cardano-slips/verifier": "workspace:^",
+    "@evolution-sdk/evolution": "^0.5.13",
     "effect": "^3.22.1"
   },
   "devDependencies": {
+    "@cardano-slips/example-slips": "workspace:^",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.18",
     "happy-dom": "^20.11.6",
