@@ -1053,9 +1053,14 @@ else's is not a claim that failed to match — it is an effect nothing could hav
 declared.
 
 The deposit a registration carries and the refund a deregistration returns are
-supplied, never compared. The ledger fixes both from a protocol parameter
-whatever anyone declared, and [Certificates](#certificates) is where this
-document says an endpoint may not state them.
+never compared **against a declaration**: the intent has no field for either,
+and [Certificates](#certificates) is where this document says an endpoint may
+not state them. That is not the same as leaving the body's own figures
+unchecked. Where a certificate states its own deposit, that figure is held to
+the protocol parameter and a client MUST block on a difference, reported as
+`certificate.deposit`. A stated refund is rendered and held to nothing. Both
+rules, and why they differ, are in
+[The fee and the client's own adjustments](#the-fee-and-the-clients-own-adjustments).
 
 #### Matching the withdrawal
 
@@ -1086,13 +1091,48 @@ lenient implementation defeats every rule above it.
 
 #### The fee and the client's own adjustments
 
-| Supplied | Rule | Shown to the person as |
-|---|---|---|
-| the fee | Bounded below by what the protocol parameters require for this transaction, and above by the ceiling below. | a cost |
-| a deposit | Exactly the protocol parameter. | a cost that comes back, marked refundable |
-| a refund | Exactly the protocol parameter. | a return |
-| the raise to an output's minimum | Exactly the ledger's minimum for that output, and never more. | an effect of its own, with its cause |
-| change | To `changeAddress`, at an address the wallet controls. | part of the net delta, not a payment |
+These are the figures the endpoint does not declare and the client fills in.
+Some of them a client can hold to a rule; the rest it can only describe. The
+`Gate` column says which is which, and the two are not interchangeable — a rule
+nothing enforces is a description whatever the wording, and publishing it as an
+obligation misleads the next implementer.
+
+| Supplied | Rule | Gate | Shown to the person as |
+|---|---|---|---|
+| the fee | Bounded below by what the protocol parameters require for this transaction, and above by the ceiling below. | `fee.excessive`, on the ceiling only | a cost |
+| a deposit the certificate states | Exactly the protocol parameter. | `certificate.deposit` | a cost that comes back, marked refundable |
+| a refund the certificate states | What the credential was registered under, which is not necessarily the parameter now. | none — described, not checked | a return |
+| the raise to an output's minimum | Exactly the ledger's minimum for that output, and never more. | `output.lovelace` | an effect of its own, with its cause |
+| change | To `changeAddress`, at an address the wallet controls. | `output.undeclared` | part of the net delta, not a payment |
+
+**A row is a gate when the ledger's own rule for that figure is computable from
+the five arguments a client derives with, and a wrong figure costs the person
+something.** Otherwise the row describes what the ledger will do, and a client
+renders the figure without holding it to anything. Both remaining descriptions
+fail one half of that test, each for its own reason.
+
+**The fee's lower bound** fails the second half. A fee below what the protocol
+parameters require does not cost the person anything: the ledger refuses the
+transaction and nothing moves. The ceiling is where the money is, and that is
+the half this document makes a MUST.
+
+**A stated refund** fails the first half. A Conway `unreg_cert` states the
+refund it expects, and the ledger returns what the credential was registered
+under — which, after a `keyDeposit` change, is not the current parameter and is
+recoverable from nothing a client holds. Holding a refund to the current
+parameter would block every credential registered before that change, which is
+not a window but a permanent split in who can use this protocol. A client MUST
+NOT block on a stated refund. It renders the figure as what it is: the
+certificate's own claim about what will come back.
+
+**A stated deposit** passes both halves, and is a MUST. A Conway `reg_cert` and
+the combined registration-delegation forms state their own deposit, the ledger
+fixes it at the current parameter exactly, and a stated figure larger than the
+parameter is lovelace the person is shown leaving their wallet. **A client MUST
+block, reporting `certificate.deposit`, where a certificate states a deposit
+that is not the protocol parameter for it.** The rule is on the derived effects
+rather than on the match, so it holds for the certificate forms this version
+cannot declare as well as the ones it can.
 
 Nothing declares the fee, so there is nothing to compare it against — but an
 unbounded fee is an undeclared payment under another name, and the person pays
@@ -1160,6 +1200,7 @@ the difference the client saw.
 | `certificate.order` | The declared certificates are all present, in an order the intent did not ask for. |
 | `certificate.target` | A certificate names a pool or a DRep other than the declared one. |
 | `certificate.credential` | A certificate acts on a stake credential the wallet does not control. |
+| `certificate.deposit` | A certificate states a deposit that is not the protocol parameter for it. |
 | `withdrawal.missing` | `withdrawRewards` was declared and the body withdraws nothing. |
 | `withdrawal.undeclared` | The body withdraws where the intent did not declare it, or withdraws more than once. |
 | `withdrawal.account` | A withdrawal names a reward account the wallet does not control. |
@@ -1241,6 +1282,7 @@ only the endpoint would be watching one of the four.
 | a certificate reordered so the ledger applies it differently | `certificate.order`. |
 | a declared certificate or withdrawal quietly absent from the transaction that reaches the wallet | `certificate.missing`, `withdrawal.missing`. What was declared has to be there too: a gate watching only for additions would pass a delegation that never delegates. |
 | a certificate acting on someone else's stake credential | `certificate.credential`. This version has no field that could name a credential, so there is no claim to fail — only an effect nothing could have declared. |
+| a certificate stating a deposit larger than the ledger will take | `certificate.deposit`. The figure is the body's own, so it reaches the panel as lovelace leaving the wallet; holding it to the protocol parameter is the only thing that makes the rendered delta true. |
 | a withdrawal the person did not ask for, or from another account | `withdrawal.undeclared`, `withdrawal.account`. |
 | a mint, a burn, a script, a vote, a proposal, a donation, collateral, a reference input, a required signer | `mint.undeclared` and `body.unsupported`. This version cannot describe any of them to a person, so a transaction carrying one is blocked rather than rendered. |
 | a fee inflated into an undeclared payment | `fee.excessive`, bounded by the protocol parameters plus one change output's minimum ADA. |

@@ -8,7 +8,7 @@ import { compare } from "../../src/compare.js"
 import { deriveAssets, deriveLovelace } from "../../src/derive.js"
 import type { Slip } from "../support/attacks.js"
 import { comparisonOf, derivationOf } from "../support/attacks.js"
-import { attacks, honest } from "./certificates-and-withdrawals.js"
+import { attacks, honest, statedRefund } from "./certificates-and-withdrawals.js"
 
 const verdictOf = (slip: Slip): Verdict => {
   const result = compare(comparisonOf(slip))
@@ -21,6 +21,15 @@ const readIntent = Schema.decodeUnknownEither(Intent)
 describe("the honest delegation every case here is one edit away from", () => {
   it("signs", () => {
     expect(verdictOf(honest)).toEqual({ _tag: "match" })
+  })
+})
+
+describe("the refund a deregistration states", () => {
+  it("signs even where it is not the current parameter", () => {
+    // The asymmetry ADR-0013 settles. A stated deposit blocks on a difference;
+    // a stated refund cannot, because the ledger returns what the credential was
+    // registered under and no argument this engine is handed says what that was.
+    expect(verdictOf(statedRefund)).toEqual({ _tag: "match" })
   })
 })
 
@@ -49,6 +58,7 @@ describe("certificate and withdrawal lies", () => {
 describe("every case is a transaction the ledger would take", () => {
   const named: ReadonlyArray<readonly [string, Slip]> = [
     ["honest", honest],
+    ["stated-refund", statedRefund],
     ...attacks.map((attack) => [attack.name, attack] as const)
   ]
 

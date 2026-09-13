@@ -15,6 +15,7 @@ import { decodeBech32 } from "../../src/bech32.js"
 import type { Comparison } from "../../src/compare.js"
 import type { DRep, MultiAsset } from "../../src/decode.js"
 import { readInstant } from "../../src/declared.js"
+import type { Deposit } from "../../src/deposits.js"
 import type { CertificateEffect, Effects, SlotTime, UnsupportedMember } from "../../src/derive.js"
 import type { ProtocolParameters } from "../../src/parameters.js"
 import { fromHex } from "./bytes.js"
@@ -32,6 +33,8 @@ export type Case = {
     readonly minFee: string
     readonly minChangeLovelace: string
     readonly minLovelace: Array<string>
+    /** Only where a case turns on a stated deposit; the rest never reach the rule. */
+    readonly stakeDeposit?: string
   }
   readonly derived: {
     readonly outputs: Array<Output & { readonly mine: boolean }>
@@ -40,6 +43,9 @@ export type Case = {
       readonly type: string
       readonly poolId?: string
       readonly drep?: string
+      /** The figure the certificate states itself, where it is one of the Conway forms that does. */
+      readonly deposit?: string
+      readonly refund?: string
       readonly mine: boolean
     }>
     readonly withdrawals: Array<{ readonly mine: boolean; readonly lovelace: string }>
@@ -122,6 +128,25 @@ const unsupportedMembers: Readonly<Record<string, UnsupportedMember>> = {
   datums: "datum"
 }
 
+/**
+ * A figure the certificate states itself, which is the only basis the deposit
+ * rule acts on. `stake` because the table's certificate vocabulary has no DRep
+ * registration in it — there is no other kind a case can state.
+ */
+const stated = (lovelace: string | undefined, index: number): Deposit | null =>
+  lovelace === undefined
+    ? null
+    : { kind: "stake", amount: BigInt(lovelace), basis: "stated", source: "certificate", index }
+
+const statedKind = (certificate: {
+  readonly deposit?: string
+  readonly refund?: string
+}): CertificateEffect["kind"] | null => {
+  if (certificate.deposit !== undefined) return "Registration"
+  if (certificate.refund !== undefined) return "Deregistration"
+  return null
+}
+
 /** A reward account nobody else in the case uses, so two withdrawals stay two. */
 const rewardAccount = (index: number): Uint8Array =>
   Uint8Array.from([0xe1, ...Array.from({ length: 28 }, (_, byte) => (byte + index * 7 + 1) % 251)])
@@ -159,14 +184,16 @@ const effectsOf = (entry: Case, parameters: ProtocolParameters): Effects => {
     }),
     fee: BigInt(entry.derived.fee),
     certificates: entry.derived.certificates.map((certificate, index) => ({
-      kind: certificateKinds[certificate.type] ?? "StakeRegistration",
+      // A stated figure only exists on the Conway forms, so a case carrying one
+      // is that form however the table spells the type a person reads.
+      kind: statedKind(certificate) ?? certificateKinds[certificate.type] ?? "StakeRegistration",
       credential: { _tag: "KeyHash", hash: rewardAccount(index).subarray(1) },
       role: "stake",
       ours: certificate.mine,
       pool: certificate.poolId === undefined ? null : bytesOf(certificate.poolId),
       drep: certificate.drep === undefined ? null : drepOf(certificate.drep),
-      deposit: null,
-      refund: null,
+      deposit: stated(certificate.deposit, index),
+      refund: stated(certificate.refund, index),
       index
     })),
     withdrawals: entry.derived.withdrawals.map((withdrawal, index) => ({
@@ -192,10 +219,19 @@ const effectsOf = (entry: Case, parameters: ProtocolParameters): Effects => {
   }
 }
 
-export const comparisonOf = (entry: Case, parameters: ProtocolParameters = mainnetParameters): Comparison => ({
-  effects: effectsOf(entry, parameters),
-  declared: entry.declared,
-  changeAddress: entry.changeAddress,
-  now: instant(entry.now),
-  protocolParameters: parameters
-})
+export const comparisonOf = (entry: Case, given: ProtocolParameters = mainnetParameters): Comparison => {
+  // A case that states the deposit parameter is held to that one, so the table
+  // stays readable on its own rather than against this file's defaults.
+  const parameters =
+    entry.parameters.stakeDeposit === undefined
+      ? given
+      : { ...given, stakeDeposit: BigInt(entry.parameters.stakeDeposit) }
+
+  return {
+    effects: effectsOf(entry, parameters),
+    declared: entry.declared,
+    changeAddress: entry.changeAddress,
+    now: instant(entry.now),
+    protocolParameters: parameters
+  }
+}
