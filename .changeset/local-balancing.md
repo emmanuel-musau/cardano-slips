@@ -1,9 +1,0 @@
----
-"@cardano-slips/flow": minor
----
-
-Balance a partial intent locally, against unspent outputs the endpoint never sees (ADR-0002). `balanceIntent` takes the intent, the wallet's unspent outputs, the change address, the protocol parameters and the clock — every term an argument, none of them fetched, for the same reason the verifier takes its five — and returns the complete unsigned transaction CBOR, the fee, and the slot the body expires at. Outputs, the four declarable certificates and a rewards withdrawal are applied; coin selection and change go through `@evolution-sdk/evolution`, which this package now depends on.
-
-Declared lovelace is treated as the floor the spec says it is: an output that cannot pay for its own bytes is raised to the ledger's minimum, so the difference reaches the person as the client's own adjustment rather than folded into the declared amount. Leftover too small to become change refuses rather than being paid as fee, which would be lovelace leaving the wallet that nothing on screen accounted for. Certificates are emitted in their Conway forms: the legacy pair encodes neither deposit nor refund, and the builder therefore leaves both out of the balance, producing a transaction the ledger rejects.
-
-Failure is a typed refusal carrying a spec error code — `INTENT_EXPIRED`, `INSUFFICIENT_FUNDS`, `CANNOT_BALANCE`, and `MALFORMED_RESPONSE` for an intent whose address is on another network. Every failure is one of those, the unreadable change address included: nothing here throws past the error channel, because a defect reaches a person as a stack trace where a refusal reaches them as words. `readWalletUtxos` is the conversion from CIP-30's CBOR hex to the typed values the builder takes; evolution-sdk has it, behind an export path its manifest blocks, so it is the sixth gap of ADR-0004 and belongs upstream.
