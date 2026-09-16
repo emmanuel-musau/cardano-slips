@@ -60,11 +60,11 @@ jobs:
 
       # `version` when changesets are pending, `publish` when none are and
       # there are publishable packages, `none` otherwise.
-      - uses: changesets/action/select-mode@v2.1.1
+      - uses: changesets/action/select-mode@v2.1.2
         id: mode
 
       - if: steps.mode.outputs.mode == 'version'
-        uses: changesets/action/version@v2.1.1
+        uses: changesets/action/version@v2.1.2
         with:
           script: pnpm version:packages
           commit-message: "chore: version packages"
@@ -110,7 +110,7 @@ jobs:
 
       # No NPM_TOKEN — auth is npm trusted publishing over OIDC, and provenance
       # comes with it.
-      - uses: changesets/action/publish@v2.1.1
+      - uses: changesets/action/publish@v2.1.2
         with:
           script: pnpm release
 
