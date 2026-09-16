@@ -66,7 +66,7 @@ jobs:
       # Kept whether the run passed or failed: a report naming what got through
       # is worth more than no report at all.
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: attack-examples
           path: packages/verifier/build/reports/attack-examples.json
