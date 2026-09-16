@@ -1067,6 +1067,92 @@
       "reasons": ["certificate.order"]
     },
     {
+      "name": "a registration stating a deposit larger than the protocol parameter",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeRegistration"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": [],
+        "stakeDeposit": "2000000"
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "49829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeRegistration",
+            "deposit": "500000000",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "block",
+      "reasons": ["certificate.deposit"]
+    },
+    {
+      "name": "a deregistration stating a refund that is not the protocol parameter",
+      "now": "2026-08-22T19:20:00Z",
+      "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+      "declared": {
+        "certificates": [
+          {
+            "type": "stakeDeregistration"
+          }
+        ],
+        "validUntil": "2026-08-22T19:40:00Z"
+      },
+      "parameters": {
+        "minFee": "170869",
+        "minChangeLovelace": "969750",
+        "minLovelace": [],
+        "stakeDeposit": "2000000"
+      },
+      "derived": {
+        "outputs": [
+          {
+            "address": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",
+            "lovelace": "53829131",
+            "mine": true
+          }
+        ],
+        "fee": "170869",
+        "certificates": [
+          {
+            "type": "stakeDeregistration",
+            "refund": "4000000",
+            "mine": true
+          }
+        ],
+        "withdrawals": [],
+        "mint": [],
+        "unsupported": [],
+        "validFrom": null,
+        "validUntil": "2026-08-22T19:35:00Z"
+      },
+      "verdict": "sign",
+      "reasons": []
+    },
+    {
       "name": "a declared withdrawal the transaction does not make",
       "now": "2026-08-22T19:20:00Z",
       "changeAddress": "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa",

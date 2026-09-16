@@ -79,6 +79,25 @@ export const apiErrorNames: Readonly<Record<number, string>> = {
 /** `-3` is the person saying no, which is not a fault and must not be shown as one. */
 export const REFUSED = -3
 
+/**
+ * `TxSignError` and `TxSendError` are `APIError`'s shape on their own
+ * numbering, and the numbering is the footgun: a declined signature is `2`
+ * here, where `2` in `APIError` is an internal error. They never share a call,
+ * so which table applies is decided by the method that rejected.
+ */
+export const txSignErrorNames: Readonly<Record<number, string>> = {
+  1: "ProofGeneration",
+  2: "UserDeclined"
+}
+
+/** `2` from `signTx`: the person declined in the wallet. */
+export const USER_DECLINED = 2
+
+export const txSendErrorNames: Readonly<Record<number, string>> = {
+  1: "Refused",
+  2: "Failure"
+}
+
 /** A wallet rejects with a plain `{ code, info }` object, not an `Error`. */
 export const readApiError = (cause: unknown): Cip30ApiError | undefined => {
   if (typeof cause !== "object" || cause === null) return undefined

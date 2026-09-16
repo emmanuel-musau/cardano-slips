@@ -2,8 +2,8 @@
  * Every colour, type role, step of spacing and radius the client uses, taken
  * from `1 · Tokens` on the design sheet. This is the only file in the package
  * that writes a colour — `test/no-hard-coded-colours.test.ts` fails if another
- * one does, and `test/tokens.test.ts` re-runs the sheet's contrast audit
- * against these values.
+ * one does, and `test/tokens.test.ts` re-runs the contrast audit against these
+ * values rather than trusting the numbers printed on the sheet.
  *
  * Scoped to a class, never `:root`: this ships into pages we do not own, and a
  * package that writes tokens onto the document redefines whatever the host
@@ -13,33 +13,38 @@
  * font-family on anything — a component reads `var(--font-text)` — so a host
  * page's own stack stays where it is until something of ours asks for a token.
  *
- * Three families of surface, and the difference is the point:
+ * One theme. The sheet collapsed an earlier light/dark pair into a single
+ * ground that leans light, so there is no `data-theme` and no role that means
+ * two things. What carries the weight instead is that the three surface
+ * families are genuinely different surfaces:
+ *
  *   page / card    the ordinary ground, and what lifts off it
- *   vault-*        the transaction preview, which separates itself by surface
- *                  and border rather than by being dark
- *   dark-*         code blocks and the Open Graph card, dark in both themes
+ *   vault-*        the transaction preview, on slate — the one grave surface,
+ *                  and the reason the rest can stay bright
+ *   dark-*         code blocks and the Open Graph card, fixed wherever they
+ *                  appear because neither sits on a ground we control
  */
 
 .slip-root {
   color-scheme: light;
 
   /* Surfaces. Depth is a border, never a shadow: there is no shadow token. */
-  --page: #f6f8fe; /* never pure white */
-  --card: #ffffff;
-  --subtle: rgba(114, 142, 243, 0.08); /* hover, chips */
-  --skeleton: rgba(114, 142, 243, 0.14);
-  --border: rgba(18, 23, 33, 0.12);
-  --divider: rgba(18, 23, 33, 0.1);
+  --page: #ebeef8; /* never pure white */
+  --card: #fcfdff;
+  --subtle: rgba(90, 110, 205, 0.09); /* hover, chips */
+  --skeleton: rgba(90, 110, 205, 0.14);
+  --border: rgba(20, 26, 40, 0.13);
+  --divider: rgba(20, 26, 40, 0.1);
 
   /* Ink */
-  --ink: #121721;
-  --muted: #5c6a9c;
+  --ink: #141a26;
+  --muted: #56628a;
 
   /*
-   * The split rule: --accent-fill reaches 3.05:1 on the card and is a fill —
-   * it never carries text below 24px. An accent-coloured word uses
-   * --accent-text. It stays a fill in the dark theme too, where it would
-   * otherwise clear AA, because the rule is about what the colour is for.
+   * The split rule: --accent-fill is a fill and never carries text below 24px.
+   * An accent-coloured word uses --accent-text. It clears AA on the vault and
+   * is still held to fills there, because the rule is about what the colour is
+   * for and not about the ratio it happens to reach.
    */
   --accent-fill: #728ef3;
   --accent-text: #2f4bc4; /* links */
@@ -59,36 +64,37 @@
   --warn-line: rgba(233, 180, 76, 0.5);
 
   /* The alternating rows of the effects list, on and off. */
-  --stripe-a: rgba(114, 142, 243, 0.16);
-  --stripe-b: rgba(114, 142, 243, 0.05);
-  --stripe-off-a: rgba(92, 106, 156, 0.12);
-  --stripe-off-b: rgba(92, 106, 156, 0.04);
+  --stripe-a: rgba(90, 110, 205, 0.16);
+  --stripe-b: rgba(90, 110, 205, 0.05);
+  --stripe-off-a: rgba(86, 98, 138, 0.12);
+  --stripe-off-b: rgba(86, 98, 138, 0.04);
 
   /*
    * The transaction preview. Its own family because it is the surface that
-   * judges the publisher, and `10 · Chrome rules` fixes it whoever hosts the
-   * page. It follows the theme like everything else.
+   * judges the publisher, and `13 · Chrome rules` fixes it whoever hosts the
+   * page. Slate rather than black: it has to read as a distinct surface, not
+   * as a hole in the page.
    */
-  --vault: #ffffff;
-  --vault-ink: #121721;
-  --vault-muted: #5c6a9c;
-  --vault-surface: rgba(114, 142, 243, 0.08);
-  --vault-border: rgba(18, 23, 33, 0.12);
-  --vault-chip: rgba(114, 142, 243, 0.16);
-  --vault-rule: rgba(114, 142, 243, 0.8);
-  --vault-pos: #1f7a5c;
-  --vault-warn: #8c5a12;
-  --vault-bad: #b3261e;
-  --vault-bad-tint: rgba(179, 38, 30, 0.06);
-  --vault-bad-line: rgba(179, 38, 30, 0.32);
-  --vault-bad-chip: rgba(179, 38, 30, 0.1);
-  --vault-warn-tint: rgba(233, 180, 76, 0.14);
-  --vault-warn-line: rgba(233, 180, 76, 0.55);
+  --vault: #222b3d;
+  --vault-ink: #f5f7ff;
+  --vault-muted: #c3cdec;
+  --vault-surface: rgba(255, 255, 255, 0.09);
+  --vault-border: rgba(255, 255, 255, 0.16);
+  --vault-chip: rgba(168, 188, 255, 0.22);
+  --vault-rule: rgba(168, 188, 255, 0.7);
+  --vault-pos: #5fd1a6;
+  --vault-warn: #e9b44c;
+  --vault-bad: #ffa39b;
+  --vault-bad-tint: rgba(255, 163, 155, 0.1);
+  --vault-bad-line: rgba(255, 163, 155, 0.45);
+  --vault-bad-chip: rgba(255, 163, 155, 0.18);
+  --vault-warn-tint: rgba(233, 180, 76, 0.12);
+  --vault-warn-line: rgba(233, 180, 76, 0.5);
 
   /*
-   * Dark in both themes, and nowhere else: code blocks in the docs and the
-   * Open Graph card. Deliberately absent from the dark theme below — a value
-   * that is fixed cannot also follow.
+   * Code blocks in the docs and the Open Graph card. Both land on a ground we
+   * do not control — a reader's docs theme, someone else's timeline — so they
+   * carry their own and do not follow anything.
    */
   --dark-bg: #121721;
   --dark-surface: rgba(255, 255, 255, 0.08);
@@ -124,61 +130,4 @@
   --radius-chip: 6px;
   --radius-control: 8px;
   --radius-card: 12px;
-}
-
-/*
- * The dark theme rebinds the roles rather than adding a second vocabulary. A
- * component writes var(--ink) once and is correct on both grounds; a component
- * choosing between a light token and a dark one is a component deciding the
- * rule, and two of them will decide it differently.
- *
- * Whether dark follows the operating system is not settled by the sheet, so it
- * is not decided here: the attribute is the only way in.
- */
-.slip-root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --page: #121721; /* the brand dark */
-  --card: #1b2231; /* lifted off the page */
-  --subtle: rgba(114, 142, 243, 0.16);
-  --skeleton: rgba(114, 142, 243, 0.18);
-  --border: rgba(255, 255, 255, 0.14);
-  --divider: rgba(255, 255, 255, 0.1);
-
-  --ink: #ffffff;
-  --muted: #ccd6ff;
-
-  --accent-text: #a8bcff;
-  --accent-hover: #5c79ee;
-  --accent-deep: #a8bcff;
-  --focus: #a8bcff;
-
-  --pos: #5fd1a6;
-  --warn: #e9b44c;
-  --bad: #ffa39b;
-  --bad-tint: rgba(255, 163, 155, 0.1);
-  --bad-line: rgba(255, 163, 155, 0.4);
-  --warn-tint: rgba(233, 180, 76, 0.14);
-  --warn-line: rgba(233, 180, 76, 0.45);
-
-  --stripe-a: rgba(114, 142, 243, 0.26);
-  --stripe-b: rgba(114, 142, 243, 0.1);
-  --stripe-off-a: rgba(204, 214, 255, 0.16);
-  --stripe-off-b: rgba(204, 214, 255, 0.05);
-
-  --vault: #080b12; /* still the gravest surface */
-  --vault-ink: #ffffff;
-  --vault-muted: #ccd6ff;
-  --vault-surface: rgba(255, 255, 255, 0.08);
-  --vault-border: rgba(255, 255, 255, 0.14);
-  --vault-chip: rgba(114, 142, 243, 0.24);
-  --vault-rule: rgba(114, 142, 243, 0.5);
-  --vault-pos: #5fd1a6;
-  --vault-warn: #e9b44c;
-  --vault-bad: #ffa39b;
-  --vault-bad-tint: rgba(255, 163, 155, 0.08);
-  --vault-bad-line: rgba(255, 163, 155, 0.45);
-  --vault-bad-chip: rgba(255, 163, 155, 0.2);
-  --vault-warn-tint: rgba(233, 180, 76, 0.08);
-  --vault-warn-line: rgba(233, 180, 76, 0.45);
 }
