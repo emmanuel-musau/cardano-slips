@@ -20,12 +20,17 @@ export {
   txSignErrorNames,
   USER_DECLINED
 } from "./cip30.js"
+export type { Attempt, CompletionRequest, Receipt } from "./complete.js"
+export { completeIntent } from "./complete.js"
+export type { CompletionRefusal } from "./complete-error.js"
+export { CompletionError, completionRefusals, slipErrorCodeFor as completionErrorCodeFor } from "./complete-error.js"
 export type { ConnectedWallet, ConnectOptions } from "./connect.js"
 export { connectWallet, networkIdFor } from "./connect.js"
 export type { DiscoveredWallet, WalletHost } from "./discovery.js"
 export { discoverWallets, findWallet, injectedUnder } from "./discovery.js"
 export type { KnownWallet } from "./registry.js"
 export { knownWallet, knownWallets } from "./registry.js"
+export { asResolvedInput, asResolvedInputs } from "./resolve.js"
 export type { SignedTransaction, SignRequest } from "./sign.js"
 export { signTransaction, submitTransaction } from "./sign.js"
 export type { SignRefusal } from "./sign-error.js"
