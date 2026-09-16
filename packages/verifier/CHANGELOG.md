@@ -1,5 +1,13 @@
 # @cardano-slips/verifier
 
+## 0.3.0
+
+### Minor Changes
+
+- [#164](https://github.com/emmanuel-musau/cardano-slips/pull/164) [`85e0601`](https://github.com/emmanuel-musau/cardano-slips/commit/85e06018ecf84d9983da3939c76a7a1335da1b23) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Block a certificate that states a deposit which is not the protocol parameter, reported as `certificate.deposit` (ADR-0013). A Conway `reg_cert` states its own figure and the ledger fixes it at the current parameter exactly, so a body stating five hundred ADA where the parameter is two put five hundred ADA of "leaving your wallet" in front of a person and still returned `match`. The rule reads the derived effects rather than the match, so it covers the combined registration-delegation and DRep forms this version cannot declare.
+  
+  A stated *refund* is deliberately not gated: the ledger returns what the credential was registered under, which after a `keyDeposit` change is neither the current parameter nor recoverable from any of the engine's five arguments, and gating it would permanently false-block every credential registered before such a change. `reasonCodes` is new, an exhaustive record of the block vocabulary that the suite holds to the table the CIP publishes.
+
 ## 0.2.0
 
 ### Minor Changes
