@@ -13,8 +13,12 @@ const tokensPath = join(import.meta.dirname, "..", "src", "tokens.css")
 
 export const tokensSource = (): string => readFileSync(tokensPath, "utf8")
 
-/** Comments carry hex in prose; stripping them first keeps a parser out of the argument. */
-const withoutComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, "")
+/**
+ * Comments carry hex in prose, and they explain rules the stylesheet does not
+ * have — so anything asserting about what the CSS *declares* reads this first,
+ * or the explanation trips the assertion.
+ */
+export const withoutComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, "")
 
 export const parseScopes = (css: string): ReadonlyArray<Scope> => {
   const scopes: Array<Scope> = []
@@ -31,9 +35,10 @@ export const parseScopes = (css: string): ReadonlyArray<Scope> => {
 }
 
 /**
- * What a property resolves to inside `selector`. A scope that does not declare
- * a token inherits it from `.slip-root`, which is what the dark block relies on
- * — it rebinds the roles it changes and nothing else.
+ * What a property resolves to inside `selector`, following a `var()` reference
+ * to the value it ends at — which is what `--type-*` needs, since each names a
+ * `--font-*` rather than repeating a stack. A scope that does not declare a
+ * token falls back to `.slip-root`, the only scope the stylesheet now has.
  */
 export const resolve = (scopes: ReadonlyArray<Scope>, selector: string, property: string): string | undefined => {
   const inScope = scopes.find((scope) => scope.selector === selector)?.declarations.get(property)
