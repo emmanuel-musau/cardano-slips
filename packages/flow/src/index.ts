@@ -9,13 +9,28 @@ export { balanceIntent } from "./balance.js"
 export type { BalanceRefusal } from "./balance-error.js"
 export { BalanceError, balanceRefusals, slipErrorCodeFor as balanceErrorCodeFor } from "./balance-error.js"
 export type { CborHex, Cip30Api, Cip30ApiError, Cip30Provider, Paginate, SignedData } from "./cip30.js"
-export { apiErrorNames, describeApiError, isCip30Api, isCip30Provider, readApiError, REFUSED } from "./cip30.js"
+export {
+  apiErrorNames,
+  describeApiError,
+  isCip30Api,
+  isCip30Provider,
+  readApiError,
+  REFUSED,
+  txSendErrorNames,
+  txSignErrorNames,
+  USER_DECLINED
+} from "./cip30.js"
 export type { ConnectedWallet, ConnectOptions } from "./connect.js"
 export { connectWallet, networkIdFor } from "./connect.js"
 export type { DiscoveredWallet, WalletHost } from "./discovery.js"
 export { discoverWallets, findWallet, injectedUnder } from "./discovery.js"
 export type { KnownWallet } from "./registry.js"
 export { knownWallet, knownWallets } from "./registry.js"
+export type { SignedTransaction, SignRequest } from "./sign.js"
+export { signTransaction, submitTransaction } from "./sign.js"
+export type { SignRefusal } from "./sign-error.js"
+export { signRefusals, SigningError, slipErrorCodeFor as signErrorCodeFor } from "./sign-error.js"
 export { readWalletUtxos } from "./utxo.js"
 export type { ConnectRefusal } from "./wallet-error.js"
 export { connectRefusals, slipErrorCodeFor, WalletConnectError } from "./wallet-error.js"
+export { assembleWitnesses, requireSameBody, transactionIdOf } from "./witness.js"

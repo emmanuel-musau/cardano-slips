@@ -25,6 +25,10 @@ const allowedDependencies = [
   "@cardano-slips/verifier",
   "@cardano-slips/identity",
   "@evolution-sdk/evolution",
+  // BLAKE2b-256 for the transaction id, which evolution-sdk computes nowhere
+  // over a body's own bytes. Declared rather than reached for through
+  // evolution-sdk, which carries it and owes us nothing.
+  "@noble/hashes",
   "effect",
   "react"
 ]
