@@ -10,7 +10,7 @@
  * already called `--ink`. Put `slip-root` on the element that wraps the Slip.
  *
  * There is no reset here and no rule that selects an element. Nothing sets a
- * font-family on anything — a component reads `var(--font-text)` — so a host
+ * font-family on anything — a component reads a `--type-*` role — so a host
  * page's own stack stays where it is until something of ours asks for a token.
  *
  * One theme. The sheet collapsed an earlier light/dark pair into a single
@@ -47,21 +47,25 @@
    * for and not about the ratio it happens to reach.
    */
   --accent-fill: #728ef3;
-  --accent-text: #2f4bc4; /* links */
-  --accent-action: #4361e8; /* button background */
-  --accent-hover: #2f4bc4;
+  --accent-text: #123cd3; /* links */
+  --accent-action: #123cd3; /* the outline and the label of a button */
+  --accent-hover: #0e2fa6;
   --accent-deep: #0c288d; /* headings */
-  --on-accent: #ffffff; /* anything drawn on --accent-action */
-  --focus: #4361e8;
+  --on-accent: #ffffff; /* anything drawn on a filled accent */
+  --focus: #123cd3;
+
+  /* The accent lightened for slate, where #123cd3 disappears into the ground. */
+  --accent-on-slate: #8fa9ff;
 
   /* Semantic, and rare. A page that colours everything says nothing. */
-  --pos: #1f7a5c; /* positive, refundable */
-  --warn: #8c5a12;
-  --bad: #b3261e;
-  --bad-tint: rgba(179, 38, 30, 0.06);
-  --bad-line: rgba(179, 38, 30, 0.24);
-  --warn-tint: rgba(233, 180, 76, 0.16);
-  --warn-line: rgba(233, 180, 76, 0.5);
+  --pos: #065708; /* value arriving */
+  --warn: #7a5200; /* held, taken, caution */
+  --bad: #d20a19; /* problem, blocked */
+  --bad-tint: rgba(210, 10, 25, 0.06);
+  --bad-line: rgba(210, 10, 25, 0.24);
+  --warn-tint: rgba(254, 206, 82, 0.22);
+  --warn-line: rgba(254, 206, 82, 0.85);
+  --warn-fill: #fece52; /* the warning as a fill, never as a word on a light ground */
 
   /* The alternating rows of the effects list, on and off. */
   --stripe-a: rgba(90, 110, 205, 0.16);
@@ -82,14 +86,19 @@
   --vault-border: rgba(255, 255, 255, 0.16);
   --vault-chip: rgba(168, 188, 255, 0.22);
   --vault-rule: rgba(168, 188, 255, 0.7);
-  --vault-pos: #5fd1a6;
-  --vault-warn: #e9b44c;
-  --vault-bad: #ffa39b;
-  --vault-bad-tint: rgba(255, 163, 155, 0.1);
-  --vault-bad-line: rgba(255, 163, 155, 0.45);
-  --vault-bad-chip: rgba(255, 163, 155, 0.18);
-  --vault-warn-tint: rgba(233, 180, 76, 0.12);
-  --vault-warn-line: rgba(233, 180, 76, 0.5);
+  --vault-pos: #6fcb72;
+  --vault-warn: #fece52;
+  /*
+   * #ff5247 on the sheet, lightened here: that value measures 4.42:1 on the
+   * vault and the sheet's own row calls it a pass. This is the colour the
+   * mismatch block is written in, so it clears AA or it does not ship.
+   */
+  --vault-bad: #ff5a50;
+  --vault-bad-tint: rgba(210, 10, 25, 0.16);
+  --vault-bad-line: rgba(255, 82, 71, 0.55);
+  --vault-bad-chip: rgba(210, 10, 25, 0.28);
+  --vault-warn-tint: rgba(254, 206, 82, 0.14);
+  --vault-warn-line: rgba(254, 206, 82, 0.55);
 
   /*
    * Code blocks in the docs and the Open Graph card. Both land on a ground we
@@ -101,21 +110,25 @@
   --dark-text: #ffffff;
   --dark-muted: #ccd6ff;
 
-  /* Type. Each stack ends in a generic family, so a missing webfont degrades. */
-  --font-display: Poppins, system-ui, sans-serif;
-  --font-text: Figtree, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /*
+   * One family, for everything. The sheet's earlier display/text/mono trio is
+   * gone: weight and size separate a heading from a label perfectly well, and
+   * three names for one face is three chances to drift apart. The stack ends in
+   * a generic family, so a missing webfont degrades rather than disappears.
+   */
+  --font: Poppins, system-ui, sans-serif;
 
   /* Whole roles, so half a role cannot be applied without the other half. */
-  --type-h1: 700 44px/48px var(--font-display);
+  --type-h1: 700 44px/48px var(--font);
   --type-h1-tracking: -0.01em;
-  --type-card-title: 700 18px/24px var(--font-display);
-  --type-numeral: 700 26px/32px var(--font-display); /* a figure is always Poppins 700 */
-  --type-body: 500 16px/24px var(--font-text);
-  --type-button: 500 14px/20px var(--font-text);
+  --type-card-title: 700 18px/24px var(--font);
+  --type-numeral: 700 26px/32px var(--font); /* a figure is always 700 */
+  --type-body: 400 16px/24px var(--font);
+  --type-button: 500 14px/20px var(--font);
   --type-button-tracking: 0.1px;
-  --type-label: 500 13px var(--font-text);
-  --type-mono: 400 12px/20px var(--font-mono); /* addresses, hashes, the tx block */
+  --type-label: 500 13px var(--font);
+  /* Addresses, hashes, error codes, the tx block — text meant for a machine. */
+  --type-technical: 400 12px/20px var(--font);
 
   /* Spacing, on a 4px base. */
   --space-4: 4px;
