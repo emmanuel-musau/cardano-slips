@@ -72,13 +72,34 @@ describe("the documents that are not records", () => {
 })
 
 describe("every decision record", () => {
+  const index = read(join(decisions, "README.md"))
+  const numbered = records.filter((file) => file !== "README.md" && file !== "0000-template.md")
+
+  /** `**Status:** Superseded by [ADR-0008](…)` reduces to `Superseded`. */
+  const statusOf = (file: string): string | undefined =>
+    /\*\*Status:\*\* (Accepted|Proposed|Superseded|Rejected)/.exec(read(join(decisions, file)))?.[1]
+
+  /** The index row for a record: `| [0014](file.md) | Title | Status |`. */
+  const rowFor = (file: string): RegExpExecArray | null =>
+    new RegExp(`^\\| \\[\\d{4}\\]\\(${file.replace(".", "\\.")}\\) \\| .+ \\| (.+) \\|$`, "m").exec(index)
+
   it("declares a status the index recognises", () => {
-    const index = read(join(decisions, "README.md"))
-    const statuses = ["Accepted", "Proposed", "Superseded", "Rejected"]
-    const undeclared = records
-      .filter((file) => file !== "README.md" && file !== "0000-template.md")
-      .filter((file) => !statuses.some((status) => read(join(decisions, file)).includes(`**Status:** ${status}`)))
+    const undeclared = numbered.filter((file) => statusOf(file) === undefined)
     expect(undeclared).toEqual([])
     expect(index).toContain("Superseded by ADR-0008")
+  })
+
+  it("is listed in the index", () => {
+    // An unlisted record is one nobody finds, so the decision stops being settled.
+    const missing = numbered.filter((file) => rowFor(file) === null)
+    expect(missing).toEqual([])
+  })
+
+  it("is listed with the status it declares", () => {
+    const drifted = numbered
+      .map((file) => ({ file, declared: statusOf(file), listed: rowFor(file)?.[1] }))
+      .filter(({ declared, listed }) => listed !== undefined && !listed!.startsWith(declared!))
+      .map(({ file, declared, listed }) => `${file}: declares ${declared}, index says ${listed}`)
+    expect(drifted).toEqual([])
   })
 })
