@@ -10,13 +10,28 @@ ADR-0006 split publisher identity into two tiers and left the Tier-2 question �
 whether CIP-0170 ships in v1 — open, to be answered by a spike against the real
 tooling. This is what the spike found.
 
-**The KERI half works.** Against a local KERIA agent, the three-witness demo pool
-and the GLEIF vLEI server, `signify-ts` creates a publisher identifier, anchors a
-digest of the Tier-1 manifest in its key event log as a witnessed interaction
-event, and that seal reads back from the witness afterwards and matches. The
-mechanism is real and it does what the CIP says it does.
+**The KERI half works, and it is on a testnet.** Against a local KERIA agent, the
+three-witness demo pool and the GLEIF vLEI server, `signify-ts` creates a
+publisher identifier, anchors a digest of the Tier-1 manifest in its key event
+log as a witnessed interaction event, and that seal reads back from the witness
+afterwards and matches. The `ATTEST` record is on preview in
+`cc12097b09fcfc763d49d4e91342283ba0ea32bc943fca5756c8ae9ee0e9e485`, under label
+`170`, for identifier `EKhygzBVHjBLQF-8ahx6eNcocgAJ5-G5dnAt27ebwUrJ` at sequence
+1. Read back from the chain it verifies: the digest recomputed over the
+metadatum's own bytes matches the `d` field, and the key event at that sequence
+carries the seal.
 
-Three things around it do not work.
+That transaction is also the clearest statement of the problem. It verifies and
+it still renders as **unverified**, because no `AUTH_BEGIN` grants that
+identifier authority over label `170` — and for the three reasons below, none
+could.
+
+One thing worth recording from building it: the digest is over the metadatum
+bytes as they land in auxiliary data, so issuance is a three-phase operation —
+build the exact metadatum, anchor that digest, then submit. A key event written
+before the metadatum is built commits to bytes the transaction may not reproduce.
+
+Three things do not work.
 
 **1. `AUTH_BEGIN` cannot be encoded as specified.** The event that grants an
 identifier authority over label `170` carries its credential chain in `c: bytes`.
