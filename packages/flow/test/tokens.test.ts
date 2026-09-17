@@ -52,23 +52,25 @@ describe("the values", () => {
     ["--ink", "#141a26"],
     ["--muted", "#56628a"],
     ["--accent-fill", "#728ef3"],
-    ["--accent-text", "#2f4bc4"],
-    ["--accent-action", "#4361e8"],
-    ["--accent-hover", "#2f4bc4"],
+    ["--accent-text", "#123cd3"],
+    ["--accent-action", "#123cd3"],
+    ["--accent-hover", "#0e2fa6"],
     ["--accent-deep", "#0c288d"],
+    ["--accent-on-slate", "#8fa9ff"],
     ["--on-accent", "#ffffff"],
-    ["--focus", "#4361e8"],
-    ["--pos", "#1f7a5c"],
-    ["--warn", "#8c5a12"],
-    ["--bad", "#b3261e"],
+    ["--focus", "#123cd3"],
+    ["--pos", "#065708"],
+    ["--warn", "#7a5200"],
+    ["--warn-fill", "#fece52"],
+    ["--bad", "#d20a19"],
     ["--vault", "#222b3d"],
     ["--vault-ink", "#f5f7ff"],
     ["--vault-muted", "#c3cdec"],
     ["--vault-surface", "rgba(255, 255, 255, 0.09)"],
     ["--vault-border", "rgba(255, 255, 255, 0.16)"],
-    ["--vault-pos", "#5fd1a6"],
-    ["--vault-warn", "#e9b44c"],
-    ["--vault-bad", "#ffa39b"]
+    ["--vault-pos", "#6fcb72"],
+    ["--vault-warn", "#fece52"],
+    ["--vault-bad", "#ff5a50"]
   ])("holds %s at the value the sheet settles", (property, value) => {
     expect(token(property)).toBe(value)
   })
@@ -91,24 +93,32 @@ describe("the values", () => {
 })
 
 describe("the type roles", () => {
-  it.each(["--font-display", "--font-text", "--font-mono"])(
-    "%s ends in a generic family, so a missing webfont degrades rather than disappears",
-    (property) => {
-      const stack = token(property)
-        .split(",")
-        .map((name) => name.trim())
-      expect(["sans-serif", "serif", "monospace", "system-ui", "ui-monospace"]).toContain(stack.at(-1))
-      expect(stack.length).toBeGreaterThan(1)
-    }
-  )
+  it("names one family and offers no second one to reach for", () => {
+    // Display, text and mono were three names for what is now one face. A
+    // component that can pick a family is a component that will pick a
+    // different one from the next component.
+    const families = [...declarations(ROOT).keys()].filter((property) => property.startsWith("--font"))
+
+    expect(families).toEqual(["--font"])
+  })
+
+  it("ends the stack in a generic family, so a missing webfont degrades rather than disappears", () => {
+    const stack = token("--font")
+      .split(",")
+      .map((name) => name.trim())
+
+    expect(["sans-serif", "serif", "monospace", "system-ui"]).toContain(stack.at(-1))
+    expect(stack.length).toBeGreaterThan(1)
+  })
 
   it.each([
-    ["--type-h1", "700 44px/48px var(--font-display)"],
-    ["--type-card-title", "700 18px/24px var(--font-display)"],
-    ["--type-numeral", "700 26px/32px var(--font-display)"],
-    ["--type-body", "500 16px/24px var(--font-text)"],
-    ["--type-button", "500 14px/20px var(--font-text)"],
-    ["--type-label", "500 13px var(--font-text)"]
+    ["--type-h1", "700 44px/48px var(--font)"],
+    ["--type-card-title", "700 18px/24px var(--font)"],
+    ["--type-numeral", "700 26px/32px var(--font)"],
+    ["--type-body", "400 16px/24px var(--font)"],
+    ["--type-button", "500 14px/20px var(--font)"],
+    ["--type-label", "500 13px var(--font)"],
+    ["--type-technical", "400 12px/20px var(--font)"]
   ])("carries %s as one whole role", (property, value) => {
     // A component that can apply the size without the family is a component
     // that will, and the sheet's type is a pairing rather than a size.
@@ -154,19 +164,24 @@ describe("the contrast audit", () => {
     ["ink on a card", token("--ink"), token("--card"), 17.12],
     ["muted on the page", token("--muted"), token("--page"), 5.16],
     ["muted on a card", token("--muted"), token("--card"), 5.88],
-    ["accent text on a card", token("--accent-text"), token("--card"), 7.06],
-    ["accent text on the page", token("--accent-text"), token("--page"), 6.2],
+    ["accent text on a card", token("--accent-text"), token("--card"), 7.9],
+    ["accent text on the page", token("--accent-text"), token("--page"), 6.93],
     ["accent deep on a card", token("--accent-deep"), token("--card"), 12.11],
-    ["button text on the action colour", token("--on-accent"), token("--accent-action"), 5.1],
-    ["positive on a card", token("--pos"), token("--card"), 5.16],
-    ["warning on a card", token("--warn"), token("--card"), 5.75],
-    ["blocked on a card", token("--bad"), token("--card"), 6.42],
+    // The button is outlined now, so its label is measured against the card it
+    // sits on rather than against a fill it no longer has.
+    ["a button's label and outline on a card", token("--accent-action"), token("--card"), 7.9],
+    ["a button under the pointer", token("--accent-hover"), token("--card"), 10.44],
+    ["white on a filled accent", token("--on-accent"), token("--accent-action"), 8.04],
+    ["positive on a card", token("--pos"), token("--card"), 8.69],
+    ["warning on a card", token("--warn"), token("--card"), 6.8],
+    ["blocked on a card", token("--bad"), token("--card"), 5.43],
 
     ["vault ink on the vault", token("--vault-ink"), token("--vault"), 13.26],
     ["vault muted on the vault", token("--vault-muted"), token("--vault"), 8.96],
-    ["vault positive on the vault", token("--vault-pos"), token("--vault"), 7.53],
-    ["vault warning on the vault", token("--vault-warn"), token("--vault"), 7.49],
-    ["vault blocked on the vault", token("--vault-bad"), token("--vault"), 7.4],
+    ["the accent on slate", token("--accent-on-slate"), token("--vault"), 6.27],
+    ["vault positive on the vault", token("--vault-pos"), token("--vault"), 7.06],
+    ["vault warning on the vault", token("--vault-warn"), token("--vault"), 9.56],
+    ["vault blocked on the vault", token("--vault-bad"), token("--vault"), 4.61],
 
     ["docs text on the dark palette", token("--dark-text"), token("--dark-bg"), 17.95],
     ["docs muted on the dark palette", token("--dark-muted"), token("--dark-bg"), 12.5]
@@ -189,6 +204,15 @@ describe("the contrast audit", () => {
     // about what the colour is for. Recorded so that nobody reads the ratio off
     // a checker and promotes it to text.
     expect(contrast(colour(token("--accent-fill")), colour(token("--vault")))).toBeGreaterThanOrEqual(AA)
+  })
+
+  it("keeps the blocked colour on slate above AA, which is where it left the sheet", () => {
+    // The sheet draws #ff5247 and prints 4.43 in a row it labels a pass. This
+    // colour carries the mismatch block, so the file lightens it instead. If
+    // anyone syncs the sheet's value back, this is the test that says why not.
+    expect(token("--vault-bad")).not.toBe("#ff5247")
+    expect(contrast(colour("#ff5247"), colour(token("--vault")))).toBeLessThan(AA)
+    expect(contrast(colour(token("--vault-bad")), colour(token("--vault")))).toBeGreaterThanOrEqual(AA)
   })
 
   it("measures a raised surface on the ground it sits on", () => {
@@ -235,6 +259,8 @@ describe("what a consumer imports", () => {
   })
 
   it("is put there by the build", () => {
-    expect(manifest.scripts?.build).toContain("tokens.css")
+    // The build copies the stylesheets wholesale, so what puts this one in
+    // `dist` is that it is one of them.
+    expect(manifest.scripts?.build).toMatch(/cp\s+src\/\*\.css\s+dist\//)
   })
 })

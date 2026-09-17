@@ -18,12 +18,15 @@
   },
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./card.css": "./dist/card.css",
     "./tokens.css": "./dist/tokens.css",
     "./package.json": "./package.json"
   },
@@ -39,7 +42,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -b tsconfig.build.json && mkdir -p dist && cp src/tokens.css dist/tokens.css",
+    "build": "tsc -b tsconfig.build.json && mkdir -p dist && cp src/*.css dist/",
     "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "lint": "eslint .",

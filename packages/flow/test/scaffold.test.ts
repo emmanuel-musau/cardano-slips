@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
@@ -11,7 +11,7 @@ const packageRoot = join(import.meta.dirname, "..")
 
 type Manifest = {
   type?: string
-  sideEffects?: boolean
+  sideEffects?: boolean | string[]
   types?: string
   files?: string[]
   exports?: Record<string, string | Record<string, string>>
@@ -34,12 +34,25 @@ describe("the public entry point", () => {
 
   it("is the only module the package exposes", () => {
     // One module entry is what makes moving a source file non-breaking. The
-    // stylesheet is the one other subpath because a stylesheet cannot be
-    // re-exported through a module — and it stays not-a-module below.
-    expect(Object.keys(manifest.exports ?? {})).toEqual([".", "./tokens.css", "./package.json"])
+    // stylesheets are the other subpaths because a stylesheet cannot be
+    // re-exported through a module — and they stay not-modules below.
+    const subpaths = Object.keys(manifest.exports ?? {})
+    expect(subpaths.filter((subpath) => !subpath.endsWith(".css"))).toEqual([".", "./package.json"])
+    expect(subpaths.filter((subpath) => subpath.endsWith(".css"))).toEqual(["./card.css", "./tokens.css"])
 
     const modules = exportTargets().filter((target) => target.endsWith(".js") || target.endsWith(".d.ts"))
     expect(modules).toEqual(["./dist/index.d.ts", "./dist/index.js"])
+  })
+
+  it("exposes every stylesheet it ships", () => {
+    // A stylesheet in `src` that the map does not name is one a consumer cannot
+    // import, which makes it dead weight nobody notices.
+    const shipped = readdirSync(join(packageRoot, "src")).filter((name) => name.endsWith(".css"))
+    const exposed = Object.keys(manifest.exports ?? {})
+      .filter((subpath) => subpath.endsWith(".css"))
+      .map((subpath) => subpath.replace(/^\.\//, ""))
+
+    expect([...exposed].sort()).toEqual([...shipped].sort())
   })
 })
 
@@ -73,8 +86,11 @@ describe("the published surface", () => {
   })
 
   it("declares itself ESM and free of side effects", () => {
-    // A bundler only drops unused imports if told the module graph has no side effects.
+    // A bundler only drops unused imports if told the module graph has no side
+    // effects — but a stylesheet is nothing but its side effect, and `false`
+    // here lets webpack drop `import "@cardano-slips/flow/card.css"` and serve
+    // an unstyled card. The modules stay shakeable; the stylesheets are named out.
     expect(manifest.type).toBe("module")
-    expect(manifest.sideEffects).toBe(false)
+    expect(manifest.sideEffects).toEqual(["*.css"])
   })
 })

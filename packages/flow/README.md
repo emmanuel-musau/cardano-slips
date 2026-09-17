@@ -30,6 +30,36 @@ These components are meant to be dropped into someone else's page. No fixed posi
 
 React is a **peer** dependency: your copy is the one that renders, and a second copy in the tree is the oldest breakage in the ecosystem.
 
+## Components
+
+```tsx
+import { SlipCard } from "@cardano-slips/flow"
+import "@cardano-slips/flow/tokens.css"
+import "@cardano-slips/flow/card.css"
+
+<SlipCard slip={slip} discoveryUrl={url} onSubmit={({ href, values }) => …} />
+```
+
+`SlipCard` renders what the endpoint declared — icon, title, description, and a button per linked action — generates the form its parameters describe, and hands you the `POST` target once every value passes. `SlipCardSkeleton` holds the same box while the metadata is in flight; `SlipCardError` replaces it when the endpoint never answered.
+
+The card makes no claim about the transaction. Title and description are the publisher's words, and checking them against what the transaction actually does is the effects panel's job — against the bytes, not against this card.
+
+Nothing here decides for a person on the endpoint's behalf: a value that fails `required`, `min` or `max` is caught before anything is sent, in `core`'s own sentence, so the same bad value reads identically in every client. A field the endpoint itself refuses lands on that field and leaves the card standing, and what was typed stays typed.
+
+### Restyling
+
+`card.css` is optional. Import it and you get the design sheet; skip it and you get the markup, where every element carries a class of ours and nothing else:
+
+| Class | What it is |
+| --- | --- |
+| `slip-card` | the card, and `slip-card--loading` / `slip-card--failed` for the other two; `data-closed` marks a Slip that cannot be signed and `data-busy` one with a request in flight |
+| `slip-card__head`, `__icon`, `__title`, `__origin`, `__description` | what the endpoint declared |
+| `slip-card__actions`, `__action` | the buttons; `data-primary` marks the one that is emphasised |
+| `slip-card__reason`, `__note` | why an action is closed, and the promise the card makes |
+| `slip-fields`, `slip-field`, `slip-field__*` | the generated form; `data-invalid` marks a field that was rejected |
+
+The card is the publisher's surface and is meant to be restyled. The chrome that judges it — the effects panel, the mismatch block, the network indicator — is not, hosted or self-hosted: a publisher who can restyle the surface that judges them makes the verdict look like something they control.
+
 ## Tokens
 
 ```ts
@@ -38,24 +68,23 @@ import "@cardano-slips/flow/tokens.css"
 
 ```html
 <div class="slip-root">…</div>
-<div class="slip-root" data-theme="dark">…</div>
 ```
 
-The tokens are scoped to `slip-root` rather than `:root`, because a package that writes `--ink` onto the document redefines whatever the host already called that. Put the class on the element that wraps the Slip. There is no reset in the file and no rule that selects an element, so an inherited font stack stays where it is until something of ours asks for a token.
+The tokens are scoped to `slip-root` rather than `:root`, because a package that writes `--ink` onto the document redefines whatever the host already called that. Every component of ours puts the class on its own root, so an embedded card carries its tokens with it. There is no reset in the file and no rule that selects an element, so an inherited font stack stays where it is until something of ours asks for a token.
 
-`data-theme="dark"` is the whole of the theme rule: it rebinds the roles — surfaces, ink, accent and the semantic three — so a component writes `var(--ink)` once and is right in both. A component choosing between a light token and a dark one is a component deciding the rule, and two of them will decide it differently. Whether dark follows the operating system is not settled by the design sheet, so it is not decided here either; the attribute is the only way in.
-
-Three families of surface, and the difference is the point:
+There is one theme. The design sheet collapsed an earlier light/dark pair into a single ground that leans light, so there is no `data-theme` and no role that means two things — a component that can ask which theme it is in is a component that will answer differently from the next one. What carries the weight instead is that the three families of surface are genuinely different surfaces:
 
 | Family | What it is |
 | --- | --- |
 | `--page`, `--card` | the ordinary ground, and what lifts off it |
-| `--vault-*` | the transaction preview, which separates itself by surface and border rather than by being dark |
-| `--dark-*` | code blocks and the Open Graph card — dark in **both** themes, so they are the one thing the theme does not touch |
+| `--vault-*` | the transaction preview, on slate — the one grave surface, and the reason the rest can stay bright |
+| `--dark-*` | code blocks and the Open Graph card, fixed wherever they appear because neither sits on a ground we control |
 
-Type arrives as whole roles — `font: var(--type-card-title)` carries family, weight, size and line-height together — because the sheet settles a pairing, not a size. Depth is a border; there is no shadow token.
+There is one typeface, Poppins, and one token naming it. The package does not fetch it — a stylesheet that reaches a third-party CDN makes a privacy and performance decision that belongs to whoever owns the page — so load Poppins yourself, or take the `system-ui` the stack falls back to. Type arrives as whole roles — `font: var(--type-card-title)` carries family, weight, size and line-height together — because a role is a pairing, not a size, and because a component that can apply the size without the family is a component that will. What separates a title from a label is weight and size; there is no second face to reach for, and `--type-technical` is the role for text meant for a machine — an address, a hash, an error code.
 
-Two rules the tests keep: no colour is written anywhere but `tokens.css`, and the design sheet's contrast audit is recomputed against these values rather than trusted. `--accent-fill` is a fill — it does not clear AA on a light card, which is why `--accent-text` exists for any accent-coloured word, and it stays a fill in the dark theme where the ratio alone would allow otherwise.
+Depth is a border; there is no shadow token. Buttons are outlined rather than filled: the accent is the label and the edge, not the ground.
+
+Three rules the tests keep: no colour is written anywhere but `tokens.css`, every `var(--…)` a stylesheet reaches for is a token that exists, and the design sheet's contrast audit is recomputed against these values rather than trusted — which is how `--vault-bad` came to be a shade lighter here than on the sheet, where the value drawn measures 4.42:1 on the preview surface under a row labelled a pass. `--accent-fill` is a fill — it does not clear AA on a light card, which is why `--accent-text` exists for any accent-coloured word, and it stays a fill on the preview surface where the ratio alone would allow otherwise.
 
 ## Entry point
 

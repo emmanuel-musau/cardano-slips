@@ -1,0 +1,367 @@
+/*
+ * The action card, drawn from `2 · Action card` on the design sheet. Optional:
+ * a consumer who imports only `tokens.css` gets the markup and the class names
+ * and styles them however they like. Nothing here writes a colour — every value
+ * is a token, and `test/no-hard-coded-colours.test.ts` fails if that stops
+ * being true.
+ *
+ * The card is the publisher's surface (`13 · Chrome rules`): its content is
+ * their claim, so its look is theirs to own. The chrome that judges that claim
+ * — the effects panel and the mismatch block — is fixed and is not styled here.
+ *
+ * Every text rule states family, size, weight and line-height together through
+ * a `--type-*` role, so a host page's inherited stack cannot reach in.
+ */
+
+.slip-card {
+  box-sizing: border-box;
+  position: relative;
+
+  /* Widths are answered against the card's own box: it never assumes it owns the viewport. */
+  container-type: inline-size;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+
+  width: 100%;
+  max-width: 680px;
+  margin: 0;
+  padding: var(--space-20);
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.slip-card *,
+.slip-card *::before,
+.slip-card *::after {
+  box-sizing: border-box;
+}
+
+.slip-card__head {
+  display: flex;
+  gap: var(--space-12);
+  align-items: flex-start;
+}
+
+.slip-card__icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.slip-card__image,
+.slip-card__pattern,
+.slip-card__monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.slip-card__image {
+  object-fit: cover;
+}
+
+/* The two fallbacks. Neither is a generic glyph: one is the publisher's initial, the other is no claim at all. */
+.slip-card__monogram {
+  background: var(--subtle);
+  color: var(--accent-text);
+  font: var(--type-card-title);
+}
+
+.slip-card__pattern {
+  background-image: repeating-linear-gradient(135deg, var(--stripe-a) 0 5px, var(--stripe-b) 5px 10px);
+}
+
+.slip-card__alarm {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--bad-line);
+  border-radius: var(--radius-control);
+  background: var(--bad-tint);
+  color: var(--bad);
+  font: var(--type-card-title);
+}
+
+.slip-card__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.slip-card__title {
+  margin: 0;
+  color: var(--ink);
+  font: var(--type-card-title);
+  text-wrap: pretty;
+}
+
+.slip-card__origin {
+  color: var(--muted);
+  font: var(--type-technical);
+  overflow-wrap: anywhere;
+}
+
+.slip-card__description {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--muted);
+  font: var(--type-body);
+  text-wrap: pretty;
+}
+
+.slip-card__note {
+  margin: 0;
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--divider);
+  color: var(--muted);
+  font: var(--type-label);
+}
+
+.slip-card__reason {
+  margin: 0;
+  color: var(--muted);
+  font: var(--type-label);
+  text-wrap: pretty;
+}
+
+/* A closed card stays readable. Only the action is gone. */
+.slip-card[data-closed] .slip-card__title {
+  color: var(--muted);
+}
+
+.slip-card[data-closed] .slip-card__pattern {
+  background-image: repeating-linear-gradient(135deg, var(--stripe-off-a) 0 5px, var(--stripe-off-b) 5px 10px);
+}
+
+.slip-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/*
+ * One button, outlined. The sheet drew a filled primary until the palette
+ * change and now draws every action the same way, so `data-primary` marks which
+ * one leads without claiming a look the sheet no longer gives it.
+ */
+.slip-card__action {
+  flex: 0 1 auto;
+  height: 44px;
+  padding: 0 var(--space-20);
+  border: 1px solid var(--accent-action);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--accent-action);
+  font: var(--type-button);
+  letter-spacing: var(--type-button-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Alone, a button is the width of the card; among others it is the width of its words. */
+.slip-card__action:only-child {
+  flex: 1 1 100%;
+}
+
+.slip-card__action:not(:disabled):hover {
+  border-color: var(--accent-hover);
+  background: var(--subtle);
+  color: var(--accent-hover);
+}
+
+.slip-card__action:disabled {
+  border-color: var(--border);
+  background: var(--subtle);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.slip-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.slip-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.slip-field__label {
+  color: var(--muted);
+  font: var(--type-label);
+}
+
+.slip-field__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 44px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--card);
+}
+
+.slip-field__control:focus-within {
+  border-color: var(--accent-fill);
+}
+
+.slip-field[data-invalid] .slip-field__control {
+  border-color: var(--bad-line);
+  background: var(--bad-tint);
+}
+
+.slip-field__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: var(--type-body);
+}
+
+/* A figure is always Poppins 700 — the one type rule the token file states out loud. */
+.slip-field__input--numeral {
+  font: var(--type-numeral);
+}
+
+/* The helper line: what will be accepted on the left, whether it is required on the right. */
+.slip-field__help {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.slip-field__bounds,
+.slip-field__note {
+  color: var(--muted);
+  font: var(--type-label);
+}
+
+/* The error replaces the bounds rather than joining them: two lines of guidance is one too many. */
+.slip-field[data-invalid] .slip-field__bounds {
+  color: var(--bad);
+}
+
+.slip-field__code {
+  color: var(--muted);
+  font: var(--type-technical);
+}
+
+.slip-card__action:focus-visible,
+.slip-field__input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.slip-card--loading {
+  animation: slip-pulse 1.6s ease-in-out infinite;
+}
+
+.slip-skeleton__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.slip-skeleton {
+  display: block;
+  border-radius: var(--radius-chip);
+  background: var(--skeleton);
+}
+
+.slip-skeleton--icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+}
+
+.slip-skeleton--title {
+  width: 72%;
+  height: 18px;
+}
+
+.slip-skeleton--origin {
+  width: 32%;
+  height: 12px;
+  background: var(--subtle);
+}
+
+.slip-skeleton--line {
+  width: 100%;
+  height: 12px;
+  background: var(--subtle);
+}
+
+.slip-skeleton--short {
+  width: 64%;
+}
+
+.slip-skeleton--action {
+  height: 44px;
+  border-radius: var(--radius-control);
+}
+
+@keyframes slip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slip-card--loading {
+    animation: none;
+  }
+}
+
+/* Named for a screen reader, absent for everyone else. */
+.slip-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Below 440px the card takes the 380 layout: a smaller icon and tighter rhythm. */
+@container (max-width: 440px) {
+  .slip-card {
+    gap: var(--space-12);
+  }
+
+  .slip-card__icon,
+  .slip-card__alarm,
+  .slip-skeleton--icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .slip-card__action {
+    flex: 1 1 100%;
+  }
+}
