@@ -67,3 +67,56 @@ export const readWalletAddress = (hex: string): Either.Either<WalletAddress, str
     onRight: () => Either.right({ bech32, networkId: networkId as NetworkId })
   })
 }
+
+export type OwnAddress = {
+  /** Raw, as the verifier compares them against the body's addresses. */
+  readonly bytes: Uint8Array
+  /** Absent for a Byron address, whose header carries no network. */
+  readonly networkId?: NetworkId
+}
+
+const BYRON_TYPE = 8
+const FIRST_REWARD_TYPE = 14
+const LAST_REWARD_TYPE = 15
+
+/** A header byte and one or two 28-byte hashes. */
+const shelleyLengths: Readonly<Record<number, ReadonlyArray<number>>> = {
+  0: [57],
+  1: [57],
+  2: [57],
+  3: [57],
+  6: [29],
+  7: [29],
+  14: [29],
+  15: [29]
+}
+
+/**
+ * Reads an address the wallet calls its own: any payment address, a reward
+ * account, or a Byron address an old wallet still reports as used. Refusing
+ * the Byron one would stop the whole flow over an address nothing here spends.
+ */
+export const readOwnAddress = (hex: unknown): Either.Either<OwnAddress, string> => {
+  // Typed as hex by CIP-30, and sent by an extension under no obligation to.
+  const raw = typeof hex === "string" ? fromHex(hex.trim()) : undefined
+  if (raw === undefined) return refuse(`${String(hex).slice(0, 16)}… is not hex`)
+
+  const bytes = unwrapCbor(raw)
+  const header = bytes[0]
+  const type = header >> 4
+  if (type === BYRON_TYPE) return Either.right({ bytes })
+
+  const networkId = header & 0x0f
+  if (networkId !== 0 && networkId !== 1) return refuse(`the address header names network ${networkId}`)
+
+  const payment = type <= LAST_PAYMENT_TYPE
+  const reward = type >= FIRST_REWARD_TYPE && type <= LAST_REWARD_TYPE
+  if (!payment && !reward) return refuse(`address type ${type} is not one a wallet holds`)
+
+  // Pointer addresses (4, 5) end in variable-length integers, so only a floor applies.
+  const lengths = shelleyLengths[type]
+  const fits = lengths === undefined ? bytes.length > 29 : lengths.includes(bytes.length)
+  if (!fits) return refuse(`${bytes.length} bytes is the wrong length for address type ${type}`)
+
+  return Either.right({ bytes, networkId: networkId as NetworkId })
+}
