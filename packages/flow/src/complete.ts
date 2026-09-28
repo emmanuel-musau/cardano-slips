@@ -8,18 +8,22 @@
 import type { Intent, Network } from "@cardano-slips/core"
 import {
   compare,
+  decodeBech32,
   decodeTransaction,
   deriveAssets,
   deriveEffects,
   deriveLovelace,
-  type Effects
+  type Effects,
+  type ResolvedInput
 } from "@cardano-slips/verifier"
 import { Effect, Either } from "effect"
 
+import { readOwnAddress } from "./address.js"
 import { balanceIntent, type BalancingParameters } from "./balance.js"
 import type { BalanceError } from "./balance-error.js"
-import type { Cip30Api } from "./cip30.js"
+import { type Cip30Api, describeApiError, readApiError } from "./cip30.js"
 import { type CompletionError, refuse } from "./complete-error.js"
+import { networkIdFor } from "./connect.js"
 import type { Derived } from "./derived.js"
 import { asResolvedInputs } from "./resolve.js"
 import { signTransaction, submitTransaction } from "./sign.js"
@@ -42,12 +46,6 @@ export type CompletionRequest = {
   readonly intent: Intent
   readonly network: Network
   readonly changeAddress: string
-  /**
-   * Every address the wallet calls its own, its reward account included. An
-   * address missing from here is read as a stranger's, which turns the wallet's
-   * own change into an undeclared payment and blocks the Slip.
-   */
-  readonly userAddresses: ReadonlyArray<Uint8Array>
   readonly parameters: BalancingParameters
   readonly rewardBalance?: bigint
   /** Read once per attempt: a rebuilt transaction gets its own validity window. */
@@ -91,6 +89,62 @@ const walletUtxos = (api: Cip30Api) =>
     return read.right
   })
 
+const addressesFrom = (api: Cip30Api, method: "getUsedAddresses" | "getUnusedAddresses" | "getRewardAddresses") =>
+  Effect.tryPromise({
+    try: () => api[method](),
+    catch: (cause) => {
+      const cip30 = readApiError(cause)
+      const said = cip30 === undefined ? String(cause) : describeApiError(cip30)
+      return refuse("UnreadableAddresses", `The wallet could not say which addresses are its own: ${said}`, { cause })
+    }
+  }).pipe(
+    Effect.filterOrFail(
+      (answered): answered is ReadonlyArray<string> => Array.isArray(answered),
+      () => refuse("UnreadableAddresses", `The wallet answered ${method} with something that is not a list.`)
+    )
+  )
+
+/**
+ * Every address the wallet vouches for: those CIP-30 lists, the change address,
+ * and the address of every output it said it holds. Read with the outputs on
+ * each attempt, since both can change when the funds move. One missing is read
+ * as a stranger's, and its value would be shown as someone else's. The outputs'
+ * addresses are ahead of the spec's list, until
+ * https://github.com/emmanuel-musau/cardano-slips/issues/186 brings it into line.
+ */
+const ownAddresses = (request: CompletionRequest, inputs: ReadonlyArray<ResolvedInput>) =>
+  Effect.gen(function* () {
+    const listed = [
+      ...(yield* addressesFrom(request.api, "getUsedAddresses")),
+      ...(yield* addressesFrom(request.api, "getUnusedAddresses")),
+      ...(yield* addressesFrom(request.api, "getRewardAddresses"))
+    ]
+
+    const network = networkIdFor(request.network)
+    const read: Array<Uint8Array> = []
+    for (const hex of listed) {
+      const address = readOwnAddress(hex)
+      if (Either.isLeft(address)) {
+        return yield* Effect.fail(
+          refuse("UnreadableAddresses", `The wallet named an address of its own that cannot be read: ${address.left}`)
+        )
+      }
+      if (address.right.networkId !== undefined && address.right.networkId !== network) {
+        return yield* Effect.fail(
+          refuse("UnreadableAddresses", "The wallet named an address on another network as its own.")
+        )
+      }
+      read.push(address.right.bytes)
+    }
+
+    const change = decodeBech32(request.changeAddress)
+    if (Either.isLeft(change)) {
+      return yield* Effect.fail(refuse("UnreadableAddresses", "The change address is not an address."))
+    }
+
+    return [...read, change.right.bytes, ...inputs.map((input) => input.address)]
+  })
+
 /**
  * One transaction, from the wallet's outputs to a verdict. The judging happens
  * here rather than at the caller so that no path reaches `signTransaction`
@@ -118,10 +172,11 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
       )
     }
 
+    const resolvedInputs = asResolvedInputs(utxos)
     const derivation = {
       transaction: transaction.right,
-      userAddresses: request.userAddresses,
-      resolvedInputs: asResolvedInputs(utxos),
+      userAddresses: yield* ownAddresses(request, resolvedInputs),
+      resolvedInputs,
       protocolParameters: request.parameters
     }
     const read = Either.all({

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { decodePartialIntent } from "@cardano-slips/core"
-import { decodeBech32, type Verdict } from "@cardano-slips/verifier"
+import { type Verdict } from "@cardano-slips/verifier"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { Effect, Either } from "effect"
 import { afterEach, describe, expect, it, vi } from "vitest"
@@ -10,7 +10,6 @@ import { type Attempt, completeIntent } from "../src/complete.js"
 import type { CompletionError } from "../src/complete-error.js"
 import { EffectsPanel, type EffectsPanelProps } from "../src/effects-panel.js"
 import { formatAda } from "../src/explain.js"
-import { transactionIdOf } from "../src/witness.js"
 import {
   closing,
   delegation,
@@ -24,9 +23,9 @@ import {
   stranger,
   strangerPaid
 } from "./derived.js"
-import { mainnetAddress, stubApi } from "./stub-wallet.js"
-import { asCip30Hex, mainnetParameters, rewardAccountOf, walletUtxo } from "./wallet-utxos.js"
-import { witnessSet } from "./witnesses.js"
+import { mockWallet, type WalletScript } from "./mock-wallet.js"
+import { mainnetAddress } from "./stub-wallet.js"
+import { asCip30Hex, mainnetParameters, walletUtxo } from "./wallet-utxos.js"
 
 /**
  * The panel against the states `6 · Preview states` draws. What matters most
@@ -325,24 +324,23 @@ describe("a long ledger folded to its groups", () => {
  */
 describe("a transaction the pipeline built", () => {
   const examples = join(import.meta.dirname, "..", "..", "..", "spec", "examples", "partial", "valid")
-  const decoded = decodePartialIntent(JSON.parse(readFileSync(join(examples, "payment.json"), "utf8")))
-  if (Either.isLeft(decoded)) throw new Error("payment.json is not a partial intent")
-  const address = decodeBech32(mainnetAddress.bech32)
-  if (Either.isLeft(address)) throw new Error("the stub wallet's address is not bech32")
+  const intentOf = (file: string) => {
+    const decoded = decodePartialIntent(JSON.parse(readFileSync(join(examples, file), "utf8")))
+    if (Either.isLeft(decoded)) throw new Error(`${file} is not a partial intent`)
+    return decoded.right.intent
+  }
 
-  const api = stubApi({
-    getUtxos: async () => [asCip30Hex(walletUtxo({ bech32: mainnetAddress.bech32, lovelace: 100_000_000n, seed: 1 }))],
-    signTx: async () => witnessSet("1"),
-    submitTx: async (tx) => Effect.runSync(transactionIdOf(tx))
-  })
-  const request = (userAddresses: ReadonlyArray<Uint8Array>, onAttempt?: (attempt: Attempt) => void) =>
+  const request = (file: string, script: Partial<WalletScript> = {}, onAttempt?: (attempt: Attempt) => void) =>
     completeIntent({
-      api,
-      intent: decoded.right.intent,
+      api: mockWallet({
+        utxos: [[asCip30Hex(walletUtxo({ bech32: mainnetAddress.bech32, lovelace: 100_000_000n, seed: 1 }))]],
+        ...script
+      }).api,
+      intent: intentOf(file),
       network: "mainnet",
       changeAddress: mainnetAddress.bech32,
-      userAddresses,
       parameters: mainnetParameters,
+      rewardBalance: 5_000_000n,
       now: () => Date.parse("2026-08-22T19:39:00Z"),
       ...(onAttempt === undefined ? {} : { onAttempt })
     })
@@ -350,7 +348,7 @@ describe("a transaction the pipeline built", () => {
   it("shows the fee the transaction states, to the lovelace", async () => {
     let seen: Attempt | undefined
     await Effect.runPromise(
-      request([address.right.bytes, rewardAccountOf(mainnetAddress.bech32)], (attempt) => {
+      request("payment.json", {}, (attempt) => {
         seen = attempt
       })
     )
@@ -368,8 +366,8 @@ describe("a transaction the pipeline built", () => {
   })
 
   it("blocks what the verifier blocked, from the failure the pipeline returns", async () => {
-    // With no addresses of its own, the wallet's change is a payment the link never mentions.
-    const result = await Effect.runPromise(Effect.either(request([])))
+    // A withdrawal from a reward account the wallet does not report as its own.
+    const result = await Effect.runPromise(Effect.either(request("rewards-withdrawal.json", { rewardAddresses: [] })))
     if (Either.isRight(result)) throw new Error("this was expected to be blocked")
     const error = result.left as CompletionError
     expect(error.refusal).toBe("Blocked")

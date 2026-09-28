@@ -15,6 +15,8 @@ export type CompletionRefusal =
   | "NoUtxos"
   /** What `getUtxos` answered is not something these bytes can be read as. */
   | "UnreadableUtxos"
+  /** The wallet would not say which addresses are its own, or named one that cannot be read. */
+  | "UnreadableAddresses"
   /** The effects could not be derived from the transaction, or compared with the declaration. */
   | "CannotJudge"
   /** The derived effects disagree with what the endpoint declared. Nothing signs after this. */
@@ -31,6 +33,7 @@ export type CompletionRefusal =
 export const completionRefusals: Readonly<Record<CompletionRefusal, true>> = {
   NoUtxos: true,
   UnreadableUtxos: true,
+  UnreadableAddresses: true,
   CannotJudge: true,
   Blocked: true,
   NotShown: true,
@@ -46,6 +49,7 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
     case "CannotJudge":
       return "CANNOT_BALANCE"
     case "UnreadableUtxos":
+    case "UnreadableAddresses":
     case "NotShown":
     case "OutOfAttempts":
       return undefined
