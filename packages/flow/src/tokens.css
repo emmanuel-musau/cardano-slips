@@ -130,6 +130,17 @@
   /* Addresses, hashes, error codes, the tx block — text meant for a machine. */
   --type-technical: 400 12px/20px var(--font);
 
+  /* The transaction preview's own scale, from `4 · Anatomy` and `6 · Preview states`. */
+  --type-headline: 700 32px/38px var(--font); /* the one figure the person is deciding on */
+  --type-preview-title: 700 20px/26px var(--font);
+  --type-amount: 700 20px/26px var(--font); /* a row's figure, one size so the column scans */
+  --type-countdown: 700 16px/20px var(--font);
+  --type-row: 400 14px/20px var(--font);
+  --type-note: 400 13px/19px var(--font);
+  --type-kicker: 400 11px/16px var(--font);
+  --type-kicker-tracking: 0.12em;
+  --type-chip: 600 11px/20px var(--font);
+
   /* Spacing, on a 4px base. */
   --space-4: 4px;
   --space-8: 8px;

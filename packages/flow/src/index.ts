@@ -27,8 +27,35 @@ export type { CompletionRefusal } from "./complete-error.js"
 export { CompletionError, completionRefusals, slipErrorCodeFor as completionErrorCodeFor } from "./complete-error.js"
 export type { ConnectedWallet, ConnectOptions } from "./connect.js"
 export { connectWallet, networkIdFor } from "./connect.js"
+export type { Derived } from "./derived.js"
 export type { DiscoveredWallet, WalletHost } from "./discovery.js"
 export { discoverWallets, findWallet, injectedUnder } from "./discovery.js"
+export type { EffectsPanelProps } from "./effects-panel.js"
+export { EffectsPanel } from "./effects-panel.js"
+export type { Explanation } from "./explain.js"
+export {
+  assetLabel,
+  explainReason,
+  formatAda,
+  formatCountdown,
+  formatInstant,
+  formatQuantity,
+  secondsLeft,
+  shortened
+} from "./explain.js"
+export type { Amount, Evidence, Group, Headline, Mark, Row, Tone } from "./ledger.js"
+export {
+  blockedLine,
+  describeCertificate,
+  evidenceOf,
+  groupsOf,
+  headlineOf,
+  isCollapsed,
+  isGrouped,
+  ledgerOf,
+  matchLine,
+  rawLines
+} from "./ledger.js"
 export type { FieldError, ParameterFormProps } from "./parameter-form.js"
 export { boundsOf, ParameterForm } from "./parameter-form.js"
 export type { KnownWallet } from "./registry.js"

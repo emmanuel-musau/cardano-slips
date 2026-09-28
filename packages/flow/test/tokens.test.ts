@@ -118,7 +118,15 @@ describe("the type roles", () => {
     ["--type-body", "400 16px/24px var(--font)"],
     ["--type-button", "500 14px/20px var(--font)"],
     ["--type-label", "500 13px var(--font)"],
-    ["--type-technical", "400 12px/20px var(--font)"]
+    ["--type-technical", "400 12px/20px var(--font)"],
+    ["--type-headline", "700 32px/38px var(--font)"],
+    ["--type-preview-title", "700 20px/26px var(--font)"],
+    ["--type-amount", "700 20px/26px var(--font)"],
+    ["--type-countdown", "700 16px/20px var(--font)"],
+    ["--type-row", "400 14px/20px var(--font)"],
+    ["--type-note", "400 13px/19px var(--font)"],
+    ["--type-kicker", "400 11px/16px var(--font)"],
+    ["--type-chip", "600 11px/20px var(--font)"]
   ])("carries %s as one whole role", (property, value) => {
     // A component that can apply the size without the family is a component
     // that will, and the sheet's type is a pairing rather than a size.
