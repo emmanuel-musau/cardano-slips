@@ -60,6 +60,21 @@ Nothing here decides for a person on the endpoint's behalf: a value that fails `
 
 The card is the publisher's surface and is meant to be restyled. The chrome that judges it — the effects panel, the mismatch block, the network indicator — is not, hosted or self-hosted: a publisher who can restyle the surface that judges them makes the verdict look like something they control.
 
+### The effects panel
+
+```tsx
+import { EffectsPanel } from "@cardano-slips/flow"
+import "@cardano-slips/flow/effects.css"
+
+<EffectsPanel claim={action.label} derived={attempt} verdict={{ _tag: "match" }} onSign={…} onCancel={…} />
+```
+
+`EffectsPanel` shows what a transaction does, read from its own bytes: the figure the person is deciding on, then one row per effect — payments, tokens received, withdrawals, certificates, the fee, and deposits and refunds, each marked refundable where the ledger guarantees it and as stated where only the transaction claims it. `derived` is what `completeIntent` hands `onAttempt`, or what a `Blocked` refusal carries.
+
+`verdict` is the verifier's own and is required. On a mismatch the sign button is not rendered at all — the claim is set beside what the transaction does, the one row the link never described is marked, and the only ways out are closing it and reporting the link. There is no prop that brings the button back. The countdown takes the headline's place under a minute, and an expired transaction offers `onRebuild` instead of a signature.
+
+`effects.css` is the fixed chrome above: import it as it is.
+
 ## Tokens
 
 ```ts

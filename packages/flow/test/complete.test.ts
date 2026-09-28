@@ -6,7 +6,7 @@ import { Effect, Either } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { Cip30Api } from "../src/cip30.js"
-import { type CompletionRequest, completeIntent, type Receipt } from "../src/complete.js"
+import { type Attempt, type CompletionRequest, completeIntent, type Receipt } from "../src/complete.js"
 import { type CompletionError, completionRefusals, type CompletionRefusal } from "../src/complete-error.js"
 import { transactionIdOf } from "../src/witness.js"
 import { mainnetAddress, stubApi } from "./stub-wallet.js"
@@ -152,6 +152,35 @@ describe("a Slip that completes", () => {
   })
 })
 
+describe("what each attempt carries for the person to read", () => {
+  it("what leaves the wallet, which for a payment is the amount and the fee", async () => {
+    const { api } = scriptedWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+    const attempts: Array<Attempt> = []
+    await complete(api, { onAttempt: (attempt) => attempts.push(attempt) })
+
+    const [attempt] = attempts
+    expect(attempt?.lovelace.fee).toBe(attempt?.effects.fee)
+    expect(attempt?.lovelace.user.ada).toBe(12_000_000n + (attempt?.lovelace.fee ?? 0n))
+    expect(attempt?.lovelace.deposits).toEqual([])
+    expect(attempt?.assets.user).toEqual([])
+  })
+
+  it("each asset that leaves, in base units", async () => {
+    const usdm = {
+      policyId: "1ec7e2a7162b3aab4a428333409f8ba653c9e37996531ebf09f40128",
+      assetName: "5553444d",
+      quantity: 20_000_000n
+    }
+    const { api } = scriptedWallet({
+      utxos: [[asCip30Hex(walletUtxo({ ...held(100_000_000n, 1), assets: [usdm] }))]]
+    })
+    const attempts: Array<Attempt> = []
+    await complete(api, { intent: specIntent("token-payment.json"), onAttempt: (attempt) => attempts.push(attempt) })
+
+    expect(attempts[0]?.assets.user.map((asset) => asset.delta)).toEqual([12_000_000n])
+  })
+})
+
 describe("when the funds move between building and submitting", () => {
   it("rebuilds from the wallet's fresh outputs and submits the new transaction", async () => {
     // The first output is spent elsewhere the moment it is signed; the second
@@ -221,6 +250,15 @@ describe("what is never signed", () => {
     expect(log.signed).toEqual([])
     expect(error.code).toBe("EFFECTS_MISMATCH")
     expect(error.reasons?.map((reason) => reason.code)).toContain("output.undeclared")
+  })
+
+  it("carries what the blocked transaction does, so the block can show it beside what was declared", async () => {
+    const { api } = scriptedWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+    const error = await failure(api, { userAddresses: [] }, "Blocked")
+
+    expect(error.derived?.effects.outputs.length).toBeGreaterThan(0)
+    expect(error.derived?.lovelace.fee).toBe(error.derived?.effects.fee)
+    expect(error.derived?.assets.user).toEqual([])
   })
 
   it("refuses when the effects cannot be derived at all", async () => {

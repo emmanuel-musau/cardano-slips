@@ -1,0 +1,546 @@
+/*
+ * The effects panel and the mismatch block, drawn from `4 · Anatomy` to
+ * `6 · Preview states` on the design sheet. This is chrome, not the card:
+ * `13 · Chrome rules` fixes it wherever the page is hosted, because a
+ * publisher who can restyle the surface that judges them undermines the
+ * verdict. Every value is a token from `tokens.css`.
+ */
+
+.slip-panel {
+  box-sizing: border-box;
+  container-type: inline-size;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+
+  width: 100%;
+  max-width: 520px;
+  margin: 0;
+  padding: var(--space-24);
+
+  background: var(--vault);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-card);
+  color: var(--vault-ink);
+
+  /* `5 · Entering the preview`: the surface rises from the button edge, and the title never moves. */
+  animation: slip-panel-wipe 220ms ease-out;
+}
+
+.slip-panel[data-blocked] {
+  border-color: var(--vault-bad-line);
+}
+
+.slip-panel *,
+.slip-panel *::before,
+.slip-panel *::after {
+  box-sizing: border-box;
+}
+
+.slip-panel__claim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.slip-panel__kicker {
+  margin: 0;
+  color: var(--vault-muted);
+  font: var(--type-kicker);
+  letter-spacing: var(--type-kicker-tracking);
+  text-transform: uppercase;
+}
+
+.slip-panel__kicker[data-tone="bad"] {
+  color: var(--vault-bad);
+}
+
+.slip-panel__kicker[data-tone="warn"] {
+  color: var(--vault-warn);
+}
+
+.slip-panel__title {
+  margin: 0;
+  color: var(--vault-ink);
+  font: var(--type-preview-title);
+  text-wrap: pretty;
+}
+
+.slip-panel__lead {
+  margin: 0;
+  color: var(--vault-muted);
+  font: var(--type-row);
+}
+
+/* A host, unmarked. The verified tick belongs to the identity chip, which is not drawn here. */
+.slip-panel__origin {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--space-8);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-chip);
+  background: var(--vault-surface);
+  color: var(--vault-ink);
+  font: var(--type-technical);
+}
+
+.slip-panel__headline {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.slip-panel__figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.slip-panel__figure-amount {
+  color: var(--vault-ink);
+  font: var(--type-headline);
+  overflow-wrap: anywhere;
+}
+
+.slip-panel__figure-amount[data-tone="gained"] {
+  color: var(--vault-pos);
+}
+
+.slip-panel__figure-amount[data-tone="held"] {
+  color: var(--vault-warn);
+}
+
+.slip-panel__figure-amount[data-tone="stated"] {
+  color: var(--vault-muted);
+}
+
+.slip-panel__rule {
+  width: 1px;
+  align-self: stretch;
+  background: var(--vault-border);
+}
+
+.slip-panel__note {
+  margin: 0;
+  color: var(--vault-muted);
+  font: var(--type-note);
+}
+
+/* The ledger: one row per effect, amounts in a single right-hand column. */
+.slip-panel__ledger {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-16);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-control);
+}
+
+.slip-panel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-8) var(--space-16);
+  align-items: baseline;
+  padding: 14px 0;
+}
+
+.slip-panel__row + .slip-panel__row {
+  border-top: 1px solid var(--vault-border);
+}
+
+.slip-panel__row-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slip-panel__row-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.slip-panel__label {
+  color: var(--vault-muted);
+  font: var(--type-row);
+}
+
+.slip-panel__row[data-mark] .slip-panel__label {
+  color: var(--vault-ink);
+}
+
+.slip-panel__detail {
+  margin: 0;
+  color: var(--vault-muted);
+  font: var(--type-technical);
+  overflow-wrap: anywhere;
+}
+
+.slip-panel__amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.slip-panel__amount {
+  color: var(--vault-ink);
+  font: var(--type-amount);
+  white-space: nowrap;
+}
+
+.slip-panel__amount[data-tone="gained"] {
+  color: var(--vault-pos);
+}
+
+.slip-panel__amount[data-tone="fee"],
+.slip-panel__amount[data-tone="held"] {
+  color: var(--vault-warn);
+}
+
+.slip-panel__amount[data-tone="stated"] {
+  color: var(--vault-muted);
+}
+
+/* The one row that is not in the claim is the only thing the block colours. */
+.slip-panel__row[data-mark] .slip-panel__amount {
+  color: var(--vault-bad);
+}
+
+.slip-panel__identifier {
+  color: var(--vault-ink);
+  font: var(--type-technical);
+  white-space: nowrap;
+}
+
+.slip-panel__row > .slip-panel__note {
+  grid-column: 1 / -1;
+  padding-left: 10px;
+  border-left: 2px solid var(--vault-warn-line);
+}
+
+.slip-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--space-8);
+  border-radius: var(--radius-chip);
+  font: var(--type-chip);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.slip-panel__chip[data-chip="refundable"] {
+  border: 1px solid var(--vault-warn-line);
+  background: var(--vault-warn-tint);
+  color: var(--vault-warn);
+}
+
+.slip-panel__chip[data-chip="as-stated"] {
+  background: var(--vault-surface);
+  color: var(--vault-muted);
+}
+
+.slip-panel__chip[data-chip="mark"] {
+  background: var(--vault-bad-chip);
+  color: var(--vault-bad);
+}
+
+/* `h · Long ledger`: groups, each with its own header. */
+.slip-panel__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.slip-panel__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slip-panel__group-name {
+  margin: 0;
+  color: var(--vault-muted);
+  font: var(--type-kicker);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.slip-panel__group > .slip-panel__group-name {
+  cursor: default;
+}
+
+.slip-panel__group > summary.slip-panel__group-name {
+  cursor: pointer;
+}
+
+.slip-panel__expiry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.slip-panel__clock {
+  color: var(--vault-muted);
+  font: var(--type-countdown);
+}
+
+/* `f · Expiring`: the countdown takes the headline's place and the warning colour. */
+.slip-panel__expiring {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px var(--space-16);
+  border: 1px solid var(--vault-warn-line);
+  border-radius: var(--radius-control);
+  background: var(--vault-warn-tint);
+}
+
+.slip-panel__expiring-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-16);
+  color: var(--vault-warn);
+  font: var(--type-note);
+}
+
+.slip-panel__expiring-clock {
+  color: var(--vault-warn);
+  font: var(--type-numeral);
+}
+
+.slip-panel__bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--vault-border);
+}
+
+.slip-panel__bar-fill {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--vault-warn);
+  transition: width 1s linear;
+}
+
+/* `g · Expired`: the same action at half strength, so the rebuild is the only live thing. */
+.slip-panel__stale {
+  opacity: 0.45;
+}
+
+.slip-panel__verdict {
+  display: flex;
+  gap: var(--space-8);
+  align-items: flex-start;
+  margin: 0;
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--vault-border);
+  color: var(--vault-muted);
+  font: var(--type-note);
+}
+
+.slip-panel__tick {
+  color: var(--vault-pos);
+}
+
+.slip-panel__buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.slip-panel__button {
+  height: 48px;
+  padding: 0 var(--space-24);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--vault-ink);
+  font: var(--type-button);
+  letter-spacing: var(--type-button-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease-out,
+    border-color 180ms ease-out,
+    color 180ms ease-out;
+}
+
+.slip-panel__button:focus-visible,
+.slip-panel__raw-toggle:focus-visible,
+.slip-panel__group > summary:focus-visible {
+  outline: 2px solid var(--accent-on-slate);
+  outline-offset: 2px;
+}
+
+.slip-panel__button[data-kind="cancel"] {
+  flex: 0 0 auto;
+  border-color: var(--vault-bad);
+  color: var(--vault-bad);
+}
+
+.slip-panel__button[data-kind="primary"] {
+  flex: 1;
+  min-width: 0;
+  border-color: var(--accent-on-slate);
+  color: var(--accent-on-slate);
+}
+
+.slip-panel__button[data-kind="close"] {
+  width: 100%;
+}
+
+.slip-panel__button[data-kind="close"]:hover,
+.slip-panel__button[data-kind="quiet"]:hover {
+  background: var(--vault-surface);
+}
+
+.slip-panel__button[data-kind="quiet"] {
+  height: 36px;
+  padding: 0 var(--space-12);
+  border: none;
+  color: var(--vault-muted);
+  font: var(--type-label);
+}
+
+/* `e · Mismatch`: the claim and the transaction side by side, and the way out below. */
+.slip-panel__compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+}
+
+.slip-panel__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-16);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-control);
+}
+
+.slip-panel__side[data-tone="bad"] {
+  border-color: var(--vault-bad-line);
+  background: var(--vault-bad-tint);
+}
+
+.slip-panel__claimed {
+  margin: 0;
+  color: var(--vault-ink);
+  font: var(--type-row);
+}
+
+.slip-panel__evidence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.slip-panel__evidence-figure {
+  margin: 0;
+  color: var(--vault-ink);
+  font: var(--type-preview-title);
+  overflow-wrap: anywhere;
+}
+
+.slip-panel__exits {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--vault-border);
+}
+
+.slip-panel__quiet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+/* `6 · Raw detail`: collapsed, below the decision. */
+.slip-panel__raw {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding-top: 14px;
+  border-top: 1px solid var(--vault-border);
+}
+
+.slip-panel__raw-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--vault-muted);
+  font: var(--type-label);
+  cursor: pointer;
+}
+
+.slip-panel__raw-lines {
+  margin: 0;
+  padding: var(--space-16);
+  border-radius: var(--radius-control);
+  background: var(--vault-surface);
+  color: var(--vault-muted);
+  font: var(--type-technical);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@keyframes slip-panel-wipe {
+  from {
+    clip-path: inset(100% 0 0 0 round var(--radius-card));
+  }
+  to {
+    clip-path: inset(0 0 0 0 round var(--radius-card));
+  }
+}
+
+@keyframes slip-panel-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The sheet swaps the wipe for a short cross-fade rather than dropping motion altogether. */
+@media (prefers-reduced-motion: reduce) {
+  .slip-panel {
+    animation: slip-panel-fade 120ms ease-out;
+  }
+
+  .slip-panel__bar-fill {
+    transition: none;
+  }
+}
+
+@container (max-width: 440px) {
+  .slip-panel__compare {
+    grid-template-columns: 1fr;
+  }
+
+  .slip-panel__headline {
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  .slip-panel__rule {
+    display: none;
+  }
+}

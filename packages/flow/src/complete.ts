@@ -6,13 +6,21 @@
  * a person's name on something nobody read.
  */
 import type { Intent, Network } from "@cardano-slips/core"
-import { compare, decodeTransaction, deriveEffects, type Effects } from "@cardano-slips/verifier"
+import {
+  compare,
+  decodeTransaction,
+  deriveAssets,
+  deriveEffects,
+  deriveLovelace,
+  type Effects
+} from "@cardano-slips/verifier"
 import { Effect, Either } from "effect"
 
 import { balanceIntent, type BalancingParameters } from "./balance.js"
 import type { BalanceError } from "./balance-error.js"
 import type { Cip30Api } from "./cip30.js"
 import { type CompletionError, refuse } from "./complete-error.js"
+import type { Derived } from "./derived.js"
 import { asResolvedInputs } from "./resolve.js"
 import { signTransaction, submitTransaction } from "./sign.js"
 import type { SigningError } from "./sign-error.js"
@@ -22,12 +30,10 @@ import { transactionIdOf } from "./witness.js"
 /** Enough rebuilds to outlast an unlucky moment, few enough that nobody is asked forever. */
 const defaultAttempts = 3
 
-export type Attempt = {
+export type Attempt = Derived & {
   /** Counting from one, so a rendered "attempt 2 of 3" reads as a person would say it. */
   readonly number: number
   readonly transactionId: string
-  /** What this transaction does, derived from its own bytes. */
-  readonly effects: Effects
 }
 
 export type CompletionRequest = {
@@ -112,20 +118,26 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
       )
     }
 
-    const effects = deriveEffects({
+    const derivation = {
       transaction: transaction.right,
       userAddresses: request.userAddresses,
       resolvedInputs: asResolvedInputs(utxos),
       protocolParameters: request.parameters
+    }
+    const read = Either.all({
+      effects: deriveEffects(derivation),
+      lovelace: deriveLovelace(derivation),
+      assets: deriveAssets(derivation)
     })
-    if (Either.isLeft(effects)) {
+    if (Either.isLeft(read)) {
       return yield* Effect.fail(
-        refuse("CannotJudge", `What this transaction does could not be worked out: ${effects.left.message}`)
+        refuse("CannotJudge", `What this transaction does could not be worked out: ${read.left.message}`)
       )
     }
+    const derived: Derived = read.right
 
     const verdict = compare({
-      effects: effects.right,
+      effects: derived.effects,
       declared: request.intent,
       changeAddress: request.changeAddress,
       now: BigInt(now),
@@ -143,13 +155,14 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
     if (verdict.right._tag === "mismatch") {
       return yield* Effect.fail(
         refuse("Blocked", "This transaction does not do what the Slip said it would, so it will not be signed.", {
-          reasons: verdict.right.reasons
+          reasons: verdict.right.reasons,
+          derived
         })
       )
     }
 
     const transactionId = yield* transactionIdOf(built.cbor)
-    const attempt: Attempt = { number, transactionId, effects: effects.right }
+    const attempt: Attempt = { ...derived, number, transactionId }
 
     // The caller is what puts these effects in front of a person. If that
     // throws, the person has not seen them, so this fails closed rather than

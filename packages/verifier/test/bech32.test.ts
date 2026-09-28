@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import { decodeBech32, encodeBech32 } from "../src/bech32.js"
 import { toHex } from "../src/bytes.js"
+import { addressText } from "../src/compare.js"
 
 /**
  * The one place a declared address becomes bytes. Everything the comparison
@@ -92,5 +93,13 @@ describe("writing bech32", () => {
   it("writes an empty byte string as a prefix and a checksum", () => {
     const written = encodeBech32("addr", new Uint8Array())
     expect(decoded(written).bytes.length).toBe(0)
+  })
+})
+
+describe("an address as the person reads it", () => {
+  // A client marks the row a reason names by comparing this spelling with the
+  // reason's own, so the two can never be allowed to differ.
+  it.each([mainnetPayment, testnetPayment, rewardAccount])("spells %s from its bytes alone", (text) => {
+    expect(addressText(decoded(text).bytes)).toBe(text)
   })
 })

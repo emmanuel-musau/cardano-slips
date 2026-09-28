@@ -88,3 +88,36 @@ describe("what card.css is allowed to select", () => {
     expect(cardCss).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
   })
 })
+
+describe("what effects.css is allowed to do", () => {
+  const effectsCss = readFileSync(join(sourceRoot, "effects.css"), "utf8")
+
+  it("anchors every rule to a class of ours", () => {
+    const loose = selectorsIn(effectsCss).filter(
+      (selector) => !(selector.startsWith(".slip-") || selector.startsWith("@") || /^(?:\d+%|from|to)$/.test(selector))
+    )
+
+    expect(loose).toEqual([])
+  })
+
+  it("writes no colour of its own", () => {
+    expect(withoutComments(effectsCss).replace(/var\([^()]*\)/g, "")).not.toMatch(/#[0-9a-fA-F]{3}|rgba?\(|hsla?\(/)
+  })
+
+  it("swaps the entering wipe for a cross-fade when motion is reduced, as the sheet asks", () => {
+    const reduced = /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/.exec(
+      withoutComments(effectsCss)
+    )?.[1]
+
+    expect(effectsCss).toMatch(/animation: slip-panel-wipe 220ms/)
+    expect(reduced).toMatch(/animation: slip-panel-fade 120ms/)
+  })
+
+  it("draws the panel on the preview's own surface, never the page's", () => {
+    // The vault is what makes the preview read as a different, graver surface than the card.
+    const panel = /\.slip-panel \{([^}]*)\}/.exec(effectsCss)?.[1] ?? ""
+
+    expect(panel).toContain("background: var(--vault)")
+    expect(effectsCss).not.toMatch(/var\(--card\)|var\(--page\)|var\(--ink\)/)
+  })
+})

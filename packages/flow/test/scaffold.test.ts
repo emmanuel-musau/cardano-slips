@@ -38,7 +38,11 @@ describe("the public entry point", () => {
     // re-exported through a module — and they stay not-modules below.
     const subpaths = Object.keys(manifest.exports ?? {})
     expect(subpaths.filter((subpath) => !subpath.endsWith(".css"))).toEqual([".", "./package.json"])
-    expect(subpaths.filter((subpath) => subpath.endsWith(".css"))).toEqual(["./card.css", "./tokens.css"])
+    expect(subpaths.filter((subpath) => subpath.endsWith(".css"))).toEqual([
+      "./card.css",
+      "./effects.css",
+      "./tokens.css"
+    ])
 
     const modules = exportTargets().filter((target) => target.endsWith(".js") || target.endsWith(".d.ts"))
     expect(modules).toEqual(["./dist/index.d.ts", "./dist/index.js"])

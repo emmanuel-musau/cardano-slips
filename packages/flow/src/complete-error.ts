@@ -8,6 +8,8 @@ import { type ClientErrorCode } from "@cardano-slips/core"
 import type { Reason } from "@cardano-slips/verifier"
 import { Data } from "effect"
 
+import type { Derived } from "./derived.js"
+
 export type CompletionRefusal =
   /** The wallet reported no unspent outputs, so there is nothing to build from. */
   | "NoUtxos"
@@ -52,13 +54,14 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
 
 /**
  * `reasons` is what the transaction actually does against what was declared,
- * for the block to render. There is no way to carry on from one — a mismatch
+ * and `derived` is the whole of what it does, for the block to render. There is no way to carry on from one — a mismatch
  * hard-blocks, with no override, no allowlist and no confirmation.
  */
 export class CompletionError extends Data.TaggedError("CompletionError")<{
   readonly refusal: CompletionRefusal
   readonly detail: string
   readonly reasons?: ReadonlyArray<Reason>
+  readonly derived?: Derived
   readonly cause?: unknown
 }> {
   override get message(): string {
@@ -73,11 +76,12 @@ export class CompletionError extends Data.TaggedError("CompletionError")<{
 export const refuse = (
   refusal: CompletionRefusal,
   detail: string,
-  extra: { readonly reasons?: ReadonlyArray<Reason>; readonly cause?: unknown } = {}
+  extra: { readonly reasons?: ReadonlyArray<Reason>; readonly derived?: Derived; readonly cause?: unknown } = {}
 ): CompletionError =>
   new CompletionError({
     refusal,
     detail,
     ...(extra.reasons === undefined ? {} : { reasons: extra.reasons }),
+    ...(extra.derived === undefined ? {} : { derived: extra.derived }),
     ...(extra.cause === undefined ? {} : { cause: extra.cause })
   })

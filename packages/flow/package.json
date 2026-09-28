@@ -27,6 +27,7 @@
       "default": "./dist/index.js"
     },
     "./card.css": "./dist/card.css",
+    "./effects.css": "./dist/effects.css",
     "./tokens.css": "./dist/tokens.css",
     "./package.json": "./package.json"
   },

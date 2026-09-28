@@ -114,9 +114,10 @@ const max = (left: bigint, right: bigint): bigint => (left > right ? left : righ
  * A body address written the way the person would see it. A Byron address is
  * base58 and comes out of here in a form nobody would recognise — the intent
  * cannot declare one, so such an output is blocked either way, but the string
- * in the reason is not its real spelling.
+ * in the reason is not its real spelling. Exported so a client matches a
+ * reason to an output by the same spelling, not a second one of its own.
  */
-const addressText = (bytes: Uint8Array): string => {
+export const addressText = (bytes: Uint8Array): string => {
   const header = bytes[0] ?? 0
   const mainnet = (header & 0x0f) === 1
   const reward = header >>> 4 >= 14
