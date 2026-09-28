@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // Typechecked, never emitted. Tests render the app's components, so they
+  // need JSX and React's types on top of the shared test config's Node globals.
+  "extends": "../../tsconfig.test.json",
+  "include": ["next-env.d.ts", "test", "vitest.config.ts"],
+  "compilerOptions": {
+    "tsBuildInfoFile": ".tsbuildinfo/test.tsbuildinfo",
+    "jsx": "react-jsx",
+    "types": ["node", "react"]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // Next compiles the app itself, so tsc only checks it. One config rather than
+  // the package split: nothing here is a declaration another package reads.
+  "extends": "../../tsconfig.base.json",
+  "include": ["next-env.d.ts", "next.config.ts", "src", ".next/types/**/*.ts"],
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
+    "jsx": "react-jsx",
+    "types": ["react", "react-dom"],
+    "plugins": [{ "name": "next" }]
+  }
+}

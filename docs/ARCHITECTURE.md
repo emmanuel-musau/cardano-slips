@@ -128,6 +128,8 @@ Must survive being dropped into a third-party page: no fixed positioning, no ass
 ### `apps/page`
 Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the whole flow with zero wallet cooperation beyond CIP-30. Also owns OG/Twitter preview metadata, since the unfurl is the first impression of a shared link.
 
+A Next.js App Router app, so it leaves the four-file TypeScript layout below: Next compiles it and `tsc` only checks it, after `next typegen` writes the route types. It builds to `.next`, which its own `turbo.json` names as the build output.
+
 ### `apps/docs`
 Documentation site and the Slip tester — paste an endpoint URL, see the rendered card alongside the raw GET/POST payloads. The tester is the single best adoption tool in the project: a developer verifies their endpoint in seconds without installing anything.
 
