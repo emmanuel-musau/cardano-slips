@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * The form a linked action's `parameters` describe. It holds no state: what a
  * person typed, and which errors are ripe to show, belong to the card.

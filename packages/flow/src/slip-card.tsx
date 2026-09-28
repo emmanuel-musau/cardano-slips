@@ -1,3 +1,5 @@
+"use client"
+
 /**
  * The rendered face of a Slip link — `2 · Action card` on the design sheet.
  * It renders what the endpoint declared and collects what the endpoint asked

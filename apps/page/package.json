@@ -1,0 +1,34 @@
+{
+  "name": "@cardano-slips/page",
+  "version": "0.0.0",
+  "description": "The slip page: the hosted, self-hostable client a Slip link opens",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "clean": "rm -rf .next coverage .tsbuildinfo .turbo next-env.d.ts"
+  },
+  "dependencies": {
+    "@cardano-slips/core": "workspace:^",
+    "@cardano-slips/flow": "workspace:^",
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "happy-dom": "^20.11.6",
+    "typescript": "^6.0.3"
+  }
+}

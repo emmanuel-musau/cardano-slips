@@ -5,7 +5,16 @@ import tseslint from "typescript-eslint"
 export default tseslint.config(
   {
     // Global ignores: flat config treats an object carrying only `ignores` this way.
-    ignores: ["**/dist/**", "**/build/**", "**/coverage/**", "**/.turbo/**", "**/.tsbuildinfo/**", "**/node_modules/**"]
+    ignores: [
+      "**/dist/**",
+      "**/build/**",
+      "**/coverage/**",
+      "**/.turbo/**",
+      "**/.tsbuildinfo/**",
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/next-env.d.ts"
+    ]
   },
 
   js.configs.recommended,
