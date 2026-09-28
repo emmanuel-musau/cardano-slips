@@ -43,7 +43,7 @@ jobs:
           # Changesets reads history to work out what changed since the tag.
           fetch-depth: 0
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@22
           cache: true
@@ -96,7 +96,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@22
           cache: true
