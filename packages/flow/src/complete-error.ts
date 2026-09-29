@@ -23,6 +23,8 @@ export type CompletionRefusal =
   | "Blocked"
   /** The caller could not put the effects in front of a person, so nothing may be signed. */
   | "NotShown"
+  /** The person closed the transaction without signing it. Not a fault. */
+  | "Cancelled"
   /** The funds kept moving, and the transaction has been rebuilt as often as it will be. */
   | "OutOfAttempts"
 
@@ -37,6 +39,7 @@ export const completionRefusals: Readonly<Record<CompletionRefusal, true>> = {
   CannotJudge: true,
   Blocked: true,
   NotShown: true,
+  Cancelled: true,
   OutOfAttempts: true
 }
 
@@ -51,6 +54,7 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
     case "UnreadableUtxos":
     case "UnreadableAddresses":
     case "NotShown":
+    case "Cancelled":
     case "OutOfAttempts":
       return undefined
   }

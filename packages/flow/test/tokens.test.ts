@@ -62,6 +62,7 @@ describe("the values", () => {
     ["--pos", "#065708"],
     ["--warn", "#7a5200"],
     ["--warn-fill", "#fece52"],
+    ["--on-warn", "#3a2600"],
     ["--bad", "#d20a19"],
     ["--vault", "#222b3d"],
     ["--vault-ink", "#f5f7ff"],
@@ -183,6 +184,7 @@ describe("the contrast audit", () => {
     ["positive on a card", token("--pos"), token("--card"), 8.69],
     ["warning on a card", token("--warn"), token("--card"), 6.8],
     ["blocked on a card", token("--bad"), token("--card"), 5.43],
+    ["the testnet bar's words on its fill", token("--on-warn"), token("--warn-fill"), 9.72],
 
     ["vault ink on the vault", token("--vault-ink"), token("--vault"), 13.26],
     ["vault muted on the vault", token("--vault-muted"), token("--vault"), 8.96],

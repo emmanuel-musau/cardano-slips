@@ -8,6 +8,9 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "build/src",
-    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo"
+    "tsBuildInfoFile": ".tsbuildinfo/src.tsbuildinfo",
+
+    // The example server names `node:http` types; the Slips themselves touch none.
+    "types": ["node"]
   }
 }

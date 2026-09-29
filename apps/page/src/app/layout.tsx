@@ -1,6 +1,7 @@
 import "@cardano-slips/flow/tokens.css"
 import "@cardano-slips/flow/card.css"
 import "@cardano-slips/flow/effects.css"
+import "./page.css"
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
