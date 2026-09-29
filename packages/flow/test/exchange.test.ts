@@ -217,6 +217,36 @@ describe("requesting the partial intent", () => {
     })
   })
 
+  // The body carries the change address; a redirect followed and refused afterwards has already handed it on.
+  it("refuses a redirect without letting the fetch follow it", async () => {
+    const { fetch, sent } = network({
+      "/tip": () => new Response(null, { status: 307, headers: { location: "https://tracker.example/collect" } })
+    })
+    const result = await post(`${origin}/tip?amount=5`, fetch)
+
+    expect(Either.isLeft(result) && result.left).toMatchObject({ code: "MALFORMED_RESPONSE" })
+    expect(sent.map((request) => request.redirect)).toEqual(["manual"])
+  })
+
+  it("stops reading an answer with no end", async () => {
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(new TextEncoder().encode("x".repeat(4096)))
+      }
+    })
+    const { fetch } = network({ "/tip": () => new Response(endless) })
+    const result = await Effect.runPromise(
+      Effect.either(
+        requestIntent(
+          { href: `${origin}/tip?amount=5`, changeAddress: mainnetAddress.bech32, network: "mainnet" },
+          { fetch, maxBytes: 8192 }
+        )
+      )
+    )
+
+    expect(Either.isLeft(result) && result.left).toMatchObject({ code: "UNREACHABLE" })
+  })
+
   it("refuses a 200 that is not a partial intent", async () => {
     const { fetch } = network({ "/tip": (request) => tip.GET(request) })
     const result = await post(`${origin}/tip`, fetch)

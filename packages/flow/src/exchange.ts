@@ -4,6 +4,9 @@
  * vocabulary, classified by the rules in "Failure responses".
  */
 import {
+  type BoundedAnswer,
+  boundedRequest,
+  type BoundedRequestOptions,
   checkTemplates,
   classifyErrorCode,
   classifyStatus,
@@ -21,12 +24,7 @@ import {
 } from "@cardano-slips/core"
 import { Data, Effect, Either } from "effect"
 
-export type ExchangeOptions = {
-  readonly fetch?: typeof globalThis.fetch
-  readonly timeoutMs?: number
-}
-
-const defaultTimeoutMs = 10_000
+export type ExchangeOptions = BoundedRequestOptions
 
 /**
  * `code` is a spec code, or one an endpoint sent that the spec does not define.
@@ -118,31 +116,14 @@ const failureFrom = (response: Response, text: string): ExchangeError => {
   })
 }
 
-type Answer = { readonly response: Response; readonly text: string }
+type Answer = BoundedAnswer
 
 /**
- * One request, bounded in time as a whole. Anything that stops a usable
- * answer arriving — DNS, TLS, a refused CORS read, the clock — is `UNREACHABLE`.
+ * One request, through core's bounded request. Anything that stops a usable
+ * answer arriving — DNS, TLS, a refused CORS read, the clock, the size — is `UNREACHABLE`.
  */
-const exchange = (url: string, init: RequestInit, options: ExchangeOptions): Effect.Effect<Answer, ExchangeError> => {
-  const call = options.fetch ?? globalThis.fetch
-  const origin = new URL(url).origin
-  return Effect.tryPromise({
-    try: async (signal) => {
-      const response = await call(url, { ...init, signal, credentials: "omit", redirect: "follow" })
-      return { response, text: await response.text() }
-    },
-    catch: (cause) => clientFailure("UNREACHABLE", `could not reach ${url}: ${String(cause)}`)
-  }).pipe(
-    Effect.timeout(options.timeoutMs ?? defaultTimeoutMs),
-    Effect.catchTag("TimeoutException", () => Effect.fail(clientFailure("UNREACHABLE", `timed out on ${url}`))),
-    Effect.filterOrFail(
-      // A redirect to another origin would have the person dealing with someone the top bar does not name.
-      ({ response }) => response.url === "" || new URL(response.url).origin === origin,
-      ({ response }) => clientFailure("MALFORMED_RESPONSE", `${url} redirected to ${response.url}`)
-    )
-  )
-}
+const exchange = (url: string, init: RequestInit, options: ExchangeOptions): Effect.Effect<Answer, ExchangeError> =>
+  boundedRequest(url, init, options).pipe(Effect.mapError((failure) => clientFailure(failure.code, failure.detail)))
 
 const successBody = ({ response, text }: Answer): Effect.Effect<unknown, ExchangeError> => {
   if (response.status !== 200) return Effect.fail(failureFrom(response, text))

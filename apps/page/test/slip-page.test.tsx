@@ -34,6 +34,11 @@ const network = (
   return sent
 }
 
+const later = async (answer: () => Response | Promise<Response>): Promise<Response> => {
+  await new Promise((settled) => setTimeout(settled, 50))
+  return answer()
+}
+
 const open = (scenario: Scenario = "signs", host: unknown = previewHost(scenario, 0)) =>
   render(<SlipPage link={link} walletHost={host} />)
 
@@ -118,7 +123,7 @@ describe("a Slip that completes", () => {
     expect(screen.getByText("−5 ADA")).toBeDefined()
 
     await press("Sign transaction")
-    expect(await screen.findByText("Sent to mainnet", {}, { timeout: 3000 })).toBeDefined()
+    expect(await screen.findByText("Sent to Mainnet", {}, { timeout: 3000 })).toBeDefined()
     const receipt = screen.getByRole("link", { name: "View on cardanoscan" }).getAttribute("href")
     expect(receipt).toMatch(/^https:\/\/cardanoscan\.io\/transaction\/[0-9a-f]{64}$/)
 
@@ -157,6 +162,24 @@ describe("what can happen after the signature is asked for", () => {
     expect(await screen.findByRole("button", { name: "Sign transaction" }, { timeout: 3000 })).toBeDefined()
   })
 
+  // Each retry doubles the wait, so counting declines as retries would hold a person off a failure they never retried.
+  it("counts a notice's retries per failure, not every press since the page opened", async () => {
+    network()
+    const host = previewHost("declines", 0)
+    const api = await host.cardano.preview!.enable()
+    open("declines", host)
+
+    await toPreview()
+    await press("Sign transaction")
+    await press("Review and sign again")
+    await press("Sign transaction")
+    vi.spyOn(api, "getUtxos").mockResolvedValue([])
+    await press("Review and sign again")
+
+    expect(await screen.findByRole("heading", { name: "Not enough in your wallet" })).toBeDefined()
+    expect(screen.getByRole("button", { name: /^Check again/ }).textContent).toBe("Check again in 1s")
+  })
+
   it("shows the node's own reason when the network refuses the transaction", async () => {
     network()
     open("refuses")
@@ -183,7 +206,7 @@ describe("what can happen after the signature is asked for", () => {
     expect(signTx).toHaveBeenCalledTimes(1)
 
     await press("Sign transaction")
-    expect(await screen.findByText("Sent to mainnet", {}, { timeout: 3000 })).toBeDefined()
+    expect(await screen.findByText("Sent to Mainnet", {}, { timeout: 3000 })).toBeDefined()
     expect(signTx).toHaveBeenCalledTimes(2)
   })
 })
@@ -243,6 +266,33 @@ describe("what stops the flow before a transaction exists", () => {
     await press("Tip 5 ADA")
     expect(await screen.findByRole("heading", { name: "This link builds on a server" })).toBeDefined()
     expect(sent.some((request) => request.method === "POST")).toBe(false)
+  })
+
+  it("keeps what the person typed when the Slip is read again", async () => {
+    let posts = 0
+    const sent = network({
+      "/tip": async (request) => {
+        // A real read takes long enough for the page to draw what it shows in between.
+        if (request.method === "GET") return posts === 0 ? tip.GET(request) : later(() => tip.GET(request))
+        posts += 1
+        return posts === 1
+          ? json({ type: "error", version: "1", code: "EXPIRED", message: "Try that again." }, 410)
+          : tip.POST(request)
+      }
+    })
+    open()
+
+    await press("Tip ADA")
+    fireEvent.change(await screen.findByLabelText(/Amount in ADA/), { target: { value: "7" } })
+    await press("Tip 7 ADA")
+    await press(/Preview wallet/)
+    await waitFor(() =>
+      expect(sent.filter((request) => request.method === "GET" && request.path === "/tip")).toHaveLength(2)
+    )
+
+    await screen.findByRole("heading", { name: "Tip the author" })
+
+    expect(screen.getByLabelText<HTMLInputElement>(/Amount in ADA/).value).toBe("7")
   })
 
   it("reads the Slip again when the endpoint says it closed between the card and the build", async () => {

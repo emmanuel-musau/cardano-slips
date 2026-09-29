@@ -3,13 +3,8 @@
  * (`13 · Chrome rules`): the publisher owns the card, never what surrounds it.
  */
 import type { Network } from "@cardano-slips/core"
+import { networkNames } from "@cardano-slips/flow"
 import type { ReactNode } from "react"
-
-const networkNames: Readonly<Record<Network, string>> = {
-  mainnet: "Mainnet",
-  preprod: "Preprod",
-  preview: "Preview"
-}
 
 /** A dot and a word. Mainnet is quiet; a test network is named and gets the bar below. */
 const NetworkMark = ({ network }: { readonly network: Network | undefined }): React.JSX.Element =>

@@ -199,7 +199,12 @@ export type SlipReceiptProps = {
 /** A transaction id is hex with no separator, so it is shortened from both ends. */
 const shortId = (id: string): string => (id.length <= 12 ? id : `${id.slice(0, 4)}…${id.slice(-4)}`)
 
-const networkNames: Readonly<Record<Network, string>> = { mainnet: "mainnet", preprod: "Preprod", preview: "Preview" }
+/** One spelling for every surface that names a network, so the receipt and the top bar never disagree. */
+export const networkNames: Readonly<Record<Network, string>> = {
+  mainnet: "Mainnet",
+  preprod: "Preprod",
+  preview: "Preview"
+}
 
 /**
  * `10 · d`, back on the card surface. It says sent rather than confirmed: the

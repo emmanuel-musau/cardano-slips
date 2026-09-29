@@ -83,7 +83,7 @@ describe("the receipt", () => {
 
   it("says sent, not confirmed: nothing here watches the chain", () => {
     receipt()
-    expect(screen.getByText("Sent to mainnet")).toBeDefined()
+    expect(screen.getByText("Sent to Mainnet")).toBeDefined()
     expect(screen.queryByText(/confirmed/i)).toBeNull()
   })
 

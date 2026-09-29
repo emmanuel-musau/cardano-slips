@@ -113,6 +113,14 @@ export const noLink: Notice = {
   move: "none"
 }
 
+/** A fault in this page, not an answer from anyone. It may come after a signature, so it cannot say none was made. */
+export const pageFault: Notice = {
+  tone: "bad",
+  title: "This page ran into a problem of its own",
+  text: "If your wallet already asked you to sign, check its history before trying again.",
+  move: "retry"
+}
+
 /** Attempts before the retry is withdrawn: bounded, as the spec requires. */
 export const maxRetries = 5
 

@@ -33,6 +33,8 @@ export type Screen =
 export type ScreenContext = {
   readonly host: string
   readonly network: Network
+  /** The parameters of the action that was submitted: the only fields the card can draw a refusal beside. */
+  readonly fields?: ReadonlyArray<string>
 }
 
 const notice = (value: Notice): Screen => ({ _tag: "Notice", notice: value })
@@ -84,8 +86,8 @@ const connectScreen = (failure: WalletConnectError, { network }: ScreenContext):
   }
 }
 
-const exchangeScreen = (failure: ExchangeError, { host }: ScreenContext): Screen => {
-  if (failure.code === "INVALID_PARAMETER" && failure.field !== undefined) {
+const exchangeScreen = (failure: ExchangeError, { fields = [], host }: ScreenContext): Screen => {
+  if (failure.code === "INVALID_PARAMETER" && failure.field !== undefined && fields.includes(failure.field)) {
     return {
       _tag: "Card",
       rejected: { [failure.field]: { message: failure.endpointMessage ?? "This value was turned down." } }
@@ -165,8 +167,15 @@ const signingScreen = (failure: SigningError): Screen => {
     case "SubmitFailed":
     case "IntervalPassed":
     case "InputsSpent":
-    case "WrongTransactionId":
       return { _tag: "Outcome", outcome: { _tag: "Refused", reason: nodeReason(failure) } }
+    // The wallet took the transaction before naming another, so it may be on the chain.
+    case "WrongTransactionId":
+      return notice({
+        tone: "hold",
+        title: "Your wallet may have sent something",
+        text: "It accepted the signed transaction, then named a different one, so this page can't tell what reached the network. Check your wallet's history before trying again, or you may pay twice.",
+        move: "back"
+      })
     case "SignFailed":
     case "UnreadableTransaction":
     case "WrongBody":

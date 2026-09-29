@@ -59,7 +59,7 @@ export {
   rawLines
 } from "./ledger.js"
 export type { Outcome, OutcomePanelProps, SlipReceiptProps } from "./outcome-panel.js"
-export { OutcomePanel, SlipReceipt } from "./outcome-panel.js"
+export { networkNames, OutcomePanel, SlipReceipt } from "./outcome-panel.js"
 export type { FieldError, ParameterFormProps } from "./parameter-form.js"
 export { boundsOf, ParameterForm } from "./parameter-form.js"
 export type { KnownWallet } from "./registry.js"

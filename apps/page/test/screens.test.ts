@@ -89,6 +89,16 @@ describe("where each kind of failure goes", () => {
     })
   })
 
+  // The wallet took the transaction before naming another, so it may be on the chain; "Start again" could pay twice.
+  it("never says nothing left the wallet once the wallet may have submitted", () => {
+    const screen = screenFor(new SigningError({ refusal: "WrongTransactionId", detail: "different id" }), context)
+    expect(screen._tag).toBe("Notice")
+    if (screen._tag !== "Notice") return
+    expect(screen.notice.text).not.toMatch(/nothing left your wallet|nothing was sent/i)
+    expect(screen.notice.text).toMatch(/history/)
+    expect(screen.notice.move).toBe("back")
+  })
+
   it("puts a rejected value back on its field", () => {
     const rejected = new ExchangeError({
       code: "INVALID_PARAMETER",
@@ -97,7 +107,27 @@ describe("where each kind of failure goes", () => {
       endpointMessage: "Too much.",
       detail: ""
     })
-    expect(screenFor(rejected, context)).toEqual({ _tag: "Card", rejected: { amount: { message: "Too much." } } })
+    expect(screenFor(rejected, { ...context, fields: ["amount"] })).toEqual({
+      _tag: "Card",
+      rejected: { amount: { message: "Too much." } }
+    })
+  })
+
+  // The card draws a refusal only beside a field it shows; anywhere else it would vanish.
+  it("says who turned it down when the rejected field is not one the person filled in", () => {
+    const rejected = new ExchangeError({
+      code: "INVALID_PARAMETER",
+      errorClass: "request",
+      field: "account",
+      endpointMessage: "Unknown account.",
+      detail: ""
+    })
+    const screen = screenFor(rejected, { ...context, fields: ["amount"] })
+    expect(screen).toMatchObject({
+      _tag: "Notice",
+      notice: { title: "linktap.example turned this down", said: "Unknown account.", code: "INVALID_PARAMETER" }
+    })
+    expect(screenFor(rejected, context)._tag).toBe("Notice")
   })
 
   it.each(["UNAVAILABLE", "EXPIRED"])("reads the Slip again on %s, as the spec requires", (code) => {

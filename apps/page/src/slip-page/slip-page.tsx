@@ -32,6 +32,7 @@ import {
   type Notice,
   noticeFor,
   noWallet,
+  pageFault,
   retryDelay,
   serverBuild
 } from "./notices.js"
@@ -97,6 +98,9 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
   const target = targetOf(link)
   const [loading, setLoading] = useState<Loading>({ _tag: "Resolving" })
   const [reads, setReads] = useState(0)
+  // A re-read the endpoint asked for: no retry spent, and the card stays up so typed answers survive.
+  const [rereads, setRereads] = useState(0)
+  const quietly = useRef(false)
   const [step, setStep] = useState<Step>({ _tag: "Card" })
   const [runs, setRuns] = useState(0)
   const [wallet, setWallet] = useState<{ readonly key: string; readonly name: string } | undefined>(undefined)
@@ -108,7 +112,8 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
   useEffect(() => {
     if (link === undefined) return
     const controller = new AbortController()
-    setLoading({ _tag: "Resolving" })
+    if (!quietly.current) setLoading({ _tag: "Resolving" })
+    quietly.current = false
     setStep({ _tag: "Card" })
     void Effect.runPromise(Effect.either(fetchSlip(link)), { signal: controller.signal }).then(
       (result) => {
@@ -127,11 +132,13 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
               }
         )
       },
-      // Interrupted because the link changed or a retry started; the newer request owns the view.
-      () => undefined
+      // Aborted: the link changed or a retry started, and the newer request owns the view.
+      () => {
+        if (!controller.signal.aborted) setLoading({ _tag: "Failed", notice: pageFault })
+      }
     )
     return () => controller.abort()
-  }, [link, reads])
+  }, [link, reads, rereads])
 
   // A run in flight when the page goes away must not go on to ask for a signature.
   useEffect(() => () => running.current?.abort(), [])
@@ -177,6 +184,7 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
   const backToCard = (): void => {
     running.current?.abort()
     answer.current = undefined
+    setRuns(0)
     setStep({ _tag: "Card" })
   }
 
@@ -228,13 +236,15 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
           if (latest !== undefined) setStep({ _tag: "Receipt", receipt: result.right, attempt: latest })
           return
         }
-        const screen = screenFor(result.left, { host, network })
+        const fields = submission.action.parameters?.map((parameter) => parameter.name) ?? []
+        const screen = screenFor(result.left, { host, network, fields })
         switch (screen._tag) {
           case "Card":
             setStep({ _tag: "Card", ...(screen.rejected === undefined ? {} : { rejected: screen.rejected }) })
             return
           case "Refetch":
-            setReads((count) => count + 1)
+            quietly.current = true
+            setRereads((count) => count + 1)
             return
           case "Notice":
             setStep({
@@ -251,7 +261,10 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
             else setStep({ _tag: "Outcome", outcome: screen.outcome, attempt: latest })
         }
       },
-      () => undefined
+      () => {
+        answer.current = undefined
+        if (!controller.signal.aborted) setStep({ _tag: "Notice", notice: pageFault })
+      }
     )
   }
 
@@ -264,12 +277,13 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
     setStep({ _tag: "Choosing", submission })
   }
 
-  const again = (): void => {
+  // A fresh press after a decline, a refusal or a rebuild starts a fresh count; only a notice's retry adds to it.
+  const again = (retry = false): void => {
     if (submitted === undefined || wallet === undefined) {
       backToCard()
       return
     }
-    setRuns((count) => count + 1)
+    setRuns((count) => (retry ? count + 1 : 0))
     run(submitted, wallet)
   }
 
@@ -316,7 +330,7 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
           verdict={{ _tag: "match" }}
           onSign={() => answer.current?.(true)}
           onCancel={() => answer.current?.(false)}
-          onRebuild={again}
+          onRebuild={() => again()}
         />
       ) : undefined}
 
@@ -337,7 +351,7 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
           derived={step.attempt}
           outcome={step.outcome}
           onClose={backToCard}
-          onAgain={again}
+          onAgain={() => again()}
         />
       ) : undefined}
 
@@ -358,7 +372,7 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
           site={target?.site}
           retryIn={runWait}
           onBack={backToCard}
-          {...(runs < maxRetries ? { onRetry: again } : {})}
+          {...(runs < maxRetries ? { onRetry: () => again(true) } : {})}
         />
       ) : undefined}
     </Chrome>
