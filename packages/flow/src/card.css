@@ -320,6 +320,131 @@
   border-radius: var(--radius-control);
 }
 
+/* The receipt is back on the card surface: the preview's job is done, so its ground goes with it. */
+.slip-receipt {
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.slip-receipt__head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.slip-receipt__tick {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--type-preview-title);
+  color: var(--pos);
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.slip-receipt__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.slip-receipt__title {
+  margin: 0;
+  font: var(--type-card-title);
+}
+
+.slip-receipt__note {
+  font: var(--type-note);
+  color: var(--muted);
+}
+
+.slip-receipt__ledger {
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+}
+
+.slip-receipt__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-16);
+  padding: 12px 0;
+  font: var(--type-row);
+  color: var(--muted);
+}
+
+.slip-receipt__row + .slip-receipt__row {
+  border-top: 1px solid var(--divider);
+}
+
+.slip-receipt__amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font: var(--type-countdown);
+  color: var(--ink);
+}
+
+.slip-receipt__amount[data-tone="gained"] {
+  color: var(--pos);
+}
+
+.slip-receipt__amount[data-tone="fee"],
+.slip-receipt__amount[data-tone="held"] {
+  color: var(--warn);
+}
+
+.slip-receipt__transaction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8) var(--space-12);
+}
+
+.slip-receipt__kicker {
+  flex-basis: 100%;
+  font: var(--type-kicker);
+  letter-spacing: var(--type-kicker-tracking);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.slip-receipt__id {
+  font: var(--type-technical);
+}
+
+.slip-receipt__link {
+  font: var(--type-technical);
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.slip-receipt__link:hover {
+  color: var(--accent-deep);
+  text-decoration: underline;
+}
+
+.slip-receipt__foot {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider);
+}
+
 @keyframes slip-pulse {
   0%,
   100% {

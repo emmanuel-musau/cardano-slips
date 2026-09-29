@@ -14,7 +14,7 @@ const sourceRoot = join(packageRoot, "src")
 
 const forbiddenPackages = ["@cardano-slips/server", "@cardano-slips/verifier"]
 
-const allowedDependencies = ["@cardano-slips/core", "@cardano-slips/flow", "next", "react", "react-dom"]
+const allowedDependencies = ["@cardano-slips/core", "@cardano-slips/flow", "effect", "next", "react", "react-dom"]
 
 type Manifest = {
   dependencies?: Record<string, string>

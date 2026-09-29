@@ -1,0 +1,357 @@
+/*
+ * The page's own frame, from `7 · Hosted page · anatomy` and the notices in
+ * `8 · Page states`. Colours and type come from flow's tokens only.
+ */
+
+/* Served from this origin: a font request to a third party would tell it who opened which Slip. */
+@font-face {
+  font-family: Poppins;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: Poppins;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/poppins-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: Poppins;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/poppins-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: Poppins;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/poppins-700.woff2") format("woff2");
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--ink);
+  font: var(--type-row);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page__bar {
+  height: 52px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--divider);
+}
+
+.page__origin,
+.page__network {
+  font: var(--type-technical);
+  color: var(--muted);
+}
+
+.page__origin {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page__network {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.page__live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pos);
+}
+
+.page__testnet {
+  margin: 0;
+  padding: 7px 20px;
+  text-align: center;
+  font: 600 12px/18px var(--font);
+  color: var(--on-warn);
+  background: var(--warn-fill);
+  border-bottom: 1px solid var(--border);
+}
+
+/* One card, centred, nothing beside it. */
+.page__stage {
+  flex: 1;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 34px 16px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.page__foot {
+  flex: none;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font: var(--type-note);
+  color: var(--muted);
+  background: var(--card);
+  border-top: 1px solid var(--divider);
+}
+
+.page__link {
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.page__link:hover {
+  color: var(--accent-deep);
+  text-decoration: underline;
+}
+
+.page-notice {
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.page-notice[data-tone="bad"] {
+  border-left: 3px solid var(--bad);
+  background: var(--bad-tint);
+}
+
+.page-notice[data-tone="hold"] {
+  border-left: 3px solid var(--warn-fill);
+  background: var(--warn-tint);
+}
+
+.page-notice__title {
+  margin: 0;
+  font: var(--type-card-title);
+  color: var(--ink);
+}
+
+.page-notice[data-tone="bad"] .page-notice__title {
+  color: var(--bad);
+}
+
+.page-notice[data-tone="hold"] .page-notice__title {
+  color: var(--warn);
+}
+
+.page-notice__text,
+.page-notice__said {
+  margin: 0;
+  font: var(--type-row);
+  color: var(--muted);
+}
+
+.page-notice__said {
+  color: var(--ink);
+}
+
+.page-notice__move {
+  height: 44px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--type-button);
+  letter-spacing: var(--type-button-tracking);
+  color: var(--muted);
+  text-decoration: none;
+  background: var(--subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.page-notice__move:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.page-notice__move:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.page-notice__move:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page-notice__code {
+  margin: 0;
+  font: var(--type-technical);
+  color: var(--muted);
+}
+
+/* Kept mounted while other steps show; it only needs to fill the stage like the card it holds. */
+.page__card {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.page__card[hidden] {
+  display: none;
+}
+
+.page-notice__wallets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font: var(--type-row);
+}
+
+/* `9 · Wallet connect`. */
+.page-connect {
+  width: 100%;
+  max-width: 460px;
+  box-sizing: border-box;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.page-connect__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-connect__title {
+  margin: 0;
+  font: var(--type-card-title);
+  color: var(--ink);
+}
+
+.page-connect__claim {
+  margin: 0;
+  font: var(--type-body);
+  color: var(--muted);
+}
+
+.page-connect__wallets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.page-connect__wallet {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.page-connect__wallet:hover {
+  border-color: var(--accent-fill);
+}
+
+.page-connect__wallet:focus-visible,
+.page-connect__back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.page-connect__icon {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background-image: repeating-linear-gradient(135deg, var(--stripe-a) 0 5px, var(--stripe-b) 5px 10px);
+  color: var(--accent-fill);
+}
+
+.page-connect__name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.page-connect__wallet-name {
+  font: 600 15px/20px var(--font);
+}
+
+.page-connect__detected {
+  font: var(--type-note);
+  color: var(--muted);
+}
+
+.page-connect__privacy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--divider);
+  font: var(--type-row);
+  color: var(--muted);
+}
+
+.page-connect__privacy p {
+  margin: 0;
+}
+
+.page-connect__privacy strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.page-connect__back {
+  align-self: flex-start;
+  padding: 0;
+  font: var(--type-note);
+  color: var(--accent-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}

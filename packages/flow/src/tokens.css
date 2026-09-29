@@ -66,6 +66,7 @@
   --warn-tint: rgba(254, 206, 82, 0.22);
   --warn-line: rgba(254, 206, 82, 0.85);
   --warn-fill: #fece52; /* the warning as a fill, never as a word on a light ground */
+  --on-warn: #3a2600; /* words on the warning fill: the testnet bar */
 
   /* The alternating rows of the effects list, on and off. */
   --stripe-a: rgba(90, 110, 205, 0.16);

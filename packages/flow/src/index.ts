@@ -21,7 +21,7 @@ export {
   txSignErrorNames,
   USER_DECLINED
 } from "./cip30.js"
-export type { Attempt, CompletionRequest, Receipt } from "./complete.js"
+export type { Attempt, CompletionRequest, Progress, Receipt } from "./complete.js"
 export { completeIntent } from "./complete.js"
 export type { CompletionRefusal } from "./complete-error.js"
 export { CompletionError, completionRefusals, slipErrorCodeFor as completionErrorCodeFor } from "./complete-error.js"
@@ -32,6 +32,8 @@ export type { DiscoveredWallet, WalletHost } from "./discovery.js"
 export { discoverWallets, findWallet, injectedUnder } from "./discovery.js"
 export type { EffectsPanelProps } from "./effects-panel.js"
 export { EffectsPanel } from "./effects-panel.js"
+export type { ExchangeOptions, FetchedSlip, IntentRequest } from "./exchange.js"
+export { ExchangeError, fetchSlip, requestIntent } from "./exchange.js"
 export type { Explanation } from "./explain.js"
 export {
   assetLabel,
@@ -56,6 +58,8 @@ export {
   matchLine,
   rawLines
 } from "./ledger.js"
+export type { Outcome, OutcomePanelProps, SlipReceiptProps } from "./outcome-panel.js"
+export { networkNames, OutcomePanel, SlipReceipt } from "./outcome-panel.js"
 export type { FieldError, ParameterFormProps } from "./parameter-form.js"
 export { boundsOf, ParameterForm } from "./parameter-form.js"
 export type { KnownWallet } from "./registry.js"

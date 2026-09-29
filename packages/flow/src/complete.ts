@@ -40,6 +40,15 @@ export type Attempt = Derived & {
   readonly transactionId: string
 }
 
+/** Where the path has got to after the person agreed, for a screen that says so. */
+export type Progress =
+  /** The wallet has been asked for a signature on this transaction. */
+  | { readonly _tag: "Signing"; readonly transactionId: string }
+  /** The witnesses are in the body and the wallet has been asked to submit it. */
+  | { readonly _tag: "Submitting"; readonly transactionId: string }
+  /** The funds moved under the last transaction; attempt `number` of `of` is being built. */
+  | { readonly _tag: "Rebuilding"; readonly number: number; readonly of: number }
+
 export type CompletionRequest = {
   readonly api: Cip30Api
   /** What the endpoint declared, and what the transaction is judged against. */
@@ -54,6 +63,14 @@ export type CompletionRequest = {
   readonly attempts?: number
   /** Called once per attempt, after the effects are derived and before the wallet is asked to sign. */
   readonly onAttempt?: (attempt: Attempt) => void
+  /**
+   * Resolves `true` once the person has pressed sign on this attempt, `false`
+   * if they turned it down. Asked again for every rebuilt transaction, because
+   * agreeing to one body is not agreeing to the next. Without it, showing the
+   * effects is taken as agreement.
+   */
+  readonly confirm?: (attempt: Attempt) => Promise<boolean>
+  readonly onProgress?: (progress: Progress) => void
 }
 
 export type Receipt = {
@@ -230,6 +247,15 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
     return { cbor: built.cbor, attempt }
   })
 
+/** A progress report is a courtesy to the screen; one that throws must not stop a submission already under way. */
+const report = (request: CompletionRequest, progress: Progress): void => {
+  try {
+    request.onProgress?.(progress)
+  } catch {
+    // Nothing to do: the flow carries on, and the next state the screen is given corrects it.
+  }
+}
+
 /**
  * Completes the Slip, or says why not. A submission that failed because an
  * input was spent is the one failure worth repeating: everything else either
@@ -242,12 +268,26 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
     for (let number = 1; number <= allowed; number += 1) {
       const { attempt, cbor } = yield* buildAndJudge(request, number)
 
+      const { confirm } = request
+      if (confirm !== undefined) {
+        const agreed = yield* Effect.tryPromise({
+          try: () => confirm(attempt),
+          catch: (cause) =>
+            refuse("NotShown", "This transaction could not be put to you, so it will not be signed.", { cause })
+        })
+        if (!agreed) {
+          return yield* Effect.fail(refuse("Cancelled", "The transaction was closed without signing."))
+        }
+      }
+
+      report(request, { _tag: "Signing", transactionId: attempt.transactionId })
       const signed = yield* signTransaction({
         api: request.api,
         transaction: cbor,
         transactionId: attempt.transactionId
       })
 
+      report(request, { _tag: "Submitting", transactionId: attempt.transactionId })
       const submitted = yield* Effect.either(submitTransaction(request.api, signed))
       if (Either.isRight(submitted)) {
         return { transactionId: submitted.right, effects: attempt.effects, attempts: number }
@@ -255,6 +295,7 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
       if (submitted.left.refusal !== "InputsSpent") {
         return yield* Effect.fail(submitted.left)
       }
+      if (number < allowed) report(request, { _tag: "Rebuilding", number: number + 1, of: allowed })
     }
 
     return yield* Effect.fail(

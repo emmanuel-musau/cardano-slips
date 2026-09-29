@@ -109,7 +109,7 @@ const Rows = ({ rows }: { readonly rows: ReadonlyArray<Row> }): React.JSX.Elemen
  * a marked row never starts folded: the one thing the block points at is not
  * something a person should have to open.
  */
-const Ledger = ({ rows }: { readonly rows: ReadonlyArray<Row> }): React.JSX.Element => {
+export const Ledger = ({ rows }: { readonly rows: ReadonlyArray<Row> }): React.JSX.Element => {
   if (!isGrouped(rows)) return <Rows rows={rows} />
   const collapsed = isCollapsed(rows)
   return (

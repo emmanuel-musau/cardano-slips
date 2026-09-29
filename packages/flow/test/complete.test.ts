@@ -6,7 +6,7 @@ import { Effect, Either } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { Cip30Api } from "../src/cip30.js"
-import { type Attempt, type CompletionRequest, completeIntent, type Receipt } from "../src/complete.js"
+import { type Attempt, type CompletionRequest, completeIntent, type Progress, type Receipt } from "../src/complete.js"
 import { type CompletionError, completionRefusals, type CompletionRefusal } from "../src/complete-error.js"
 import { transactionIdOf } from "../src/witness.js"
 import { fails, mockWallet, toHex } from "./mock-wallet.js"
@@ -265,6 +265,78 @@ describe("what is never signed", () => {
     const { api } = mockWallet({ utxos: [fails({ code: -2, info: "internal error" })] })
 
     await failure(api, {}, "UnreadableUtxos")
+  })
+})
+
+describe("waiting for the person to agree", () => {
+  it("asks the wallet for nothing until the person has pressed sign", async () => {
+    const { api, log } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+    let agree: (agreed: boolean) => void = () => undefined
+    const pending = complete(api, { confirm: () => new Promise<boolean>((settle) => (agree = settle)) })
+
+    await new Promise((later) => setTimeout(later, 10))
+    expect(log.calls).not.toContain("signTx")
+
+    agree(true)
+    expect((await pending).attempts).toBe(1)
+    expect(log.calls).toContain("signTx")
+  })
+
+  it("ends with nothing signed when the person closes the transaction", async () => {
+    const { api, log } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+
+    const error = await failure(api, { confirm: async () => false }, "Cancelled")
+    expect(error.code).toBeUndefined()
+    expect(log.signed).toEqual([])
+  })
+
+  it("signs nothing when the question could not be put", async () => {
+    const { api, log } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+
+    await failure(api, { confirm: () => Promise.reject(new Error("the button never rendered")) }, "NotShown")
+    expect(log.signed).toEqual([])
+  })
+
+  it("asks again for a rebuilt transaction, naming the new one", async () => {
+    const { api } = mockWallet({
+      utxos: [asHex([held(100_000_000n, 1)]), asHex([held(90_000_000n, 2)])],
+      submits: [fails(inputsGone), "accept"]
+    })
+    const asked: Array<string> = []
+    await complete(api, { confirm: async (attempt) => (asked.push(attempt.transactionId), true) })
+
+    expect(asked).toHaveLength(2)
+    expect(asked[0]).not.toBe(asked[1])
+  })
+
+  it("reports signing, submitting and rebuilding in the order they happen", async () => {
+    const { api } = mockWallet({
+      utxos: [asHex([held(100_000_000n, 1)]), asHex([held(90_000_000n, 2)])],
+      submits: [fails(inputsGone), "accept"]
+    })
+    const seen: Array<Progress> = []
+    const receipt = await complete(api, { onProgress: (progress) => seen.push(progress) })
+
+    expect(seen.map((progress) => progress._tag)).toEqual([
+      "Signing",
+      "Submitting",
+      "Rebuilding",
+      "Signing",
+      "Submitting"
+    ])
+    expect(seen[2]).toEqual({ _tag: "Rebuilding", number: 2, of: 3 })
+    expect(seen[4]).toEqual({ _tag: "Submitting", transactionId: receipt.transactionId })
+  })
+
+  it("carries on when a progress report throws", async () => {
+    const { api } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])] })
+    const receipt = await complete(api, {
+      onProgress: () => {
+        throw new Error("the screen fell over")
+      }
+    })
+
+    expect(receipt.attempts).toBe(1)
   })
 })
 

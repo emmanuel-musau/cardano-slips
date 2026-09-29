@@ -13,8 +13,10 @@ describe("the page on a server", () => {
     expect(typeof globalThis.window).toBe("undefined")
   })
 
-  it("renders to HTML", async () => {
+  it("renders the resolving state to HTML, with the link's host already in the top bar", async () => {
     const { default: Page } = await import("../src/app/page.js")
-    expect(renderToString(<Page />)).toContain("Loading this Slip")
+    const html = renderToString(await Page({ searchParams: Promise.resolve({ uri: "https://linktap.example/tip" }) }))
+    expect(html).toContain("Loading this Slip")
+    expect(html).toContain("linktap.example")
   })
 })

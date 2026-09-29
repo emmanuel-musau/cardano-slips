@@ -6,6 +6,7 @@
 import { Data, Effect, Either, Schema } from "effect"
 
 import type { ClientErrorCode } from "./errors.js"
+import { boundedRequest, type BoundedRequestOptions } from "./request.js"
 
 /**
  * Path-absolute: there is nowhere to write a scheme or an authority, so a rule
@@ -105,43 +106,7 @@ export const parseSlipUrl = (link: string): Either.Either<URL, InsecureSlipUrl> 
 /** Served at the root of the origin the human path is on. */
 export const mappingUrlFor = (origin: string): string => `${origin}/slips.json`
 
-/**
- * A conforming file has a computable ceiling — 100 rules of two 512-character
- * templates — so anything past this is not a mapping being read slowly.
- */
-const defaultMaxBytes = 256 * 1024
-
-const defaultTimeoutMs = 10_000
-
-export type MappingFetchOptions = {
-  readonly fetch?: typeof globalThis.fetch
-  readonly timeoutMs?: number
-  readonly maxBytes?: number
-}
-
-/** Exceeding either bound is `UNREACHABLE`: nothing usable arrived, and the same request may succeed later. */
-const readBounded = async (response: Response, maxBytes: number): Promise<string> => {
-  const body = response.body
-  if (body === null) return ""
-
-  const reader = body.getReader()
-  const decoder = new TextDecoder()
-  let size = 0
-  let text = ""
-
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    size += value.byteLength
-    if (size > maxBytes) {
-      await reader.cancel()
-      throw new Error(`response exceeded ${maxBytes} bytes`)
-    }
-    text += decoder.decode(value, { stream: true })
-  }
-
-  return text + decoder.decode()
-}
+export type MappingFetchOptions = BoundedRequestOptions
 
 /**
  * `404` and `410` mean the origin has no mapping and the link is its own
@@ -155,22 +120,12 @@ export const fetchDomainMapping = (
   Effect.gen(function* () {
     const url = yield* parseSlipUrl(link)
     const target = mappingUrlFor(url.origin)
-    const call = options.fetch ?? globalThis.fetch
-    const maxBytes = options.maxBytes ?? defaultMaxBytes
 
-    const response = yield* Effect.tryPromise({
-      try: (signal) => call(target, { signal, redirect: "follow", headers: { accept: "application/json" } }),
-      catch: (cause) => unreachable(`could not fetch ${target}: ${String(cause)}`)
-    }).pipe(
-      Effect.timeout(options.timeoutMs ?? defaultTimeoutMs),
-      Effect.catchTag("TimeoutException", () => Effect.fail(unreachable(`timed out fetching ${target}`)))
-    )
-
-    // A cross-origin redirect is the indirection a rule cannot express, arriving by a third route.
-    const landed = response.url === "" ? target : response.url
-    if (new URL(landed).origin !== url.origin) {
-      return yield* Effect.fail(malformed(`${target} redirected to another origin: ${landed}`))
-    }
+    const { response, text } = yield* boundedRequest(
+      target,
+      { method: "GET", headers: { accept: "application/json" } },
+      options
+    ).pipe(Effect.mapError((failure) => new DomainMappingFailure({ code: failure.code, detail: failure.detail })))
 
     if (response.status === 404 || response.status === 410) return absentMapping
 
@@ -178,13 +133,8 @@ export const fetchDomainMapping = (
       return yield* Effect.fail(unreachable(`${target} answered ${response.status}`))
     }
 
-    const body = yield* Effect.tryPromise({
-      try: () => readBounded(response, maxBytes),
-      catch: (cause) => unreachable(`could not read ${target}: ${String(cause)}`)
-    })
-
     const parsed = yield* Effect.try({
-      try: () => JSON.parse(body) as unknown,
+      try: () => JSON.parse(text) as unknown,
       catch: () => malformed(`${target} is not JSON`)
     })
 

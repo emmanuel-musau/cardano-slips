@@ -21,7 +21,8 @@
     "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "lint": "eslint .",
-    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo",
+    "serve": "node dist/serve.js"
   },
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
@@ -29,6 +30,7 @@
     "effect": "^3.22.1"
   },
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "typescript": "^6.0.3"
   }
 }
