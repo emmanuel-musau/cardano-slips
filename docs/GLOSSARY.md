@@ -48,7 +48,9 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **Policy ID** — identifies a native asset's minting policy. Asset deltas are derived per policy + asset name; USDM and USDCx are each a policy.
 
-**Preprod** — the Cardano test network used for all end-to-end work before mainnet.
+**Preprod** — the Cardano test network that mirrors mainnet most closely. The check run before anything reaches mainnet.
+
+**Preview** — the Cardano test network used for day-to-day development. It takes hard forks and parameter changes before the other networks, so a sudden failure there may be the network, not the code.
 
 **Publisher manifest** — the signed `.well-known/cardano-slips.json` document binding a domain to the Slip endpoints it vouches for. Tier 1 of the identity layer, and the payload a CIP-0170 attestation anchors. Proves *who* is asking, where effects derivation proves *what* happens.
 

@@ -178,6 +178,8 @@ sit in cooldown before we are offered them. Security updates skip it.
 
 ## Environments
 
-`preprod` for all end-to-end work (issue #54 provisions wallets and provider keys; `.env.example` documents the variables). Mainnet is touched only by the deployment issues (#63, #67).
+`preview` for day-to-day development and testing (issue #54 provisions wallets and provider keys; `.env.example` documents the variables). `preprod` is the check before mainnet: every end-to-end criterion that names it is run there, not on preview. Mainnet is touched only by the deployment issues (#63, #67).
+
+A wallet reports preview and preprod as the same testnet, so a Slip declaring the wrong one gets past the wallet check and fails later, on missing funds or at the node. Every Slip and example used on preview declares `network: "preview"`.
 
 Team and test wallets are recorded and excluded from usage figures. No transaction we generate ourselves is ever counted as adoption.
