@@ -246,12 +246,13 @@ describe("fetching the mapping", () => {
     expect(Either.isLeft(result) && result.left.code).toBe("MALFORMED_RESPONSE")
   })
 
-  it("follows a redirect that stays on the origin", async () => {
+  // A browser told not to follow a redirect will not say where it pointed, so the spec's "MAY follow" is declined.
+  it("refuses a redirect even when it stays on the origin", async () => {
     const result = await run(
       "https://linktap.example/pay",
-      stub(() => respond(served, { url: "https://linktap.example/static/slips.json" }))
+      stub(() => respond("", { status: 302, headers: { location: "https://linktap.example/static/slips.json" } }))
     )
-    expect(Either.isRight(result) && result.right._tag).toBe("Mapping")
+    expect(Either.isLeft(result) && result.left.code).toBe("MALFORMED_RESPONSE")
   })
 
   it("stops reading a body with no end", async () => {
