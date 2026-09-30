@@ -14,7 +14,18 @@ const sourceRoot = join(packageRoot, "src")
 
 const forbiddenPackages = ["@cardano-slips/server", "@cardano-slips/verifier"]
 
-const allowedDependencies = ["@cardano-slips/core", "@cardano-slips/flow", "effect", "next", "react", "react-dom"]
+const allowedDependencies = [
+  "@cardano-slips/core",
+  "@cardano-slips/flow",
+  "@evolution-sdk/evolution",
+  "effect",
+  "next",
+  "react",
+  "react-dom"
+]
+
+/** The only place the page talks to a chain provider: its own server route (ADR-0015). */
+const providerRoute = join("src", "app", "parameters")
 
 type Manifest = {
   dependencies?: Record<string, string>
@@ -88,5 +99,14 @@ describe("what the page does declare", () => {
       .filter(({ specifier }) => !specifier.startsWith("."))
       .filter(({ specifier }) => !declaredDependencies.includes(packageOf(specifier)))
     expect(undeclared).toEqual([])
+  })
+})
+
+describe("the chain provider", () => {
+  it("is reached only from the page's own parameters route, never from browser code", () => {
+    const outside = imported
+      .filter(({ specifier }) => packageOf(specifier) === "@evolution-sdk/evolution")
+      .filter(({ file }) => !file.startsWith(providerRoute))
+    expect(outside).toEqual([])
   })
 })

@@ -6,6 +6,8 @@ export default defineConfig({
   test: {
     name: "page",
     environment: "happy-dom",
+    // The page is served from an origin, and asks it for `/parameters/<network>`.
+    environmentOptions: { happyDOM: { url: "http://localhost:3000/" } },
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.ts", "test/**/*.test.tsx"]
   }
