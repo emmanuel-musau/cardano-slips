@@ -3,10 +3,8 @@ import { decodePartialIntent, decodeSlip } from "@cardano-slips/core"
 import { Either } from "effect"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
+import { previewRecipient } from "../src/preview.js"
 import { createExampleServer } from "../src/server.js"
-
-const changeAddress =
-  "addr1qxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjynn4lleg4u9dpmgh74jap9ef7587khxr79r430d4gkalfwsl0vysa"
 
 let origin = ""
 const server = createExampleServer("http://localhost")
@@ -32,7 +30,7 @@ describe("the example server", () => {
     const response = await fetch(`${origin}/tip?amount=5`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ changeAddress, network: "mainnet" })
+      body: JSON.stringify({ changeAddress: previewRecipient, network: "preview" })
     })
 
     expect(response.status).toBe(200)

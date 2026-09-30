@@ -4,3 +4,4 @@
  */
 export * from "./delegate.js"
 export * from "./tip.js"
+export * from "./preview.js"
