@@ -64,7 +64,7 @@ The sheet is one theme, laid out as a single row of groups:
 | Foundations | `1 · Tokens` — colour, type, spacing, radius, and a WCAG AA contrast audit |
 | The action card | `2 · Action card` (states a–j), `3 · Publisher identity` |
 | The transaction preview | `4 · Anatomy`, `5 · Entering the preview`, `6 · Preview states` (a–i, including the mismatch block) |
-| The hosted page — the M1 client itself | `7 · Hosted page · anatomy`, `8 · Page states` (a–m) |
+| The hosted page — the client itself | `7 · Hosted page · anatomy`, `8 · Page states` (a–m) |
 | Wallet | `9 · Wallet connect`, `10 · Signing and outcomes` (a–f), `11 · In-wallet browser` |
 | Sharing | `12 · Shared link · unfurl` |
 | Rules and backlog | `13 · Chrome rules`, `14 · Still to design` |

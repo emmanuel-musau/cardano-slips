@@ -70,7 +70,7 @@ There is exactly one design sheet for the whole client UI, and it is the referen
 
 **Cardano Slips** — https://claude.ai/design/p/79057abf-f6fc-410c-9d7c-f8490d1088ea?file=Cardano+Slips.dc.html
 
-The sheet has two columns. The left column is the component system: `1 · Tokens` (colour, type, spacing, radius, the dark-surface rule, and a WCAG AA contrast audit), `2 · Action card` (states a–g), `3 · Transaction preview · anatomy`, `4 · Entering the dark`, `5 · Transaction preview · states` (a–h, including the mismatch block). The right column is the hosted slip page — the M1 client itself: `6 · Hosted page · anatomy`, `7 · Page states` (a–h), `8 · Wallet connect`, `9 · In-wallet browser`, `10 · Chrome rules`, and `11 · Still to design`.
+The sheet has two columns. The left column is the component system: `1 · Tokens` (colour, type, spacing, radius, the dark-surface rule, and a WCAG AA contrast audit), `2 · Action card` (states a–g), `3 · Transaction preview · anatomy`, `4 · Entering the dark`, `5 · Transaction preview · states` (a–h, including the mismatch block). The right column is the hosted slip page — the client itself: `6 · Hosted page · anatomy`, `7 · Page states` (a–h), `8 · Wallet connect`, `9 · In-wallet browser`, `10 · Chrome rules`, and `11 · Still to design`.
 
 - Take colours, type, spacing and component structure from this sheet rather than inventing them. It is one file — there is no second sheet to reconcile against.
 - `11 · Still to design` is the live list of UI that has not been drawn yet. If a ticket needs one of those surfaces, it gets designed there first; don't improvise it in code.

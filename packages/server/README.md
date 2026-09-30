@@ -35,7 +35,7 @@ export const { GET, POST, OPTIONS } = defineSlip({
 
 Every response the handlers produce is checked against the `core` schemas on the way out — the failure bodies included. A publisher who declares a shape version 1 does not define fails at their own boundary, at their own deploy — not at a stranger's wallet, where the same mistake arrives as a Slip that will not load and a person with nothing to act on.
 
-## What ships in M1
+## What ships in v1
 
 Route handlers for `GET`, `POST` and the `OPTIONS` preflight a JSON body makes mandatory, `slips.json` serving from the origin root, and the spec's failure codes mapped to their HTTP status.
 
