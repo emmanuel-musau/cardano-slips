@@ -21,5 +21,6 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0011](0011-cip-title.md) | Title the CIP by its mechanism — Endpoint-Built Transaction Requests | Accepted |
 | [0012](0012-decode-test-oracle.md) | Cross-check the decoder against the chain's own reading, not against CML | Accepted |
 | [0013](0013-stated-certificate-deposit.md) | Hold a stated deposit to the protocol parameter, and leave a stated refund uncompared | Accepted |
+| [0014](0014-defer-cip-0170-to-a-gated-milestone.md) | Cut Tier 2 from M1 and gate it on conditions, not a date | Proposed |
 
-One more is already ticketed as a decision and lands here when made: the CIP-0170 go/no-go (#63), which ADR-0006 narrows to the Tier-2 question only.
+ADR-0014 is the CIP-0170 go/no-go ADR-0006 narrowed to the Tier-2 question. It carries what the spike (#60) found and the recommendation that follows; #63 is where it becomes Accepted or Rejected.

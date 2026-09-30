@@ -20,7 +20,7 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **Change address** — where a transaction's leftover value returns. Supplied by the wallet via CIP-30 and sent to the endpoint in the POST body.
 
-**CIP-13** — Cardano's URI scheme (`web+cardano:`). Covers payment and stake delegation, and every extension registers an authority under it. Still `Proposed` with no listed implementors since 2020 — see `docs/ECOSYSTEM.md` §1 for why that matters. Our proposed `//slip` authority extends it; deferred to roadmap in M1.
+**CIP-13** — Cardano's URI scheme (`web+cardano:`). Covers payment and stake delegation, and every extension registers an authority under it. Still `Proposed` with no listed implementors since 2020 — see `docs/ECOSYSTEM.md` §1 for why that matters. Our proposed `//slip` authority extends it; deferred beyond v1.
 
 **CIP-158** — the `//browse` authority: `web+cardano://browse/v1?uri=<percent-encoded https URL>` opens that URL in the wallet's in-app browser. Active, implemented by VESPR and Begin. Our mobile entry path, because CIP-30 is injected once the page loads there — and the only mobile route to a signature, since a phone browser injects nothing. Android and iOS hand the URI to a wallet differently; `docs/ECOSYSTEM.md` §1 has both.
 
@@ -28,7 +28,7 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **CIP-0170** — KERI-backed on-chain attestations, anchoring a digest of arbitrary data in an issuer's Key Event Log and referencing it in transaction metadata. Tier 2 of the identity layer: it carries a publisher to a legally recognised entity, but defines no domain binding of its own — see **Publisher manifest**.
 
-**Collateral** — UTxOs pledged to cover fees if a script fails validation. Relevant to Mode B and script-heavy Slips; out of M1 scope.
+**Collateral** — UTxOs pledged to cover fees if a script fails validation. Relevant to Mode B and script-heavy Slips; out of v1 scope.
 
 **Deposit** — refundable ADA locked by certain certificates, notably stake key registration (2 ADA). Shown separately from fees in the effects panel because the user gets it back.
 
@@ -48,11 +48,11 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **Policy ID** — identifies a native asset's minting policy. Asset deltas are derived per policy + asset name; USDM and USDCx are each a policy.
 
-**Preprod** — the Cardano test network used for all end-to-end work before mainnet.
+**Preprod** — the Cardano test network that mirrors mainnet most closely. A Slip may declare it; we develop and test on preview.
+
+**Preview** — the Cardano test network all development and testing runs on. It takes hard forks and parameter changes before the other networks, so a sudden failure there may be the network, not the code.
 
 **Publisher manifest** — the signed `.well-known/cardano-slips.json` document binding a domain to the Slip endpoints it vouches for. Tier 1 of the identity layer, and the payload a CIP-0170 attestation anchors. Proves *who* is asking, where effects derivation proves *what* happens.
-
-**Reference integration** — AdaLink. Proves the SDK on a product with real users; not a library and not a template.
 
 **Validity interval** — the slot range in which a transaction may be included. Rendered to users as a wall-clock expiry ("expires in 4m 12s"); short intervals plus rebuild-and-retry handle UTxOs moving mid-flow.
 

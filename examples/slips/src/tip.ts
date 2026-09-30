@@ -3,6 +3,7 @@
  * linked action is what carries the choice, and the `POST` reads it back off
  * its own URL — the round trip a client has to make work.
  */
+import type { Network } from "@cardano-slips/core"
 import { defineSlip, fail } from "@cardano-slips/server"
 
 import { inMinutes } from "./deadline.js"
@@ -39,54 +40,58 @@ const ada = (lovelace: number): string => {
   return fraction === "" ? String(lovelace / perAda) : `${Math.trunc(lovelace / perAda)}.${fraction}`
 }
 
-export const tip = defineSlip({
-  network: "mainnet",
+/** The tip Slip for any network, paying an address on that network. */
+export const tipSlip = (network: Network, recipient: string) =>
+  defineSlip({
+    network,
 
-  // Hrefs come from the URL this was served at, not from a path written here:
-  // three suites mount this same fixture, and a hardcoded path would send their
-  // buttons to a route that answers nothing.
-  get: ({ url }) => ({
-    title: "Tip the author",
-    description: "Send any amount straight to the author's address. Nothing is stored and no account is created.",
-    icon: "https://linktap.example/i/tip.png",
-    label: "Tip",
-    links: {
-      actions: [
-        { label: "Tip 5 ADA", href: `${url.pathname}?amount=5` },
-        { label: "Tip 25 ADA", href: `${url.pathname}?amount=25` },
-        {
-          label: "Tip {amount} ADA",
-          href: `${url.pathname}?amount={amount}`,
-          parameters: [
-            { name: "amount", label: "Amount in ADA", type: "number", min: minAda, max: maxAda, required: true }
-          ]
+    // Hrefs come from the URL this was served at, not from a path written here:
+    // three suites mount this same fixture, and a hardcoded path would send their
+    // buttons to a route that answers nothing.
+    get: ({ url }) => ({
+      title: "Tip the author",
+      description: "Send any amount straight to the author's address. Nothing is stored and no account is created.",
+      icon: "https://linktap.example/i/tip.png",
+      label: "Tip",
+      links: {
+        actions: [
+          { label: "Tip 5 ADA", href: `${url.pathname}?amount=5` },
+          { label: "Tip 25 ADA", href: `${url.pathname}?amount=25` },
+          {
+            label: "Tip {amount} ADA",
+            href: `${url.pathname}?amount={amount}`,
+            parameters: [
+              { name: "amount", label: "Amount in ADA", type: "number", min: minAda, max: maxAda, required: true }
+            ]
+          }
+        ]
+      }
+    }),
+
+    post: ({ url }) => {
+      const raw = url.searchParams.get("amount")
+      if (raw === null) return fail("INVALID_PARAMETER", "Choose an amount to tip.", { field: "amount" })
+
+      const lovelace = lovelaceOf(raw)
+      if (lovelace === "notANumber") {
+        return fail("INVALID_PARAMETER", "The amount must be a number of ADA.", { field: "amount" })
+      }
+      if (lovelace === "tooPrecise") {
+        return fail("INVALID_PARAMETER", "ADA divides no further than six decimal places.", { field: "amount" })
+      }
+      if (lovelace < minAda * perAda || lovelace > maxAda * perAda) {
+        return fail("INVALID_PARAMETER", `The amount must be between ${minAda} and ${maxAda} ADA.`, { field: "amount" })
+      }
+
+      return {
+        // Rendered from the parsed value, never echoed back from the query string.
+        message: `Tip ${ada(lovelace)} ADA to the author.`,
+        intent: {
+          outputs: [{ address: recipient, lovelace: String(lovelace) }],
+          validUntil: inMinutes(10)
         }
-      ]
-    }
-  }),
-
-  post: ({ url }) => {
-    const raw = url.searchParams.get("amount")
-    if (raw === null) return fail("INVALID_PARAMETER", "Choose an amount to tip.", { field: "amount" })
-
-    const lovelace = lovelaceOf(raw)
-    if (lovelace === "notANumber") {
-      return fail("INVALID_PARAMETER", "The amount must be a number of ADA.", { field: "amount" })
-    }
-    if (lovelace === "tooPrecise") {
-      return fail("INVALID_PARAMETER", "ADA divides no further than six decimal places.", { field: "amount" })
-    }
-    if (lovelace < minAda * perAda || lovelace > maxAda * perAda) {
-      return fail("INVALID_PARAMETER", `The amount must be between ${minAda} and ${maxAda} ADA.`, { field: "amount" })
-    }
-
-    return {
-      // Rendered from the parsed value, never echoed back from the query string.
-      message: `Tip ${ada(lovelace)} ADA to the author.`,
-      intent: {
-        outputs: [{ address: author, lovelace: String(lovelace) }],
-        validUntil: inMinutes(10)
       }
     }
-  }
-})
+  })
+
+export const tip = tipSlip("mainnet", author)

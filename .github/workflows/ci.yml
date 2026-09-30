@@ -32,7 +32,7 @@ jobs:
 
       # `version` is omitted deliberately — pnpm/setup reads it from
       # `packageManager` in package.json, keeping CI and local on one pin.
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@22
           cache: true
@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@22
           cache: true
@@ -83,7 +83,7 @@ jobs:
           # `status --since` diffs against the base branch, which needs history.
           fetch-depth: 0
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@22
           cache: true

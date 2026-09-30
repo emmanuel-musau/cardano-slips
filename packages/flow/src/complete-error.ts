@@ -8,17 +8,23 @@ import { type ClientErrorCode } from "@cardano-slips/core"
 import type { Reason } from "@cardano-slips/verifier"
 import { Data } from "effect"
 
+import type { Derived } from "./derived.js"
+
 export type CompletionRefusal =
   /** The wallet reported no unspent outputs, so there is nothing to build from. */
   | "NoUtxos"
   /** What `getUtxos` answered is not something these bytes can be read as. */
   | "UnreadableUtxos"
+  /** The wallet would not say which addresses are its own, or named one that cannot be read. */
+  | "UnreadableAddresses"
   /** The effects could not be derived from the transaction, or compared with the declaration. */
   | "CannotJudge"
   /** The derived effects disagree with what the endpoint declared. Nothing signs after this. */
   | "Blocked"
   /** The caller could not put the effects in front of a person, so nothing may be signed. */
   | "NotShown"
+  /** The person closed the transaction without signing it. Not a fault. */
+  | "Cancelled"
   /** The funds kept moving, and the transaction has been rebuilt as often as it will be. */
   | "OutOfAttempts"
 
@@ -29,9 +35,11 @@ export type CompletionRefusal =
 export const completionRefusals: Readonly<Record<CompletionRefusal, true>> = {
   NoUtxos: true,
   UnreadableUtxos: true,
+  UnreadableAddresses: true,
   CannotJudge: true,
   Blocked: true,
   NotShown: true,
+  Cancelled: true,
   OutOfAttempts: true
 }
 
@@ -44,7 +52,9 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
     case "CannotJudge":
       return "CANNOT_BALANCE"
     case "UnreadableUtxos":
+    case "UnreadableAddresses":
     case "NotShown":
+    case "Cancelled":
     case "OutOfAttempts":
       return undefined
   }
@@ -52,13 +62,14 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
 
 /**
  * `reasons` is what the transaction actually does against what was declared,
- * for the block to render. There is no way to carry on from one — a mismatch
+ * and `derived` is the whole of what it does, for the block to render. There is no way to carry on from one — a mismatch
  * hard-blocks, with no override, no allowlist and no confirmation.
  */
 export class CompletionError extends Data.TaggedError("CompletionError")<{
   readonly refusal: CompletionRefusal
   readonly detail: string
   readonly reasons?: ReadonlyArray<Reason>
+  readonly derived?: Derived
   readonly cause?: unknown
 }> {
   override get message(): string {
@@ -73,11 +84,12 @@ export class CompletionError extends Data.TaggedError("CompletionError")<{
 export const refuse = (
   refusal: CompletionRefusal,
   detail: string,
-  extra: { readonly reasons?: ReadonlyArray<Reason>; readonly cause?: unknown } = {}
+  extra: { readonly reasons?: ReadonlyArray<Reason>; readonly derived?: Derived; readonly cause?: unknown } = {}
 ): CompletionError =>
   new CompletionError({
     refusal,
     detail,
     ...(extra.reasons === undefined ? {} : { reasons: extra.reasons }),
+    ...(extra.derived === undefined ? {} : { derived: extra.derived }),
     ...(extra.cause === undefined ? {} : { cause: extra.cause })
   })

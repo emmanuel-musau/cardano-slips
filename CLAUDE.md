@@ -57,11 +57,21 @@ There is exactly one design sheet for the whole client UI, and it is the referen
 
 **Cardano Slips** — https://claude.ai/design/p/79057abf-f6fc-410c-9d7c-f8490d1088ea?file=Cardano+Slips.dc.html
 
-The sheet has two columns. The left column is the component system: `1 · Tokens` (colour, type, spacing, radius, the dark-surface rule, and a WCAG AA contrast audit), `2 · Action card` (states a–g), `3 · Transaction preview · anatomy`, `4 · Entering the dark`, `5 · Transaction preview · states` (a–h, including the mismatch block). The right column is the hosted slip page — the M1 client itself: `6 · Hosted page · anatomy`, `7 · Page states` (a–h), `8 · Wallet connect`, `9 · In-wallet browser`, `10 · Chrome rules`, and `11 · Still to design`.
+The sheet is one theme, laid out as a single row of groups:
+
+| Group | Sections |
+|---|---|
+| Foundations | `1 · Tokens` — colour, type, spacing, radius, and a WCAG AA contrast audit |
+| The action card | `2 · Action card` (states a–j), `3 · Publisher identity` |
+| The transaction preview | `4 · Anatomy`, `5 · Entering the preview`, `6 · Preview states` (a–i, including the mismatch block) |
+| The hosted page — the client itself | `7 · Hosted page · anatomy`, `8 · Page states` (a–m) |
+| Wallet | `9 · Wallet connect`, `10 · Signing and outcomes` (a–f), `11 · In-wallet browser` |
+| Sharing | `12 · Shared link · unfurl` |
+| Rules and backlog | `13 · Chrome rules`, `14 · Still to design` |
 
 - Take colours, type, spacing and component structure from this sheet rather than inventing them. It is one file — there is no second sheet to reconcile against.
-- `11 · Still to design` is the live list of UI that has not been drawn yet. If a ticket needs one of those surfaces, it gets designed there first; don't improvise it in code.
-- The page chrome (top bar, network indicator, effects panel, mismatch block, non-custody footer line) is **fixed and not themeable**, hosted or self-hosted; only the footer's attribution line differs. A publisher who can restyle the surface that judges them undermines the mismatch guarantee. Section 10 carries the full rule.
+- `14 · Still to design` is the live list of UI that has not been drawn yet. If a ticket needs one of those surfaces, it gets designed there first; don't improvise it in code.
+- The page chrome (top bar, network indicator, effects panel, mismatch block, non-custody footer line) is **fixed and not themeable**, hosted or self-hosted; only the footer's attribution line differs. A publisher who can restyle the surface that judges them undermines the mismatch guarantee. Section 13 carries the full rule.
 - The sheet is design intent, not shipped code. Where it disagrees with `docs/REQUIREMENTS.md` or the spec, those win and the sheet gets corrected.
 
 ## Stack

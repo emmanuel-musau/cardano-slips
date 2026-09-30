@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+
+  // Next writes `.next`, not `dist`. Its own cache stays out of turbo's, or a
+  // cache hit restores gigabytes nobody reads.
+  "tasks": {
+    "build": {
+      "outputs": [".next/**", "!.next/cache/**"]
+    }
+  }
+}

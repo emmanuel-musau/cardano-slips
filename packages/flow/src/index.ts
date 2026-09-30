@@ -2,12 +2,13 @@
  * The public entry point of `@cardano-slips/flow`. The `exports` map exposes
  * this module and nothing else, so moving a file is never a breaking change.
  */
-export type { NetworkId, WalletAddress } from "./address.js"
-export { readWalletAddress } from "./address.js"
+export type { NetworkId, OwnAddress, WalletAddress } from "./address.js"
+export { readOwnAddress, readWalletAddress } from "./address.js"
 export type { BalancedTransaction, BalanceInputs, BalancingParameters } from "./balance.js"
 export { balanceIntent } from "./balance.js"
 export type { BalanceRefusal } from "./balance-error.js"
 export { BalanceError, balanceRefusals, slipErrorCodeFor as balanceErrorCodeFor } from "./balance-error.js"
+export { actionLabel, actionsOf, blockedLabel, closureOf, monogramOf, originOf } from "./card.js"
 export type { CborHex, Cip30Api, Cip30ApiError, Cip30Provider, Paginate, SignedData } from "./cip30.js"
 export {
   apiErrorNames,
@@ -20,14 +21,47 @@ export {
   txSignErrorNames,
   USER_DECLINED
 } from "./cip30.js"
-export type { Attempt, CompletionRequest, Receipt } from "./complete.js"
+export type { Attempt, CompletionRequest, Progress, Receipt } from "./complete.js"
 export { completeIntent } from "./complete.js"
 export type { CompletionRefusal } from "./complete-error.js"
 export { CompletionError, completionRefusals, slipErrorCodeFor as completionErrorCodeFor } from "./complete-error.js"
 export type { ConnectedWallet, ConnectOptions } from "./connect.js"
 export { connectWallet, networkIdFor } from "./connect.js"
+export type { Derived } from "./derived.js"
 export type { DiscoveredWallet, WalletHost } from "./discovery.js"
 export { discoverWallets, findWallet, injectedUnder } from "./discovery.js"
+export type { EffectsPanelProps } from "./effects-panel.js"
+export { EffectsPanel } from "./effects-panel.js"
+export type { ExchangeOptions, FetchedSlip, IntentRequest } from "./exchange.js"
+export { ExchangeError, fetchSlip, requestIntent } from "./exchange.js"
+export type { Explanation } from "./explain.js"
+export {
+  assetLabel,
+  explainReason,
+  formatAda,
+  formatCountdown,
+  formatInstant,
+  formatQuantity,
+  secondsLeft,
+  shortened
+} from "./explain.js"
+export type { Amount, Evidence, Group, Headline, Mark, Row, Tone } from "./ledger.js"
+export {
+  blockedLine,
+  describeCertificate,
+  evidenceOf,
+  groupsOf,
+  headlineOf,
+  isCollapsed,
+  isGrouped,
+  ledgerOf,
+  matchLine,
+  rawLines
+} from "./ledger.js"
+export type { Outcome, OutcomePanelProps, SlipReceiptProps } from "./outcome-panel.js"
+export { networkNames, OutcomePanel, SlipReceipt } from "./outcome-panel.js"
+export type { FieldError, ParameterFormProps } from "./parameter-form.js"
+export { boundsOf, ParameterForm } from "./parameter-form.js"
 export type { KnownWallet } from "./registry.js"
 export { knownWallet, knownWallets } from "./registry.js"
 export { asResolvedInput, asResolvedInputs } from "./resolve.js"
@@ -35,6 +69,8 @@ export type { SignedTransaction, SignRequest } from "./sign.js"
 export { signTransaction, submitTransaction } from "./sign.js"
 export type { SignRefusal } from "./sign-error.js"
 export { signRefusals, SigningError, slipErrorCodeFor as signErrorCodeFor } from "./sign-error.js"
+export type { SlipCardErrorProps, SlipCardProps, SlipSubmission } from "./slip-card.js"
+export { SlipCard, SlipCardError, SlipCardSkeleton } from "./slip-card.js"
 export { readWalletUtxos } from "./utxo.js"
 export type { ConnectRefusal } from "./wallet-error.js"
 export { connectRefusals, slipErrorCodeFor, WalletConnectError } from "./wallet-error.js"

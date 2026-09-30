@@ -1,0 +1,20 @@
+{
+  "preview": [
+    {
+      "role": "pays the example Slips",
+      "stakeAddress": "stake_test1up3t8nzz2x47u9d66xnqnhy3h9t4aewxmh26e7nn07mytjsptvj52",
+      "addresses": [
+        "addr_test1qzttge9jafyuhztcud2whdg37sye9a0xkednqu8yc2daeztzk0xyy5dtac2m45dxp8wfrw2htmjudhw44na8xlakgh9qwezf5v"
+      ]
+    },
+    {
+      "role": "receives the example tips",
+      "stakeAddress": "stake_test1uz2y3k7ctqc7kxpucdeaylkywplhr9lxmhvdnsjhy85tu8cz305ej",
+      "addresses": [
+        "addr_test1qqwxxk8tjthrr8syjv2q3fdzusj8ps2ttj705y4pfq55ezv5frdaskp3avvresmn6flvgurlwxt7dhwcm8p9wg0ghc0sn8s9v3"
+      ]
+    }
+  ],
+  "preprod": [],
+  "mainnet": []
+}
