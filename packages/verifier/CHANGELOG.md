@@ -1,5 +1,16 @@
 # @cardano-slips/verifier
 
+## 0.4.0
+
+### Minor Changes
+
+- [#184](https://github.com/emmanuel-musau/cardano-slips/pull/184) [`1580e8d`](https://github.com/emmanuel-musau/cardano-slips/commit/1580e8dd9033be611bbc54899e09664f5b1afb44) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Export `addressText`, the spelling the comparison uses for an address in a reason, so a client can match a reason to the output it is about without a second spelling of its own.
+
+### Patch Changes
+
+- Updated dependencies [[`073b30c`](https://github.com/emmanuel-musau/cardano-slips/commit/073b30c0f4e8299bb1bc4c0e472e8136f213908c)]:
+  - @cardano-slips/core@0.3.0
+
 ## 0.3.0
 
 ### Minor Changes

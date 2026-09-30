@@ -1,5 +1,12 @@
 # @cardano-slips/server
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`073b30c`](https://github.com/emmanuel-musau/cardano-slips/commit/073b30c0f4e8299bb1bc4c0e472e8136f213908c)]:
+  - @cardano-slips/core@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
