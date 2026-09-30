@@ -18,10 +18,26 @@ type Handler = (request: Request) => Response | Promise<Response>
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}): Response =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } })
 
-/** Routes by path on linktap.example; anything unrouted is an HTML 404, as a real host would send. */
+/** Mainnet's figures, as the page's own `/parameters/mainnet` hands them over. */
+const parameters = {
+  stakeDeposit: "2000000",
+  poolDeposit: "500000000",
+  drepDeposit: "500000000",
+  governanceActionDeposit: "100000000000",
+  minFeeCoefficient: "44",
+  minFeeConstant: "155381",
+  coinsPerUtxoByte: "4310",
+  maxTxSize: 16_384
+}
+
+/**
+ * Routes by path; anything unrouted is an HTML 404, as a real host would send.
+ * The page's own parameters route answers unless a test routes it itself.
+ */
 const network = (
   routes: Record<string, Handler> = { "/tip": (request) => tip[request.method as "GET" | "POST"](request) }
 ) => {
+  routes = { "/parameters/mainnet": () => json(parameters), ...routes }
   const sent: Array<{ readonly method: string; readonly path: string; readonly body: string }> = []
   const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const request = new Request(input, init)
@@ -219,6 +235,21 @@ describe("what stops the flow before a transaction exists", () => {
     await press("Tip 5 ADA")
     expect(await screen.findByRole("heading", { name: "No Cardano wallet in this browser" })).toBeDefined()
     expect(screen.getByRole("link", { name: "Lace" })).toBeDefined()
+  })
+
+  it("stops before the wallet or the endpoint is asked anything when the page cannot read the network's fees", async () => {
+    const sent = network({
+      "/tip": (request) => tip[request.method as "GET" | "POST"](request),
+      "/parameters/mainnet": () => json({ message: "The chain provider did not answer." }, 502)
+    })
+    open()
+
+    await press("Tip 5 ADA")
+    await press(/Preview wallet/)
+    expect(
+      await screen.findByRole("heading", { name: "This page couldn't read the network's current fees" })
+    ).toBeDefined()
+    expect(sent.some((request) => request.method === "POST")).toBe(false)
   })
 
   it("catches a wallet on the wrong network before anything is sent to the endpoint", async () => {

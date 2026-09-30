@@ -29,7 +29,9 @@ Development builds only; both answer 404 in production.
 
 ## Protocol parameters
 
-`src/slip-page/parameters.ts` carries each network's parameters as they were
-when the page was built, rather than fetching them from a third party. A stale
-figure fails safe: the node refuses a fee or an output that has fallen short,
-and the verifier blocks a deposit that no longer matches.
+Before a run starts, the page reads `/parameters/<network>` from its own server.
+That route asks evolution-sdk's Koios provider and keeps each network's answer
+for ten minutes. Set `KOIOS_TOKEN` to send a Koios bearer token. Figures passed
+to `SlipPage` as `parameters` are used instead, and nothing is fetched; a
+static host that has no server does this. The slot-to-time mapping ships in
+`src/slip-page/parameters.ts`. ADR-0015 has the reasons.

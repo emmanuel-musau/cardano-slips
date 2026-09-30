@@ -6,6 +6,7 @@
 import type { Network } from "@cardano-slips/core"
 import {
   type Attempt,
+  type BalancingParameters,
   completeIntent,
   connectWallet,
   type Progress,
@@ -15,7 +16,7 @@ import {
 } from "@cardano-slips/flow"
 import { Effect } from "effect"
 
-import { parametersFor } from "./parameters.js"
+import { resolveParameters } from "./parameters.js"
 import type { FlowFailure } from "./screens.js"
 
 export type RunRequest = {
@@ -25,6 +26,8 @@ export type RunRequest = {
   readonly walletKey: string
   /** Where `cardano` lives. The browser's `window`, or a stand-in under test. */
   readonly host?: unknown
+  /** Figures to build and judge with. Absent, they are read from the page's own server. */
+  readonly parameters?: BalancingParameters
 }
 
 export type RunHooks = {
@@ -34,10 +37,11 @@ export type RunHooks = {
 }
 
 export const runSlip = (
-  { host, network, submission, walletKey }: RunRequest,
+  { host, network, parameters: given, submission, walletKey }: RunRequest,
   hooks: RunHooks
 ): Effect.Effect<Receipt, FlowFailure> =>
   Effect.gen(function* () {
+    const parameters = yield* resolveParameters(network, given)
     const connected = yield* connectWallet(walletKey, { network, ...(host === undefined ? {} : { host }) })
     const partial = yield* requestIntent({ href: submission.href, changeAddress: connected.changeAddress, network })
     return yield* completeIntent({
@@ -45,7 +49,7 @@ export const runSlip = (
       intent: partial.intent,
       network,
       changeAddress: connected.changeAddress,
-      parameters: parametersFor[network],
+      parameters,
       ...hooks
     })
   })
