@@ -81,7 +81,7 @@ The URI family's problem is adoption, not design. Wallet teams largely do not en
 
 Products route around it instead. [Pay by Cexplorer](https://pay.cexplorer.io/), announced 2026-07, is a hosted page for ADA payment links — fixed amount or open donation, paid by CIP-30 browser wallet or a mobile QR code, straight to the recipient's address with no custody. It uses no `web+cardano:` authority and publishes no spec or SDK, so it is one site's links rather than a format anyone else can serve. It only ever builds a transfer to a fixed address, so there is nothing to derive or check before signing. Cexplorer has Catalyst funding from Funds 9–15, but none of those proposals covers Pay. Checked 2026-09-28.
 
-Two things follow, and both are already decisions rather than observations. **M1 must not need a wallet to change** — desktop web, CIP-30 and ordinary `https://` links ask nothing of any URI handler, which is why ADR-0007 keeps `//slip` on the roadmap. And **our Path to Active must not name wallet adoption of an authority as a criterion** (#21), because that is precisely the criterion that has held CIP-13 for six years. Where we do use an authority — `//browse` for mobile entry — it gets verified per wallet rather than assumed (#98).
+Two things follow, and both are already decisions rather than observations. **v1 must not need a wallet to change** — desktop web, CIP-30 and ordinary `https://` links ask nothing of any URI handler, which is why ADR-0007 keeps `//slip` on the roadmap. And **our Path to Active must not name wallet adoption of an authority as a criterion** (#21), because that is precisely the criterion that has held CIP-13 for six years. Where we do use an authority — `//browse` for mobile entry — it gets verified per wallet rather than assumed (#98).
 
 ## 2. CIP-99 — the precedent that matters most
 
@@ -93,7 +93,7 @@ It is already a URI → wallet → HTTP POST to a third-party server → structu
 
 > Wallets will POST to a project's own server from a URI — CIP-99 is Active with five implementations. What no authority does is return a transaction for the user to authorise. Every one that produces a transaction either fixes its shape in the URI or has the server sign it.
 
-**It is also the template for getting to Active.** CIP-99 shipped with an open-source reference server, a wallet vendor among its authors, and a concrete use case. CIP-157 has none of those and has sat open since June 2024. We have the reference server (`server` plus the AdaLink integration) and the use case. The missing ingredient is a wallet co-author.
+**It is also the template for getting to Active.** CIP-99 shipped with an open-source reference server, a wallet vendor among its authors, and a concrete use case. CIP-157 has none of those and has sat open since June 2024. We have the reference server (`server` and the example Slips) and the use case. The missing ingredient is a wallet co-author.
 
 ## 3. CIP-186 — the mobile transport, and why it is not ours
 

@@ -14,7 +14,7 @@ Three deliberately separate things:
 
 - **Slip** — an HTTP endpoint hosted by the dApp. `GET` describes an intent (metadata); `POST` returns a **partial transaction** describing only the dApp's side.
 - **Link** — a shareable URL pointing at a Slip, optionally fronted by a human marketing URL via `slips.json`.
-- **Client** — anything that renders the link and drives the wallet handoff. M1 client: the slip page (desktop, CIP-30).
+- **Client** — anything that renders the link and drives the wallet handoff. v1 client: the slip page (desktop, CIP-30).
 
 ## 3. Protocol contract (v1)
 
@@ -29,7 +29,7 @@ Request: `{ changeAddress, network }`. Response: `{ type: "partial", intent: { o
 
 Every quantity is an **integer count of base units as a string** — lovelace for ADA, raw on-chain quantity for a native asset — and no field carries decimals. The endpoint declares only what it chooses: the fee, certificate deposits, the stake credential, the reward balance and every key hash are supplied by the client, so there is no field in which an endpoint can state one wrongly. Declared lovelace is a *floor*: where it is under the ledger minimum the client raises it and shows the difference as its own effect.
 
-Mode B (server-side balancing, client ships UTxOs) is reserved as `build: "server"` in the GET response but **out of scope for M1** — a v1 client renders the card, refuses to POST, and fails `UNSUPPORTED_BUILD_MODE`.
+Mode B (server-side balancing, client ships UTxOs) is reserved as `build: "server"` in the GET response but **out of scope for v1** — a v1 client renders the card, refuses to POST, and fails `UNSUPPORTED_BUILD_MODE`.
 
 ### Sign and submit
 Client ends with a complete unsigned tx: derive effects → show → CIP-30 `signTx` (returns a **witness set**) → assemble witnesses into the body → `submitTx`. Short validity intervals plus automatic rebuild-and-retry when UTxOs move between build and sign.
@@ -59,28 +59,22 @@ Effects prove *what* a transaction does. Identity answers *who is asking* — an
 
 **Identity augments, it never gates.** A missing, invalid, expired or revoked attestation renders as unverified — visibly, at every tier. It never blocks a signature, and a verified publisher never relaxes the effects gate. The two mechanisms are independent by design: effects without identity leaves users approving correct transactions from unknown parties, and identity without effects is the central registry Solana needed and we are avoiding.
 
-Tier 1 is in M1 unconditionally. Tier 2 carries an explicit go/no-go at end of Month 1 (issue #63) — it is pre-production and new to the team. Cutting it leaves the identity layer shipping, not absent, which is the point of splitting the tiers.
+Tier 1 is in v1 unconditionally. Tier 2 carries an explicit go/no-go (issue #63) — it is pre-production and new to the team. Cutting it leaves the identity layer shipping, not absent, which is the point of splitting the tiers.
 
-## 6. M1 scope (mainnet in 3 months)
+## 6. v1 scope
 
-**In:** spec + CIP draft; `core`; `server` with two adapters (Next.js App Router, and a Node bridge for the NestJS that AdaLink runs on); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to the Month 1 go/no-go); AdaLink USDM/USDCx payment Slip live on mainnet; public attack examples.
+**In:** spec + CIP draft; `core`; `server` with two adapters (Next.js App Router, and a Node adapter for NestJS and Express); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation (Tier-2 CIP-0170 subject to its go/no-go); public attack examples.
 
-**Deferred (roadmap — do not build in M1):** mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); further framework adapters beyond those two; additional Slip types.
+**Deferred (roadmap — do not build in v1):** mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); further framework adapters beyond those two; additional Slip types.
 
 On mobile, a shared link opened in a phone browser reaches a wallet through CIP-158 `//browse` — Active, with VESPR and Begin as implementors — which lands the slip page in the wallet's in-app browser where CIP-30 is injected and the desktop flow runs unchanged. Wallet URI handlers are unreliable in practice, so that entry is verified per wallet rather than assumed (#98). The fallback is narrower than it sounds: a phone browser injects no CIP-30, so a link that stays there degrades to reading the slip and moving it — copy the link, or a QR to a desktop — never to signing in place. `//browse` is the only mobile route to a signature, and the two platforms take it differently; `docs/ECOSYSTEM.md` §1 carries what each does. CIP-186 is a separate case — the transport a *native mobile app* would use to be a client — and cannot carry the slip page, because its source-app attestation requires an installed app. See `docs/ECOSYSTEM.md` §3.
 
-## 7. Reference integration — AdaLink
-
-Stablecoin payment Slip: recipient, amount, USDM/USDCx choice; parameterised tip variant; human URLs (`/pay/HANDLE`) via slips.json. Declared metadata must exactly match derived effects. End-to-end on preprod first, then mainnet with transactions labelled with the registered message tag.
-
-## 8. What shipping means (each one ticketed)
+## 7. What shipping means (each one ticketed)
 
 - Four packages published to npm under `@cardano-slips` with release notes and a fresh-install smoke test.
 - Developer documentation: quickstart, `slips.json` and client integration guides, effects-model explainer, self-host walkthrough.
-- Public attack examples with a 100% block-rate report, plus a wallet compatibility matrix run on preprod.
-- CIP PR to `cardano-foundation/CIPs` — submitted after mainnet, documenting a running implementation.
-- Usage measured from external wallets only; transactions we generate ourselves are recorded and never counted.
+- Public attack examples with a 100% block-rate report, plus a wallet compatibility matrix run on preview.
 
-## 9. Non-goals, stated plainly
+## 8. Non-goals, stated plainly
 
 No custody, no treasury validator, no relayer, no fee tank, no central registry. The client must check effects before requesting a signature and block every mismatch. No protocol-operated service is required; publishers and clients provide their own hosting and chain-data access.

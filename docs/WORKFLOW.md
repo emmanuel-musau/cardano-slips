@@ -12,7 +12,7 @@ Issues: `emmanuel-musau/cardano-slips` · Board: https://github.com/users/emmanu
 
 **Pulling work.** When an issue closes, promote items from the top of `Backlog` into `Ready` — anything whose `Depends on #N` issues are all closed is eligible. Never start an issue with an open dependency; if it seems necessary, the dependency is wrong and should be fixed on the issue.
 
-**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk decisions, the effects engine, balancing/signing, slip page flow, mainnet deploy). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
+**Priority.** `P0` = critical path, a slip here slips the milestone (the three risk decisions, the effects engine, balancing/signing, slip page flow). `P1` = normal. `P2` = deferrable polish — what gets consciously pushed in a short week.
 
 **Points.** Fibonacci, capped at 5: `1` ≈ under 2 hours (config-level) · `2` ≈ half a day · `3` ≈ one day · `5` ≈ two days. Nothing is larger. If an issue starts feeling like an 8, stop and split it into new issues rather than absorbing the overrun silently.
 
@@ -178,7 +178,7 @@ sit in cooldown before we are offered them. Security updates skip it.
 
 ## Environments
 
-`preview` for day-to-day development and testing. Nothing needs a chain API key yet: the wallet supplies unspent outputs and submits, and the page ships each network's protocol parameters. `preprod` is the check before mainnet: every end-to-end criterion that names it is run there, not on preview. Mainnet is touched only by the deployment issues (#63, #67).
+`preview` for all development and testing. Nothing needs a chain API key yet: the wallet supplies unspent outputs and submits, and the page ships each network's protocol parameters. Nothing runs on preprod or mainnet.
 
 A wallet reports preview and preprod as the same testnet, so a Slip declaring the wrong one gets past the wallet check and fails later, on missing funds or at the node. Every Slip and example used on preview declares `network: "preview"`.
 

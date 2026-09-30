@@ -28,8 +28,7 @@ cardano-slips/
 │   ├── page/                  the slip page, hosted + self-hostable
 │   └── docs/                  docs site + the Slip tester
 ├── examples/
-│   ├── slips/                 the delegate and tip fixtures, shared by tests and docs
-│   └── adalink/               reference integration: USDM/USDCx payment Slip
+│   └── slips/                 the delegate and tip fixtures, shared by tests and docs
 ├── docs/                      requirements, architecture, workflow, ADRs
 ├── .changeset/
 ├── pnpm-workspace.yaml        packages/*, apps/*, examples/*
@@ -43,7 +42,7 @@ cardano-slips/
 └── LICENSE                    MIT
 ```
 
-Deferred to roadmap, **not** built in M1: `packages/deeplink` (CIP-13 `//slip`), `apps/extension` (inline renderer).
+Deferred to roadmap, **not** built in v1: `packages/deeplink` (CIP-13 `//slip`), `apps/extension` (inline renderer).
 
 ## Package responsibilities
 
@@ -61,7 +60,7 @@ Shared vocabulary. Effect Schema definitions for the GET metadata response and t
 Zero runtime dependencies is the goal.
 
 ### `server`
-`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. Two framework adapters in M1: route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. A Web-standard runtime — Next.js App Router, Hono, SvelteKit, Bun, Workers — needs no adapter at all, because `defineSlip` already returns `(Request) => Promise<Response>`; what ships for Next is the `slips.json` helper, dynamic-segment params and the integration guide. Node's `IncomingMessage`/`ServerResponse` frameworks do need a bridge, and AdaLink serves its endpoints from NestJS, so that adapter is M1 rather than deferred. Fastify and Hono-specific bindings stay deferred. An endpoint that is not TypeScript at all — AdaLink's Laravel side — conforms against the normative JSON Schemas in `spec/CIP-XXXX/schemas/` rather than this package, and that it can is the protocol working as intended.
+`defineSlip({ get, post })` — typed handlers whose output is validated against `core` schemas *before it leaves the server*, so a misconfigured dApp fails at its own boundary rather than at the user's wallet. Two framework adapters in v1: route handlers, CORS headers, `slips.json` serving, spec error codes mapped to HTTP status. A Web-standard runtime — Next.js App Router, Hono, SvelteKit, Bun, Workers — needs no adapter at all, because `defineSlip` already returns `(Request) => Promise<Response>`; what ships for Next is the `slips.json` helper, dynamic-segment params and the integration guide. Node's `IncomingMessage`/`ServerResponse` frameworks, such as NestJS and Express, do need a bridge, so that adapter ships in v1. Fastify and Hono-specific bindings stay deferred. An endpoint that is not TypeScript at all, such as a Laravel app, conforms against the normative JSON Schemas in `spec/CIP-XXXX/schemas/` rather than this package, and that it can is the protocol working as intended.
 
 | Module | Owns |
 |---|---|
@@ -126,7 +125,7 @@ CIP-30 orchestration plus React components. Wallet discovery/enable, change addr
 Must survive being dropped into a third-party page: no fixed positioning, no assumption it owns the page, self-contained styles that tolerate an inherited font stack.
 
 ### `apps/page`
-Tier-1 client and the M1 headline: a hosted, self-hostable page that runs the whole flow with zero wallet cooperation beyond CIP-30. Also owns OG/Twitter preview metadata, since the unfurl is the first impression of a shared link.
+Tier-1 client and the v1 headline: a hosted, self-hostable page that runs the whole flow with zero wallet cooperation beyond CIP-30. Also owns OG/Twitter preview metadata, since the unfurl is the first impression of a shared link.
 
 A Next.js App Router app, so it leaves the four-file TypeScript layout below: Next compiles it and `tsc` only checks it, after `next typegen` writes the route types. It builds to `.next`, which its own `turbo.json` names as the build output.
 
@@ -137,9 +136,6 @@ Documentation site and the Slip tester — paste an endpoint URL, see the render
 The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs site read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
 
 The server's end-to-end tests live here too, beside the fixtures rather than in `packages/server/test`. They need both the fixtures and `server`, and this package already depends on `server` — so pointing `server` back at it would be a cycle, and the rule that apps and examples depend on packages and never the reverse is what forbids it. What they drive is an App Router tree's routing over the handlers `defineSlip` returns.
-
-### `examples/adalink`
-Reference integration, not a library. Proves the SDK on a product with real users: USDM/USDCx payment Slips, human URLs via `slips.json`, live on mainnet with labelled transactions. It runs NestJS behind Laravel/Inertia, which is why the Node adapter is M1 work and not deferred.
 
 ## Dependency rules
 
@@ -154,7 +150,6 @@ core  ←  server
       page          →  (flow, core)
       docs          →  (flow, core)
       slips         →  (server, core)
-      adalink       →  (server, via the Node adapter)
 ```
 
 - `core` depends on no workspace package.

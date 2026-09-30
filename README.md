@@ -27,7 +27,7 @@ Holds no user funds. No custody, no relayer, no treasury validator. The client c
 | `@cardano-slips/verifier` | derive what the transaction really does, and block signing if the metadata lies |
 | `@cardano-slips/flow` | run the user through it — Slip UI + CIP-30 wallet orchestration |
 
-Plus `apps/page` (hosted, self-hostable fallback page) and `examples/adalink` (reference integration: USDM/USDCx payment Slips).
+Plus `apps/page` (hosted, self-hostable fallback page) and `examples/slips` (the example Slips the tests and the page run on).
 
 ## Documentation
 
@@ -44,7 +44,7 @@ Plus `apps/page` (hosted, self-hostable fallback page) and `examples/adalink` (r
 
 ## Built on
 
-The M1 design uses [`@evolution-sdk/evolution`](https://github.com/IntersectMBO/evolution-sdk) for transaction construction, ordinary HTTPS links for routing, and CIP-30 for wallet signing. On mobile, CIP-158 `//browse` opens the slip page inside a compatible wallet's browser. A `.well-known` publisher manifest provides domain attestation; the higher-assurance CIP-0170 tier is subject to a separate go/no-go decision. The proposed CIP-13 `//slip` authority is deferred beyond M1. See [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) for scope.
+The design uses [`@evolution-sdk/evolution`](https://github.com/IntersectMBO/evolution-sdk) for transaction construction, ordinary HTTPS links for routing, and CIP-30 for wallet signing. On mobile, CIP-158 `//browse` opens the slip page inside a compatible wallet's browser. A `.well-known` publisher manifest provides domain attestation; the higher-assurance CIP-0170 tier is subject to a separate go/no-go decision. The proposed CIP-13 `//slip` authority is deferred beyond v1. See [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) for scope.
 
 ## Standardisation
 

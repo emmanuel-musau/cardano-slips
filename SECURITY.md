@@ -123,5 +123,5 @@ useful thing you can send.
 - The hex-encoded transaction body, and the Slip URL that produced it.
 - The endpoint's declared metadata.
 - What the client displayed, and what the transaction actually does.
-- Network (`preprod` or `mainnet`), wallet, and package versions.
+- Network (`preview`, `preprod` or `mainnet`), wallet, and package versions.
 - A failing test, if you have one.
