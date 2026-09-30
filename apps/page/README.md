@@ -15,7 +15,8 @@ pnpm --filter @cardano-slips/page dev              # the page on localhost:3000
 ```
 
 Then open `http://localhost:3000/?uri=http%3A%2F%2Flocalhost%3A4010%2Ftip`.
-Plain `http:` is accepted on a loopback host only.
+Plain `http:` is accepted on a loopback host only. The served examples are on
+preview, so connect a wallet switched to preview and funded from the faucet.
 
 ## Previews
 
