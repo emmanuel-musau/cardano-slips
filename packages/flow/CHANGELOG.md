@@ -1,5 +1,58 @@
 # @cardano-slips/flow
 
+## 0.3.0
+
+### Minor Changes
+
+- [#184](https://github.com/emmanuel-musau/cardano-slips/pull/184) [`4133c76`](https://github.com/emmanuel-musau/cardano-slips/commit/4133c7612406d813d1efb8479904a30e316c7b3c) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Add the effects panel and the mismatch block.
+  
+  `EffectsPanel` renders what a transaction does, derived from its bytes: the one figure the person is deciding on, then every effect as a row — payments, tokens received, withdrawals, certificates, the fee, and deposits and refunds, each marked refundable where the ledger guarantees it and as stated where only the transaction claims it. It takes the verifier's own `Verdict` as a required prop, so no caller renders a match by leaving the reasons out. On a mismatch the sign button is gone rather than disabled, the claim is set beside what the transaction actually does, and only the row the link never described is marked. The countdown takes the headline's place under a minute, and an expired transaction offers a rebuild instead of a signature.
+  
+  `effects.css` is a new export carrying the panel's styling, and `tokens.css` gains the type roles the panel uses. The functions behind the panel (`ledgerOf`, `headlineOf`, `evidenceOf` and the rest) are exported for anyone drawing it themselves.
+  
+  The mismatch wording now holds the transaction to "the link" and keeps addresses out of the sentence, giving them in full on `Explanation.where` instead. `formatCountdown` now reads `4m 12s` rather than `4:12`.
+
+- [#177](https://github.com/emmanuel-musau/cardano-slips/pull/177) [`c7d7465`](https://github.com/emmanuel-musau/cardano-slips/commit/c7d7465ab57687b4ee373ff816357a3db4311823) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Add the Slip card and the generated parameter form.
+  
+  `SlipCard` renders a decoded Slip: icon with the publisher's initial behind it, title, description, the host that served the link, and one button per linked action — or the single button `label` names when `links` is absent. `SlipCardSkeleton` holds the same box while the metadata is in flight and `SlipCardError` replaces it when the endpoint never answered.
+  
+  The form is generated from what the endpoint declared. Bounds sit beside each field rather than only on failure, a value that fails `required`, `min` or `max` is caught before anything is sent in `core`'s own sentence, and a value the endpoint itself refuses lands on that field with the card left standing and what was typed still typed. A closed Slip closes every option under it, including one carrying `disabled: false`, and a closed option is rendered with its reason rather than hidden.
+  
+  `card.css` is a new optional export carrying the design sheet's styling. Every element the components render is named with a class of ours and nothing else, so a consumer who skips the stylesheet can restyle the whole card.
+
+- [#189](https://github.com/emmanuel-musau/cardano-slips/pull/189) [`5aa785b`](https://github.com/emmanuel-musau/cardano-slips/commit/5aa785b986b84c1a4b06ab3db6133a3cf88f925b) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Everything the slip page needs to go from a link to a receipt.
+  
+  `fetchSlip` resolves a link through `slips.json` and reads the Slip; `requestIntent` asks for the partial intent with the change address and the network and nothing else. Both fail as one `ExchangeError` in the spec's vocabulary: the code, its class, the endpoint's own message only where its failure body was readable, and `Retry-After`. A link that is not `https:` fails as core's `InsecureSlipUrl` before anything is fetched. Both go through core's `boundedRequest`, so an answer too large to be a Slip or an intent is `UNREACHABLE`, and a redirect is refused before the change address can reach anyone the top bar does not name.
+  
+  `completeIntent` takes two optional hooks. `confirm` holds the flow until the person presses sign, and is asked again for every rebuilt transaction; closing without signing ends it with the new `Cancelled` refusal. `onProgress` reports signing, submitting and rebuilding. Without either, it behaves as before.
+  
+  `OutcomePanel` draws the states after sign is pressed — waiting on the wallet, declined, submitting, funds moved and rebuilding, refused by the network — with the effects still on screen and no way to sign from any of them. `SlipReceipt` is the receipt, on the card surface, with a link out to an explorer. `networkNames` is the one spelling of each network, for the receipt and the page's top bar alike. `tokens.css` gains `--on-warn` for words on the warning fill.
+
+- [#177](https://github.com/emmanuel-musau/cardano-slips/pull/177) [`c7d7465`](https://github.com/emmanuel-musau/cardano-slips/commit/c7d7465ab57687b4ee373ff816357a3db4311823) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Refresh `tokens.css` against the design sheet: one typeface, a recoloured accent, and outlined buttons.
+  
+  **One family.** `--font-display`, `--font-text` and `--font-mono` are gone, replaced by a single `--font`. The sheet now sets everything in Poppins, and three names for one face is three chances to drift apart — what separates a title from a label is weight and size. `--type-mono` is now `--type-technical`: the role still means an address, a hash or an error code, but it is no longer set in a monospaced face and the name said otherwise. `--type-body` drops to weight 400.
+  
+  **A new accent.** `--accent-text` and `--accent-action` are both `#123cd3`, `--accent-hover` is `#0e2fa6`, and `--focus` follows the accent. The semantic three are recut — `--pos` `#065708`, `--warn` `#7a5200`, `--bad` `#d20a19` — along with their tints, their lines and their counterparts on the preview surface. Two tokens are new: `--warn-fill` for the warning as a fill, and `--accent-on-slate` for an accent-coloured word on the preview, where the ordinary accent disappears into the ground.
+  
+  **Outlined buttons.** The card's actions now carry the accent as their label and edge rather than as a fill, so `--on-accent` is no longer what a button's text is drawn in.
+  
+  One value departs from the sheet on purpose. `--vault-bad` is `#ff5a50` here rather than the sheet's `#ff5247`, which measures 4.42:1 against the preview surface under a row the sheet labels a pass. That colour carries the mismatch block, so it clears AA or it does not ship; the audit is recomputed in the tests rather than copied, which is what caught it.
+
+- [#187](https://github.com/emmanuel-musau/cardano-slips/pull/187) [`b0a071e`](https://github.com/emmanuel-musau/cardano-slips/commit/b0a071eb2582c384cfffae588172b0e4cad86620) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - `completeIntent` now asks the wallet which addresses are its own, on every attempt, instead of taking them from the caller.
+  
+  It counts as the user's every address the wallet lists (`getUsedAddresses`, `getUnusedAddresses`, `getRewardAddresses`), the change address, and the address of every output the wallet said it holds. A caller that left one out used to have the wallet's own funds shown as someone else's. `userAddresses` is gone from `CompletionRequest`; drop it from any call. A wallet that will not answer, or names an address that cannot be read or is on another network, stops the flow with the new `UnreadableAddresses` refusal before anything is signed.
+  
+  `readOwnAddress` is exported for reading one such address: any payment address, a reward account, or a Byron address an older wallet still reports.
+
+### Patch Changes
+
+- [#181](https://github.com/emmanuel-musau/cardano-slips/pull/181) [`027bcdb`](https://github.com/emmanuel-musau/cardano-slips/commit/027bcdbefaee41a42cd1257e2cc232f6106a58a2) Thanks [@emmanuel-musau](https://github.com/emmanuel-musau)! - Mark the components as client components.
+  
+  `slip-card` and `parameter-form` now open with `"use client"`, so a Next.js App Router page can import `SlipCard`, `SlipCardSkeleton`, `SlipCardError` and `ParameterForm` straight from a server component. Before this, the import failed the consumer's build on `useState`, and every Next.js site had to wrap the components in a client file of its own. The functions — balancing, wallet discovery, signing — carry no directive and stay callable from a server.
+- Updated dependencies [[`1580e8d`](https://github.com/emmanuel-musau/cardano-slips/commit/1580e8dd9033be611bbc54899e09664f5b1afb44), [`073b30c`](https://github.com/emmanuel-musau/cardano-slips/commit/073b30c0f4e8299bb1bc4c0e472e8136f213908c)]:
+  - @cardano-slips/verifier@0.4.0
+  - @cardano-slips/core@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
