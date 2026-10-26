@@ -55,7 +55,7 @@
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
     "@cardano-slips/verifier": "workspace:^",
-    "@evolution-sdk/evolution": "^0.5.13",
+    "@evolution-sdk/evolution": "^0.7.0",
     "@noble/hashes": "^2.0.1",
     "effect": "^3.22.1"
   },
