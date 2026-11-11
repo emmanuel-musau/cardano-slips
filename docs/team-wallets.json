@@ -8,6 +8,13 @@
       ]
     },
     {
+      "role": "tips through the slip page by hand",
+      "stakeAddress": "stake_test1upda6403xw565tuue5acu37mcak4cgppfnzx70dfgqh7lgshnmdsr",
+      "addresses": [
+        "addr_test1qr3hzjy34ys097v2m56kxpldn3wp4hn39ct0ya8xnnga2vzmm42lzvaf4gheenfm3erah3mdtsszznxydu76jsp0a73qftsm5j"
+      ]
+    },
+    {
       "role": "receives the example tips",
       "stakeAddress": "stake_test1uz2y3k7ctqc7kxpucdeaylkywplhr9lxmhvdnsjhy85tu8cz305ej",
       "addresses": [

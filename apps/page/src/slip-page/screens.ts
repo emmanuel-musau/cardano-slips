@@ -17,8 +17,10 @@ import {
 } from "@cardano-slips/flow"
 
 import { type Notice, noticeFor } from "./notices.js"
+import type { ParametersError } from "./parameters.js"
 
-export type FlowFailure = WalletConnectError | ExchangeError | BalanceError | CompletionError | SigningError
+export type FlowFailure =
+  ParametersError | WalletConnectError | ExchangeError | BalanceError | CompletionError | SigningError
 
 type Reasons = NonNullable<CompletionError["reasons"]>
 
@@ -188,6 +190,13 @@ const signingScreen = (failure: SigningError): Screen => {
 
 export const screenFor = (failure: FlowFailure, context: ScreenContext): Screen => {
   switch (failure._tag) {
+    case "ParametersError":
+      return notice({
+        tone: "plain",
+        title: "This page couldn't read the network's current fees",
+        text: "Nothing was built and nothing was signed. Trying again usually helps.",
+        move: "retry"
+      })
     case "WalletConnectError":
       return connectScreen(failure, context)
     case "ExchangeError":

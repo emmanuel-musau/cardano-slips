@@ -7,6 +7,7 @@
 import { fillLabel } from "@cardano-slips/core"
 import {
   type Attempt,
+  type BalancingParameters,
   discoverWallets,
   EffectsPanel,
   type FetchedSlip,
@@ -92,9 +93,11 @@ export type SlipPageProps = {
   readonly link: string | undefined
   /** Where `cardano` lives. Defaults to the browser's `window`; a test hands in a stand-in. */
   readonly walletHost?: unknown
+  /** Figures to use instead of asking this page's server; see `resolveParameters`. */
+  readonly parameters?: BalancingParameters
 }
 
-export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element => {
+export const SlipPage = ({ link, parameters, walletHost }: SlipPageProps): React.JSX.Element => {
   const target = targetOf(link)
   const [loading, setLoading] = useState<Loading>({ _tag: "Resolving" })
   const [reads, setReads] = useState(0)
@@ -206,7 +209,13 @@ export const SlipPage = ({ link, walletHost }: SlipPageProps): React.JSX.Element
     }
 
     const program = runSlip(
-      { submission, network, walletKey: chosen.key, ...(walletHost === undefined ? {} : { host: walletHost }) },
+      {
+        submission,
+        network,
+        walletKey: chosen.key,
+        ...(walletHost === undefined ? {} : { host: walletHost }),
+        ...(parameters === undefined ? {} : { parameters })
+      },
       {
         onAttempt: (attempt) => {
           latest = attempt

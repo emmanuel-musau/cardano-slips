@@ -16,6 +16,7 @@ import {
 } from "@cardano-slips/flow"
 import { describe, expect, it } from "vitest"
 
+import { ParametersError } from "../src/slip-page/parameters.js"
 import { type FlowFailure, type Screen, screenFor } from "../src/slip-page/screens.js"
 
 /**
@@ -26,6 +27,7 @@ import { type FlowFailure, type Screen, screenFor } from "../src/slip-page/scree
 const context = { host: "linktap.example", network: "mainnet" } as const
 
 const everyFailure: ReadonlyArray<FlowFailure> = [
+  new ParametersError({ network: "mainnet", detail: "answered 502" }),
   ...(Object.keys(connectRefusals) as Array<ConnectRefusal>).map(
     (refusal) => new WalletConnectError({ refusal, key: "lace", detail: refusal })
   ),
@@ -152,5 +154,12 @@ describe("where each kind of failure goes", () => {
     const shapeless = screenFor(new BalanceError({ refusal: "CannotBalance", detail: "" }), context)
     expect(short._tag === "Notice" && short.notice.code).toBe("INSUFFICIENT_FUNDS")
     expect(shapeless._tag === "Notice" && shapeless.notice.code).toBe("CANNOT_BALANCE")
+  })
+})
+
+describe("protocol parameters the page could not read", () => {
+  it("is a notice offering another try, with nothing built", () => {
+    const screen = screenFor(new ParametersError({ network: "mainnet", detail: "answered 502" }), context)
+    expect(screen).toMatchObject({ _tag: "Notice", notice: { move: "retry" } })
   })
 })
