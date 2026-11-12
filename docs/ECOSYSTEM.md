@@ -122,7 +122,9 @@ KERI-backed attestations, anchoring a digest of arbitrary data in an issuer's Ke
 
 It defines no publisher payload and no domain→identifier discovery, and its own text calls watcher-network deployment immature. That is why identity ships in two tiers — see ADR-0006.
 
-Its acceptance criteria are unchecked, and criterion 2 names "identity-bound actions" as a qualifying use. Being the implementation that satisfies it is worth raising with the authors directly.
+Version 1.1 (CIPs#1287, merged 2026-10-27) added the metadata seal, transaction attestation and claiming, and split `AUTH_BEGIN`'s credential chain into 64-byte chunks, which closed the encoding gap the identity decision ticket (#60) found. It still adds no domain→identifier discovery.
+
+Its acceptance criteria are all still unchecked. Criterion 2 names "identity-bound actions" as a qualifying use, but Tier 2 is out of v1 (ADR-0014): a real attestation needs a vLEI, and criterion 3's identity verifier does not exist yet. Being the implementation that satisfies criterion 2 is for the gated milestone, and worth raising with the authors then.
 
 ## 5. CPS-10 — wallet connectors
 

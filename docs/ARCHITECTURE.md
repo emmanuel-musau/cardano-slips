@@ -22,7 +22,7 @@ cardano-slips/
 │   ├── core/                  types, URL resolution, slips.json, validation
 │   ├── verifier/              CBOR decode → deltas. The security engine.
 │   ├── server/                defineSlip() + Next.js adapter
-│   ├── identity/              publisher attestation: domain manifest + CIP-0170
+│   ├── identity/              publisher attestation: the domain manifest (CIP-0170 later)
 │   └── flow/                  React components + CIP-30 orchestration
 ├── apps/
 │   ├── page/                  the slip page, hosted + self-hostable
@@ -109,13 +109,15 @@ Publisher attestation: issue and resolve, in two tiers (REQUIREMENTS §5).
 | Tier | Mechanism | What the client renders |
 |---|---|---|
 | 1 | Signed manifest at `https://<domain>/.well-known/cardano-slips.json`, binding the domain to the endpoints it vouches for. No chain write. | published by `<domain>`, domain-verified |
-| 2 | CIP-0170 KERI `ATTEST` — digest of the Tier-1 manifest anchored in the issuer's KEL, referenced in tx metadata label `170`, chained to a vLEI-grade entity via `signify-ts` | published by `<legal entity>`, identity-verified |
+| 2 (not in v1) | CIP-0170 KERI `ATTEST` — digest of the Tier-1 manifest anchored in the issuer's KEL, referenced in tx metadata label `170`, chained to a vLEI-grade entity via `signify-ts` | published by `<legal entity>`, identity-verified |
 
 Tier 2 sits on top of Tier 1 rather than beside it: the manifest is the payload being attested, and Tier 1 is also what supplies domain→AID discovery, which CIP-0170 does not define. The manifest shape follows CIP-0186's origin-anchored `.well-known/cip30dl-attestation.json` precedent — same trust anchor, same 24h cache posture — so a wallet team reading both sees one pattern.
 
+v1 ships Tier 1 only. ADR-0014 cut Tier 2 and parks it in the `Identity-Tier2 (gated)` milestone, which is entered when an identity verifier a publisher can actually obtain a credential chain from exists. Its first work item is a key event log verifier, since `signify-ts` only signs. The manifest reserves a publisher identifier field now, so Tier 2 adds to the shape rather than changing it.
+
 Resolution is read-only and cacheable; issuance is a publisher-side operation and never runs in the browser path. Every resolve outcome — absent, malformed, expired, revoked, valid — is a distinct rendered state, and only the last one says verified. There is no code path in which a failed resolve degrades into a verified badge.
 
-**Why it is its own package.** Tier 2 is the piece most likely to be cut at the Month 1 go/no-go — it is pre-production, new to the team, and its verification path depends on KEL availability the CIP itself calls immature. As a separate package, cutting it means deleting a dependency line; folded into `flow`, it means untangling code under time pressure. This split is a scope-risk hedge, not an architectural preference — and it is why the tiers are separable at all.
+**Why it is its own package.** Tier 2 was the piece most likely to be cut at the Month 1 go/no-go, and ADR-0014 cut it — it is pre-production, new to the team, and its verification path depends on KEL availability the CIP itself calls immature. As a separate package, cutting it means deleting a dependency line; folded into `flow`, it means untangling code under time pressure. This split is a scope-risk hedge, not an architectural preference — and it is why the tiers are separable at all.
 
 ### `flow`
 CIP-30 orchestration plus React components. Wallet discovery/enable, change address + network id, local balancing via `@evolution-sdk/evolution` against the user's own UTxOs, effects derivation, `signTx` → witness assembly → `submitTx`, and rebuild-and-retry when UTxOs move mid-flow. Components: Slip card, generated parameter form, effects panel with the mismatch block, publisher chip, wallet selector, receipt, error states. Hooks (`useSlip`, `useWallet`, `useEffects`) are the composable surface.

@@ -1,7 +1,7 @@
 # ADR-0014: Cut Tier 2 from M1 and gate it on conditions, not a date
 
-**Status:** Proposed
-**Date:** 2026-09-17
+**Status:** Accepted
+**Date:** 2026-09-17, accepted 2026-11-12
 **Issue:** #60, decided by #63
 
 ## Context
@@ -43,6 +43,12 @@ the event that the rest of the protocol depends on. Without `AUTH_BEGIN` an
 `ATTEST` record resolves to no authority, which renders as unverified — the same
 as publishing nothing.
 
+CIP-0170 version 1.1 (cardano-foundation/CIPs#1287, merged 2026-10-27) has
+since closed this. `c` is now a list of consecutive chunks of at most 64 bytes,
+stored in order, which verifiers concatenate, and the revocation event's `c`
+follows the same rule. Two implementations can agree on that, so condition 1
+below holds.
+
 **2. A real attestation needs a vLEI.** The signer credential's edges block
 requires `le`, an edge to a Legal Entity vLEI credential under schema
 `ENPXp1vQzRF6JwIuS-mp2U8Uf1MoADoP_GqQ62VsDZWY`. Required, not optional. So the
@@ -71,6 +77,11 @@ infrastructure team, and the Cardano Foundation authoring it is a good sign for
 where the ecosystem is going. It is not a thing a project shipping in M1 can
 depend on.
 
+Rechecked on 2026-11-12, when this was accepted: the second and third points
+still stand. The signer credential still requires the `le` edge, CIP-0170's
+criterion 3 is still unchecked, and `signify-ts` 0.4.1 still ships no key event
+log parser or verifier. Only the first point has moved.
+
 ## Decision
 
 **Tier 2 leaves M1.** It returns as its own milestone, entered on conditions
@@ -80,6 +91,9 @@ rather than a date. Both must hold:
    metadatum limit, in a way two implementations could agree on.
 2. An identity verifier exists that a publisher like AdaLink can actually obtain
    a credential chain from — CIP-0170's own criterion 3.
+
+Condition 1 has held since CIP-0170 version 1.1. Condition 2 is the one the
+milestone now waits on.
 
 The milestone — `Identity-Tier2 (gated)` — exists now and carries both conditions
 in its description, so the deferral is visible on the board rather than only
@@ -98,10 +112,10 @@ check, and an unverified one always signed fine.
 point.** It must not read as though Tier 2 ships. The publisher identifier field
 is reserved so that adding Tier 2 later is not a breaking change.
 
-**We report the `AUTH_BEGIN` gap to the CIP-0170 authors.** Their criterion 4 is
-that implementers report no blocking ambiguities. We are an implementer and we
-found one, demonstrated against their own example file. This costs an issue
-comment.
+**There is no `AUTH_BEGIN` gap left to report.** The plan was to report it to
+the CIP-0170 authors, since their criterion 4 is that implementers report no
+blocking ambiguities. Version 1.1 closed it before the report was sent. Anything
+the gated milestone finds when it builds against v1.1 goes to them then.
 
 ## Alternatives considered
 
@@ -139,9 +153,8 @@ for. A no-go before that split would have left M1 with no identity story at all.
 
 We give up being the implementation that ticks CIP-0170's criterion 2,
 "identity-bound actions", at least for now. That was worth something in the
-relationship with the authors. Reporting the `AUTH_BEGIN` gap recovers part of
-it: being the implementer who found the blocking ambiguity is its own kind of
-contribution, and it is the honest one.
+relationship with the authors, and it comes back when the gated milestone builds
+against the version that fixed chunking.
 
 Reversing this is cheap by construction. Tier 2 sits on top of Tier 1 rather than
 beside it, so nothing shipped in M1 has to be unbuilt — the manifest is already

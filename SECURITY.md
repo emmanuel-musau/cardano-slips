@@ -46,8 +46,8 @@ Roughly in order of how much we want to hear about it:
 4. **URL and `slips.json` resolution flaws in `core`** that let one origin
    front an endpoint it should not be able to speak for, or that accept a
    payload the schema should reject.
-5. **Attestation handling in `identity`** — an absent, invalid, or expired
-   CIP-0170 attestation rendering as verified.
+5. **Attestation handling in `identity`** — an absent, invalid, expired or
+   revoked publisher manifest rendering as verified.
 6. **Signing and submission in `flow` / `apps/page`** — a
    witness set assembled into a body other than the one displayed, a
    rebuild-and-retry that changes effects without re-showing them, or a
