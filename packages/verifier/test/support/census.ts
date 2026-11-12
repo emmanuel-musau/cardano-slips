@@ -69,9 +69,9 @@ const fromTable = (entry: TableCase): Outcome => ({
 })
 
 const groups = [
-  { name: "value-and-recipient", ...value },
-  { name: "certificates-and-withdrawals", ...certificates },
-  { name: "mint-and-validity", ...mint }
+  { name: "value-and-recipient", title: "What it pays, and who it pays", ...value },
+  { name: "certificates-and-withdrawals", title: "What it stakes, and what it drains", ...certificates },
+  { name: "mint-and-validity", title: "What it creates, and how long it stays submittable", ...mint }
 ]
 
 export const outcomes: ReadonlyArray<Outcome> = [
@@ -98,22 +98,86 @@ const tally = (of: ReadonlyArray<Outcome>, expected: Expectation) => {
   return { cases: wanted.length, correct: wanted.filter((outcome) => outcome.actual === expected).length }
 }
 
+const tallies = (kind: Kind) => {
+  const of = outcomes.filter((outcome) => outcome.kind === kind)
+  return { blocked: tally(of, "block"), signed: tally(of, "sign") }
+}
+
 /** Deterministic: no timestamp, no run id. Two runs over the same tree produce the same bytes. */
 export const report = () => ({
   cases: outcomes.length,
   blocked: tally(outcomes, "block"),
   signed: tally(outcomes, "sign"),
-  transactions: {
-    blocked: tally(
-      outcomes.filter((outcome) => outcome.kind === "transaction"),
-      "block"
-    ),
-    signed: tally(
-      outcomes.filter((outcome) => outcome.kind === "transaction"),
-      "sign"
-    )
-  },
+  transactions: tallies("transaction"),
+  table: tallies("table"),
   falseNegatives: falseNegatives.map((outcome) => outcome.name),
   falsePositives: falsePositives.map((outcome) => outcome.name),
   results: outcomes
 })
+
+/** Escapes a value for one Markdown table cell, outside a code span. */
+export const cell = (text: string): string =>
+  text.replace(/\s*\n\s*/g, " ").replace(/[\\`|*_]/g, (character) => `\\${character}`)
+
+const reasonsOf = (outcome: Outcome): string =>
+  outcome.reasons.length === 0 ? "—" : outcome.reasons.map((code) => `\`${code}\``).join(", ")
+
+const verdictCell = (outcome: Outcome): string => {
+  const word = outcome.actual === "block" ? "blocked" : "signed"
+  return outcome.actual === outcome.expected
+    ? word
+    : `**${word}, should have been ${outcome.expected === "block" ? "blocked" : "signed"}**`
+}
+
+/** The report as a page a person reads, written from the same run as `report`. */
+export const page = (of: ReturnType<typeof report>): string => {
+  const table = of.results.filter((outcome) => outcome.kind === "table")
+  const transactions = of.results.filter((outcome) => outcome.kind === "transaction")
+
+  const groupSections = groups.flatMap(({ name: group, title }) => [
+    `## ${title}`,
+    "",
+    `\`${group}.ts\``,
+    "",
+    "| Case | Verdict | What it lies about | Reasons |",
+    "| --- | --- | --- | --- |",
+    ...transactions
+      .filter((outcome) => outcome.group === group)
+      .map(
+        (outcome) =>
+          `| \`${outcome.name}\` | ${verdictCell(outcome)} | ${outcome.expected === "sign" ? "nothing: every case below is one edit away from this transaction" : cell(outcome.lie)} | ${reasonsOf(outcome)} |`
+      ),
+    ""
+  ])
+
+  return [
+    "# Attack examples: the block-rate report",
+    "",
+    "Written by `test/regression.test.ts` from its own run. CI fails when this file",
+    "differs from what the run produces, so it cannot describe a run that no longer",
+    "happens. Rewrite it with `pnpm attack-examples -u`, never by hand.",
+    "",
+    "| | Cases | Correct |",
+    "| --- | ---: | ---: |",
+    `| Transactions that lie, blocked | ${of.transactions.blocked.cases} | ${of.transactions.blocked.correct} |`,
+    `| Honest transactions, signed | ${of.transactions.signed.cases} | ${of.transactions.signed.correct} |`,
+    `| Verdict-table cases that must block, blocked | ${of.table.blocked.cases} | ${of.table.blocked.correct} |`,
+    `| Verdict-table cases that must sign, signed | ${of.table.signed.cases} | ${of.table.signed.correct} |`,
+    "",
+    `Lying transactions that would have been signed: **${of.falseNegatives.length}**.`,
+    `Honest transactions refused: **${of.falsePositives.length}**.`,
+    "",
+    ...groupSections,
+    "## The spec's table of verdicts",
+    "",
+    "[`spec/examples/effects/verdicts.json`](../../../../spec/examples/effects/verdicts.json).",
+    "These state effects rather than encode bytes, so they prove each rule without",
+    "proving the path a real signature takes, and are counted apart from the",
+    "transactions above.",
+    "",
+    "| Case | Verdict | Reasons |",
+    "| --- | --- | --- |",
+    ...table.map((outcome) => `| \`${outcome.name}\` | ${verdictCell(outcome)} | ${reasonsOf(outcome)} |`),
+    ""
+  ].join("\n")
+}
