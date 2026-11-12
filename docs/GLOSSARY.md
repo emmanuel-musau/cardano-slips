@@ -26,7 +26,7 @@ Terms used throughout the spec, issues, and code. Cardano-specific meanings, not
 
 **CIP-30** — the browser wallet connector. Note the detail that trips people up: `signTx` returns a **witness set**, not a signed transaction. Witnesses must be assembled into the body before `submitTx`.
 
-**CIP-0170** — KERI-backed on-chain attestations, anchoring a digest of arbitrary data in an issuer's Key Event Log and referencing it in transaction metadata. Tier 2 of the identity layer: it carries a publisher to a legally recognised entity, but defines no domain binding of its own — see **Publisher manifest**.
+**CIP-0170** — KERI-backed on-chain attestations, anchoring a digest of arbitrary data in an issuer's Key Event Log and referencing it in transaction metadata. Tier 2 of the identity layer, not in v1 (ADR-0014): it carries a publisher to a legally recognised entity, but defines no domain binding of its own — see **Publisher manifest**.
 
 **Collateral** — UTxOs pledged to cover fees if a script fails validation. Relevant to Mode B and script-heavy Slips; out of v1 scope.
 
