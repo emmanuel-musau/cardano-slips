@@ -66,34 +66,17 @@ you need to pick something up.
 
 ## Branch, commit, PR
 
-One issue, one branch, one PR. Feature branches start from `dev` and target
-`dev`; only `dev` targets the published branch, `main`.
-
-Branch names are `<type>/<purpose>` — the type, a slash, then the purpose in
-kebab-case. No issue numbers, no other punctuation:
+One issue, one branch, one PR, from `dev` and back into `dev`:
 
 ```sh
 git switch dev
 git switch -c feat/ada-delta
 ```
 
-Types: `feat`, `fix`, `chore`, `docs`, `test`, `spec`, `infra`. The purpose is
-one or two words naming the thing (`fix/mismatch-block`), not a sentence.
-
-Commits follow [Conventional Commits](https://www.conventionalcommits.org),
-scoped by package where one applies, and reference the issue in a trailer:
-
-```
-feat(verifier): derive net ADA delta and exact fee
-
-Refs #36
-```
-
-The PR body links the issue with `Closes #36` and ticks that issue's acceptance
-criteria. Both permanent branches require four green checks on PRs; `main`
-also requires a code owner review. Feature PRs squash into `dev`; releases
-merge `dev` into `main` with a merge commit. Never push to `main`.
-See [docs/WORKFLOW.md](docs/WORKFLOW.md) for the full branch and release model.
+Branch names, commit format and PR rules are in
+[docs/WORKFLOW.md](docs/WORKFLOW.md#branch-commit-pr); the short version is a
+`<type>/<purpose>` branch, a Conventional Commit with a `Refs #N` trailer, and a
+PR that says `Closes #N` and ticks the issue's criteria. Never push to `main`.
 
 PRs open with an empty body. The definition-of-done checklist lives in
 `.github/PULL_REQUEST_TEMPLATE/default.md` and is opt-in — reach for it when a
@@ -150,50 +133,12 @@ test-only changes inside a package: they change nothing a consumer installs.
 CI checks this. A PR that touches a package without a changeset fails the
 `changeset` job, which runs `changeset status` against the base branch.
 
-## Releasing
+## Releasing and dependency updates
 
-Maintainers only. Nothing about it is manual beyond one merge.
-
-Every push to `main` runs `.github/workflows/release.yml`. If changesets are
-pending, it opens or updates a **chore: version packages** PR holding the
-version bumps and CHANGELOG entries those changesets produce. Merging that PR
-is the release decision — you are looking at the exact versions and the exact
-changelog about to ship. On merge, no changesets remain, and the same workflow
-publishes to npm, pushes tags, and creates the GitHub releases.
-
-Authentication is [npm trusted publishing](https://docs.npmjs.com/trusted-publishers):
-the job mints a short-lived credential over OIDC from the `npm` environment.
-There is no publish token in this repository's secrets, and provenance
-attestations — proof that a tarball was built from this commit by this
-workflow — are generated automatically.
-
-One-time setup per package, before its first release: the npm scope must exist
-and the package must have a trusted publisher pointing at this repository,
-`release.yml`, and the `npm` environment.
-
-Packages start at `0.x`. Until `1.0.0`, a breaking change is a `minor` bump.
-
-## Dependency updates
-
-Dependabot keeps them current. One grouped pull request per ecosystem every
-Monday holding everything that moved inside its major, and a separate pull
-request for each major, so no breaking bump arrives buried in a batch of
-eleven others. A release has to be a few days old before it is offered.
-`.github/dependabot.yml` carries the reasoning behind each setting.
-
-Nothing merges itself. A dependency pull request runs lint, typecheck, test
-and build like any other, and a person merges it. There is no auto-merge in
-this repository and adding one would fail `test/dependency-updates.test.ts`.
-
-A bump that touches a `packages/*` manifest still needs a changeset, and
-Dependabot cannot write one. Push it onto the branch before merging:
-
-```sh
-git fetch origin dependabot/npm_and_yarn/...
-git switch dependabot/npm_and_yarn/...
-pnpm changeset          # a runtime dependency of a published package
-pnpm changeset --empty  # a dev dependency, or anything a consumer never sees
-```
+Maintainers only. How a release runs is in
+[docs/WORKFLOW.md](docs/WORKFLOW.md#releases), and how Dependabot's pull
+requests are handled, including the changeset a bump still needs, is in
+[docs/WORKFLOW.md](docs/WORKFLOW.md#dependencies). Nothing merges itself.
 
 ## Changing the specification
 

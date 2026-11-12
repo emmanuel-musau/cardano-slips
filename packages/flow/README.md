@@ -18,8 +18,6 @@ pnpm add @cardano-slips/flow react
 | compare | against the intent, and block on any disagreement |
 | sign | `signTx` → assemble the witness set into the body → `submitTx` |
 
-`useSlip`, `useWallet` and `useEffects` are the composable surface for anyone who wants the machinery without our components.
-
 ## It refuses; it does not decide
 
 The comparison is `verifier`'s, and it is a pure function so the attack examples run the same code path a real signature does. This package is the consequence of a verdict: a mismatch renders as a block with no control to press. There is no override to configure — not a setting, not an allowlist, not a confirmation. See [Blocking](../../spec/CIP-XXXX/README.md#blocking).

@@ -4,15 +4,11 @@
  * and the CIP's own published pairs. Counting them here rather than in each
  * file is what stops a case being asserted in one place and missed in another.
  */
-import { Either } from "effect"
-
 import type { ReasonCode, Verdict } from "../../src/compare.js"
-import { compare } from "../../src/compare.js"
-import * as certificates from "../attacks/certificates-and-withdrawals.js"
-import * as mint from "../attacks/mint-and-validity.js"
-import * as value from "../attacks/value-and-recipient.js"
+import { groups } from "./attack-groups.js"
 import type { Slip } from "./attacks.js"
 import { comparisonOf as comparisonOfSlip } from "./attacks.js"
+import { verdictOf } from "./verdict.js"
 import type { Case as TableCase } from "./verdicts.js"
 import { cases as tableCases, comparisonOf as comparisonOfCase } from "./verdicts.js"
 
@@ -37,14 +33,6 @@ export type Outcome = {
   readonly reasons: ReadonlyArray<ReasonCode>
 }
 
-const verdictOf = (comparison: Parameters<typeof compare>[0], name: string): Verdict => {
-  const result = compare(comparison)
-  // A declaration the comparison cannot read is neither a block nor a pass, so
-  // it would leave a hole in the census rather than fill a row in it.
-  if (Either.isLeft(result)) throw new Error(`${name} could not be compared: ${result.left.message}`)
-  return result.right
-}
-
 const readingOf = (verdict: Verdict): { actual: Expectation; reasons: ReadonlyArray<ReasonCode> } =>
   verdict._tag === "match"
     ? { actual: "sign", reasons: [] }
@@ -67,12 +55,6 @@ const fromTable = (entry: TableCase): Outcome => ({
   lie: "",
   ...readingOf(verdictOf(comparisonOfCase(entry), entry.name))
 })
-
-const groups = [
-  { name: "value-and-recipient", title: "What it pays, and who it pays", ...value },
-  { name: "certificates-and-withdrawals", title: "What it stakes, and what it drains", ...certificates },
-  { name: "mint-and-validity", title: "What it creates, and how long it stays submittable", ...mint }
-]
 
 export const outcomes: ReadonlyArray<Outcome> = [
   ...groups.flatMap(({ attacks, honest, name }) => [

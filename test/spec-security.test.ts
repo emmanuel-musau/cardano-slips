@@ -237,7 +237,7 @@ describe("server-balanced builds", () => {
   const modeB = slice("Server-balanced builds, and what they disclose", 4)
 
   it("states the v1 privacy property as structural rather than promised", () => {
-    // Hard invariant 2 in CLAUDE.md: the client never sends the UTxO set. In
+    // Hard invariant 2 in AGENTS.md: the client never sends the UTxO set. In
     // v1 there is no field it could travel in, and that is the claim.
     expect(modeB).toMatch(/closed object of two\s+fields/)
     expect(modeB).toMatch(/no shape in this version through which a UTxO set could travel/)

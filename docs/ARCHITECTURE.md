@@ -21,12 +21,11 @@ cardano-slips/
 ├── packages/
 │   ├── core/                  types, URL resolution, slips.json, validation
 │   ├── verifier/              CBOR decode → deltas. The security engine.
-│   ├── server/                defineSlip() + Next.js adapter
+│   ├── server/                defineSlip(), mounted by Next.js routes or the Node adapter
 │   ├── identity/              publisher attestation: the domain manifest (CIP-0170 later)
 │   └── flow/                  React components + CIP-30 orchestration
 ├── apps/
-│   ├── page/                  the slip page, hosted + self-hostable
-│   └── docs/                  docs site + the Slip tester
+│   └── page/                  the slip page, hosted + self-hostable
 ├── examples/
 │   └── slips/                 the delegate and tip fixtures, shared by tests and docs
 ├── docs/                      requirements, architecture, workflow, ADRs
@@ -120,7 +119,7 @@ Resolution is read-only and cacheable; issuance is a publisher-side operation an
 **Why it is its own package.** Tier 2 was the piece most likely to be cut at the Month 1 go/no-go, and ADR-0014 cut it — it is pre-production, new to the team, and its verification path depends on KEL availability the CIP itself calls immature. As a separate package, cutting it means deleting a dependency line; folded into `flow`, it means untangling code under time pressure. This split is a scope-risk hedge, not an architectural preference — and it is why the tiers are separable at all.
 
 ### `flow`
-CIP-30 orchestration plus React components. Wallet discovery/enable, change address + network id, local balancing via `@evolution-sdk/evolution` against the user's own UTxOs, effects derivation, `signTx` → witness assembly → `submitTx`, and rebuild-and-retry when UTxOs move mid-flow. Components: Slip card, generated parameter form, effects panel with the mismatch block, publisher chip, wallet selector, receipt, error states. Hooks (`useSlip`, `useWallet`, `useEffects`) are the composable surface.
+CIP-30 orchestration plus React components. Wallet discovery/enable, change address + network id, local balancing via `@evolution-sdk/evolution` against the user's own UTxOs, effects derivation, `signTx` → witness assembly → `submitTx`, and rebuild-and-retry when UTxOs move mid-flow. Components: Slip card, generated parameter form, effects panel with the mismatch block, publisher chip, wallet selector, receipt, error states.
 
 `tokens.css` holds the design tokens as CSS custom properties and is the single source of truth — no hard-coded hex anywhere in components.
 
@@ -131,11 +130,8 @@ Tier-1 client and the v1 headline: a hosted, self-hostable page that runs the wh
 
 A Next.js App Router app, so it leaves the four-file TypeScript layout below: Next compiles it and `tsc` only checks it, after `next typegen` writes the route types. It builds to `.next`, which its own `turbo.json` names as the build output.
 
-### `apps/docs`
-Documentation site and the Slip tester — paste an endpoint URL, see the rendered card alongside the raw GET/POST payloads. The tester is the single best adoption tool in the project: a developer verifies their endpoint in seconds without installing anything.
-
 ### `examples/slips`
-The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs site read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
+The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
 
 The server's end-to-end tests live here too, beside the fixtures rather than in `packages/server/test`. They need both the fixtures and `server`, and this package already depends on `server` — so pointing `server` back at it would be a cycle, and the rule that apps and examples depend on packages and never the reverse is what forbids it. What they drive is an App Router tree's routing over the handlers `defineSlip` returns.
 
@@ -150,7 +146,6 @@ core  ←  server
          └→ identity
 
       page          →  (flow, core)
-      docs          →  (flow, core)
       slips         →  (server, core)
 ```
 

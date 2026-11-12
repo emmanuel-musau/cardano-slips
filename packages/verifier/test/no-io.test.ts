@@ -1,8 +1,8 @@
-import { readdirSync, readFileSync } from "node:fs"
 import { builtinModules } from "node:module"
-import { extname, join, relative, resolve } from "node:path"
+import { join, resolve } from "node:path"
 import ts from "typescript"
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
+import { moduleSpecifiers, parseSources, readManifest, runtimeDependencies } from "../../../test/support/workspace.js"
 
 /**
  * Hard invariant 1 over the real code: an engine that fetches mid-derivation
@@ -44,33 +44,9 @@ const networkGlobals = [
  */
 const clockGlobals = ["Date", "performance"]
 
-type Manifest = {
-  dependencies?: Record<string, string>
-  peerDependencies?: Record<string, string>
-  optionalDependencies?: Record<string, string>
-}
+const declaredDependencies = runtimeDependencies(readManifest(packageRoot))
 
-const manifest = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")) as Manifest
-
-const declaredDependencies = Object.keys({
-  ...manifest.dependencies,
-  ...manifest.peerDependencies,
-  ...manifest.optionalDependencies
-})
-
-/** Every `.ts` file under `src`, path-relative to the package root. */
-function sourceFiles(directory: string = sourceRoot): string[] {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name)
-    if (entry.isDirectory()) return sourceFiles(path)
-    return entry.isFile() && extname(entry.name) === ".ts" ? [path] : []
-  })
-}
-
-const sources = sourceFiles().map((path) => ({
-  path: relative(packageRoot, path),
-  tree: ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.ES2022, true)
-}))
+const sources = parseSources(packageRoot)
 
 type Reference = { file: string; what: string }
 
@@ -80,30 +56,6 @@ function walk(tree: ts.SourceFile, visit: (node: ts.Node) => void): void {
     ts.forEachChild(node, step)
   }
   step(tree)
-}
-
-/** Every module specifier a file names. Regex would miss `import()` and trip over the word in a comment. */
-function moduleSpecifiers(tree: ts.SourceFile): string[] {
-  const found: string[] = []
-  walk(tree, (node) => {
-    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
-      if (ts.isStringLiteral(node.moduleSpecifier)) found.push(node.moduleSpecifier.text)
-      return
-    }
-    if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
-      const reference = node.moduleReference.expression
-      if (ts.isStringLiteral(reference)) found.push(reference.text)
-      return
-    }
-    if (ts.isCallExpression(node)) {
-      const callee = node.expression
-      const isDynamicImport = callee.kind === ts.SyntaxKind.ImportKeyword
-      const isRequire = ts.isIdentifier(callee) && callee.text === "require"
-      const argument = node.arguments[0]
-      if ((isDynamicImport || isRequire) && argument && ts.isStringLiteral(argument)) found.push(argument.text)
-    }
-  })
-  return found
 }
 
 /** An identifier used as a value, rather than as somebody's property name. */

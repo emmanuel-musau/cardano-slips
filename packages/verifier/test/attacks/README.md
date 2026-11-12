@@ -53,8 +53,8 @@ A case states three things beside the transaction:
 | `lie`     | What the person would believe against what the body does, in the words they would use.              |
 | `blocked` | Every reason the comparison must give, in the order it gives them. The test checks the exact list. The report's Reasons column lists each code once, sorted. |
 
-Each file's own test checks that every case is blocked for exactly its stated
-reasons, that its declared intent is one the schema accepts (a declaration the
+`attacks.test.ts` runs every group and checks that each case is blocked for
+exactly its stated reasons, that its declared intent is one the schema accepts (a declaration the
 schema refuses proves nothing about the comparison), and that it balances, so
 the ledger would take it. `test/regression.test.ts` then counts all of them
 together and writes the report.
@@ -109,7 +109,7 @@ welcome as a normal pull request:
 
 1. Pick the file whose group the lie belongs to. If it fits none of them, say
    so in an issue first, because a new group also needs its own `honest`
-   transaction and an entry in `test/support/census.ts` and
+   transaction, an entry in `test/support/attack-groups.ts`, and its name in
    `test/regression.test.ts`.
 2. Add the case to that file's `attacks` list, one edit away from `honest`.
    Write `lie` as the person reading the card would put it, and list every

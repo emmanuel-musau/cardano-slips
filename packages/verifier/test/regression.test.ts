@@ -8,9 +8,7 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { afterAll, describe, expect, it } from "vitest"
 
-import * as certificates from "./attacks/certificates-and-withdrawals.js"
-import * as mint from "./attacks/mint-and-validity.js"
-import * as value from "./attacks/value-and-recipient.js"
+import { groups } from "./support/attack-groups.js"
 import type { Outcome } from "./support/census.js"
 import {
   cell,
@@ -23,7 +21,7 @@ import {
   report
 } from "./support/census.js"
 
-const attacks = [...value.attacks, ...certificates.attacks, ...mint.attacks]
+const attacks = groups.flatMap((group) => group.attacks)
 
 const reportPath = join(import.meta.dirname, "..", "build", "reports", "attack-examples.json")
 
