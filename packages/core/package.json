@@ -45,6 +45,6 @@
     "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
   },
   "dependencies": {
-    "effect": "^3.22.1"
+    "effect": "^4.1.0"
   }
 }

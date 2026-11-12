@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
-    "effect": "^3.22.1"
+    "effect": "^4.1.0"
   },
   "devDependencies": {
     "typescript": "^6.0.3",
