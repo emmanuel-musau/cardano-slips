@@ -54,7 +54,7 @@ before it had an API. Its README says nothing is exported yet.
 
 The release workflow publishes through npm trusted publishing, which needs a
 trusted publisher set up for each package before its first release
-(CONTRIBUTING.md). Until the owner has done that for `identity`, the next
+(docs/WORKFLOW.md). Until the owner has done that for `identity`, the next
 release fails partway through, with some packages published and others not.
 `core` and `flow` each have a 0.0.0 on npm from minutes after their scaffold
 commits, before any version PR, which is how that step was done for them.

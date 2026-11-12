@@ -63,7 +63,7 @@ Tier 1 is in v1 unconditionally. Tier 2 had an explicit go/no-go (issue #63) and
 
 ## 6. v1 scope
 
-**In:** spec + CIP draft; `core`; `server` with two adapters (Next.js App Router, and a Node adapter for NestJS and Express); the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation; public attack examples.
+**In:** spec + CIP draft; `core`; `server`, mounted directly by Next.js App Router routes and through a Node adapter for NestJS and Express; the `verifier` effects engine; the `flow` client SDK; hosted + self-hostable slip page; Tier-1 domain publisher attestation; public attack examples.
 
 **Deferred (roadmap — do not build in v1):** Tier-2 CIP-0170 publisher attestation, entered on conditions rather than a date (ADR-0014); mobile CIP-13 `//slip` deep links; a CIP-186 transport for native mobile clients; browser extension inline rendering; server-side balancing (Mode B); further framework adapters beyond those two; additional Slip types.
 

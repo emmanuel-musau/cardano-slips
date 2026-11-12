@@ -1,7 +1,7 @@
 import { Either } from "effect"
 import { describe, expect, it } from "vitest"
 
-import type { Comparison, Reason, Verdict } from "../src/compare.js"
+import type { Comparison, Reason } from "../src/compare.js"
 import { compare } from "../src/compare.js"
 import type { ComparisonRefusal } from "../src/compare-error.js"
 import { comparisonRefusals } from "../src/compare-error.js"
@@ -9,6 +9,7 @@ import type { CertificateEffect } from "../src/derive.js"
 import { minimumChangeLovelace, minimumFee } from "../src/minimums.js"
 import { decodeBech32 } from "../src/bech32.js"
 import { mainnetParameters } from "./support/derivation.js"
+import { verdictOf } from "./support/verdict.js"
 import { cases, comparisonOf } from "./support/verdicts.js"
 
 /**
@@ -18,12 +19,6 @@ import { cases, comparisonOf } from "./support/verdicts.js"
  */
 
 const honest = (): Comparison => comparisonOf(cases.find((entry) => entry.verdict === "sign")!)
-
-const verdictOf = (comparison: Comparison): Verdict => {
-  const result = compare(comparison)
-  if (Either.isLeft(result)) throw new Error(`it refused to compare: ${result.left.message}`)
-  return result.right
-}
 
 const codesOf = (comparison: Comparison): Array<Reason["code"]> => {
   const verdict = verdictOf(comparison)

@@ -105,7 +105,7 @@ An issue is done when:
 
 ## Decisions
 
-Settled decisions live in `docs/DECISIONS/` as ADRs. Do not relitigate one in a PR — write a new ADR that supersedes it. Two ADRs are already ticketed as decisions because they block other work: CBOR decode approach (#33) and CIP-0170 go/no-go (#63).
+Settled decisions live in `docs/DECISIONS/` as ADRs. Do not relitigate one in a PR — write a new ADR that supersedes it.
 
 If a ticket turns out to depend on an unmade decision, stop and make the decision its own small ticket first. Tickets should never require judgement calls the backlog hasn't already settled.
 
@@ -117,8 +117,7 @@ Once the CIP draft is frozen (#21), request/response shapes are a versioned cont
 
 Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Five packages ship publicly: `core`, `server`, `verifier`, `identity`, `flow` (ADR-0016).
 
-Releasing runs in this order. The last step used to be the one that got
-forgotten, so it is now a job:
+Releasing runs in this order, and the last step is a job so it cannot be forgotten:
 
 1. Open the `dev` -> `main` pull request and merge it with a merge commit.
 2. `release.yml` fires on the push to `main` and opens the Changesets version PR.
@@ -135,6 +134,14 @@ torn one — finish it by hand:
 ```
 git switch dev && git pull origin main && git push
 ```
+
+Publishing authenticates through [npm trusted publishing](https://docs.npmjs.com/trusted-publishers):
+the job mints a short-lived credential over OIDC from the `npm` environment, so
+there is no publish token in this repository's secrets, and provenance
+attestations are generated automatically. Each package needs a trusted
+publisher pointing at this repository, `release.yml` and the `npm` environment
+before its first release. Packages start at `0.x`; until `1.0.0`, a breaking
+change is a `minor` bump.
 
 ### The release App
 
@@ -175,6 +182,16 @@ read of the changelog.
 Recent npm supply-chain compromises were caught within days of publish and
 nothing here is urgent enough to be a new version's first install, so releases
 sit in cooldown before we are offered them. Security updates skip it.
+
+A bump that touches a `packages/*` manifest still needs a changeset, and
+Dependabot cannot write one. Push it onto the branch before merging:
+
+```
+git fetch origin dependabot/npm_and_yarn/...
+git switch dependabot/npm_and_yarn/...
+pnpm changeset          # a runtime dependency of a published package
+pnpm changeset --empty  # a dev dependency, or anything a consumer never sees
+```
 
 ## Environments
 

@@ -381,7 +381,7 @@ describe("the obligations this step puts on both parties", () => {
 
   it("keeps the user's unspent outputs off the wire, normatively", () => {
     // The invariant the whole mode exists for. It is a sentence in the spec,
-    // a closed schema above, and hard invariant 2 in CLAUDE.md.
+    // a closed schema above, and hard invariant 2 in AGENTS.md.
     expect(balancing).toMatch(/MUST NOT (?:send|transmit)[^.]*unspent outputs/)
   })
 

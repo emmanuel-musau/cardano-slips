@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
@@ -28,6 +28,10 @@ type Manifest = {
   license?: string
   repository?: unknown
   publishConfig?: { access?: string }
+  type?: string
+  sideEffects?: boolean | string[]
+  files?: string[]
+  exports?: Record<string, string | Record<string, string>>
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
   optionalDependencies?: Record<string, string>
@@ -120,6 +124,86 @@ describe("every published package", () => {
       return unpublished.length > 0 ? [{ dir: pkg.dir, unpublished }] : []
     })
     expect(broken).toEqual([])
+  })
+})
+
+/** The module subpaths each package exposes. A closed map is what makes moving a file non-breaking. */
+const moduleSubpaths: Record<string, string[]> = {
+  "@cardano-slips/core": [".", "./package.json"],
+  // The Node bridge is its own entry so the root carries no Node types for a runtime that has none.
+  "@cardano-slips/server": [".", "./package.json", "./adapters/node"],
+  "@cardano-slips/verifier": [".", "./package.json"],
+  "@cardano-slips/identity": [".", "./package.json"],
+  "@cardano-slips/flow": [".", "./package.json"]
+}
+
+/** Every distinct file path an `exports` map points at. */
+const exportTargets = (manifest: Manifest): string[] =>
+  Object.values(manifest.exports ?? {}).flatMap((entry) => (typeof entry === "string" ? [entry] : Object.values(entry)))
+
+/** Stylesheets in a package's `src`; a stylesheet cannot be re-exported through a module, so each is its own subpath. */
+const stylesheets = (pkg: WorkspacePackage): string[] =>
+  readdirSync(join(root, pkg.dir, "src")).filter((name) => name.endsWith(".css"))
+
+const byName = (name: string): WorkspacePackage => {
+  const pkg = published.find((candidate) => candidate.manifest.name === name)
+  if (pkg === undefined) throw new Error(`${name} is not in the workspace`)
+  return pkg
+}
+
+// An `exports` typo is invisible until an installed consumer fails to import.
+describe.each(publishable)("%s", (name) => {
+  const pkg = byName(name)
+  const { manifest } = pkg
+
+  it("loads from its source entry", async () => {
+    const entry: unknown = await import(join(root, pkg.dir, "src", "index.ts"))
+    expect(entry).toBeTypeOf("object")
+  })
+
+  it("exposes only the module subpaths listed here", () => {
+    const modules = Object.keys(manifest.exports ?? {}).filter((subpath) => !subpath.endsWith(".css"))
+    expect(modules).toEqual(moduleSubpaths[name])
+  })
+
+  it("exposes every stylesheet it ships, and no other", () => {
+    const exposed = Object.keys(manifest.exports ?? {})
+      .filter((subpath) => subpath.endsWith(".css"))
+      .map((subpath) => subpath.replace(/^\.\//, ""))
+    expect([...exposed].sort()).toEqual(stylesheets(pkg).sort())
+  })
+
+  it("resolves type declarations before any other condition", () => {
+    // `types` last is silently ignored under NodeNext, and the package then resolves to `any`.
+    const entry = manifest.exports?.["."]
+    expect(typeof entry).toBe("object")
+    expect(Object.keys(entry as Record<string, string>)[0]).toBe("types")
+  })
+
+  it("points every export at the directory the build writes", () => {
+    const stray = exportTargets(manifest).filter(
+      (target) => !target.startsWith("./dist/") && target !== "./package.json"
+    )
+    expect(stray).toEqual([])
+  })
+
+  it("has a source file behind each exported path", () => {
+    const missing = exportTargets(manifest)
+      .filter((target) => target.startsWith("./dist/"))
+      .map((target) => target.replace(/^\.\/dist\//, "").replace(/\.d\.ts$|\.js$/, ".ts"))
+      .filter((source) => !existsSync(join(root, pkg.dir, "src", source)))
+    expect(missing).toEqual([])
+  })
+
+  it("ships the build output and the sources its maps point at", () => {
+    // A declaration map whose sources are missing from the tarball sends go-to-definition nowhere.
+    expect(manifest.files).toEqual(["dist", "src"])
+  })
+
+  it("declares itself ESM, with side effects only in its stylesheets", () => {
+    // `false` would let a bundler drop `import "@cardano-slips/flow/card.css"` and serve an unstyled card.
+    expect(manifest.type).toBe("module")
+    expect(manifest.sideEffects).toEqual(stylesheets(pkg).length > 0 ? ["*.css"] : false)
   })
 })
 

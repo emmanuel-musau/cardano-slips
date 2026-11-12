@@ -441,7 +441,7 @@ describe("blocking", () => {
   })
 
   it("forbids an override in the specification rather than leaving it to implementations", () => {
-    // Hard invariant 3 in CLAUDE.md, and the one an implementation under
+    // Hard invariant 3 in AGENTS.md, and the one an implementation under
     // commercial pressure is asked to soften first.
     expect(blocking).toMatch(/There is no override/)
     expect(blocking).toMatch(/No allowlist of publishers/)

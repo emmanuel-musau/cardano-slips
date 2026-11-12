@@ -23,7 +23,7 @@ Holds no user funds. No custody, no relayer, no treasury validator. The client c
 | Package | What it does |
 |---|---|
 | `@cardano-slips/core` | the shared contract — schemas, URL rules, error codes |
-| `@cardano-slips/server` | publish a Slip endpoint — `defineSlip()` + Next.js adapter |
+| `@cardano-slips/server` | publish a Slip endpoint — `defineSlip()`, mounted by Next.js routes or the Node adapter |
 | `@cardano-slips/verifier` | derive what the transaction really does, and block signing if the metadata lies |
 | `@cardano-slips/identity` | say who is asking — the publisher's domain manifest, issued and resolved |
 | `@cardano-slips/flow` | run the user through it — Slip UI + CIP-30 wallet orchestration |
