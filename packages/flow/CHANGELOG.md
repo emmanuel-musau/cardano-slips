@@ -1,5 +1,11 @@
 # @cardano-slips/flow
 
+## 0.3.1
+
+### Patch Changes
+
+- [#202](https://github.com/emmanuel-musau/cardano-slips/pull/202) [`6cfeccb`](https://github.com/emmanuel-musau/cardano-slips/commit/6cfeccb13bd79017c2d53001fa4d19eb8f6e55b6) Thanks [@dependabot](https://github.com/apps/dependabot)! - Depend on `@evolution-sdk/evolution` ^0.8.0.
+
 ## 0.3.0
 
 ### Minor Changes
