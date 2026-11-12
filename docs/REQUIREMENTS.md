@@ -71,7 +71,7 @@ On mobile, a shared link opened in a phone browser reaches a wallet through CIP-
 
 ## 7. What shipping means (each one ticketed)
 
-- Four packages published to npm under `@cardano-slips` with release notes and a fresh-install smoke test.
+- Five packages published to npm under `@cardano-slips` with release notes and a fresh-install smoke test.
 - Developer documentation: quickstart, `slips.json` and client integration guides, effects-model explainer, self-host walkthrough.
 - Public attack examples with a 100% block-rate report, plus a wallet compatibility matrix run on preview.
 

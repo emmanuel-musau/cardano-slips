@@ -1,6 +1,6 @@
 .PHONY: watch
 
-PKGS := packages/core packages/verifier packages/server packages/flow examples/slips
+PKGS := packages/core packages/verifier packages/server packages/identity packages/flow examples/slips
 TIP  := http%3A%2F%2Flocalhost%3A4010%2Ftip
 
 # The slip page in dev mode, with every package it reads rebuilt on save.

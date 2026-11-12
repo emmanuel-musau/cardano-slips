@@ -1,0 +1,50 @@
+{
+  "name": "@cardano-slips/identity",
+  "version": "0.0.0",
+  "description": "Publisher identity for Cardano Slips: issue and resolve the domain manifest that says who is asking",
+  "keywords": [
+    "cardano",
+    "cardano-slips",
+    "attestation",
+    "identity",
+    "publisher"
+  ],
+  "homepage": "https://github.com/emmanuel-musau/cardano-slips/tree/main/packages/identity#readme",
+  "bugs": "https://github.com/emmanuel-musau/cardano-slips/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmanuel-musau/cardano-slips.git",
+    "directory": "packages/identity"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "typecheck": "tsc -b tsconfig.src.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "clean": "rm -rf dist build coverage .tsbuildinfo .turbo"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

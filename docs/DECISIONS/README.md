@@ -23,5 +23,6 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0013](0013-stated-certificate-deposit.md) | Hold a stated deposit to the protocol parameter, and leave a stated refund uncompared | Accepted |
 | [0014](0014-defer-cip-0170-to-a-gated-milestone.md) | Cut Tier 2 from M1 and gate it on conditions, not a date | Proposed |
 | [0015](0015-protocol-parameters-from-a-provider.md) | Read protocol parameters from a chain provider through the page's own server, unless a caller passes them in | Accepted |
+| [0016](0016-publish-identity.md) | Publish `identity` to npm with the other four packages | Accepted |
 
 ADR-0014 is the CIP-0170 go/no-go ADR-0006 narrowed to the Tier-2 question. It carries what the spike (#60) found and the recommendation that follows; #63 is where it becomes Accepted or Rejected.

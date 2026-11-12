@@ -115,7 +115,7 @@ Once the CIP draft is frozen (#21), request/response shapes are a versioned cont
 
 ## Releases
 
-Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Four packages ship publicly: `core`, `server`, `verifier`, `flow`.
+Changesets drives versioning. A changeset accompanies every `packages/*` change; the release workflow opens a version PR and publishes to npm on merge. Five packages ship publicly: `core`, `server`, `verifier`, `identity`, `flow` (ADR-0016).
 
 Releasing runs in this order. The last step used to be the one that got
 forgotten, so it is now a job:

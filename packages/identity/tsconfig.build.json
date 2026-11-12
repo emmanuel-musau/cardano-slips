@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // The only config that writes `dist`, which is what the `exports` map points at.
+  "extends": "./tsconfig.src.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "stripInternal": true,
+    "tsBuildInfoFile": ".tsbuildinfo/build.tsbuildinfo"
+  }
+}
