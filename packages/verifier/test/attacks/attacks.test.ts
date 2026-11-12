@@ -6,7 +6,7 @@ import { Intent } from "@cardano-slips/core"
 import { deriveAssets, deriveLovelace } from "../../src/derive.js"
 import type { Slip } from "../support/attacks.js"
 import { comparisonOf, derivationOf } from "../support/attacks.js"
-import { groups } from "../support/census.js"
+import { groups } from "../support/attack-groups.js"
 import { verdictOf } from "../support/verdict.js"
 import { statedRefund } from "./certificates-and-withdrawals.js"
 

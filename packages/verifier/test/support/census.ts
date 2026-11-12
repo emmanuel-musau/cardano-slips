@@ -5,9 +5,7 @@
  * file is what stops a case being asserted in one place and missed in another.
  */
 import type { ReasonCode, Verdict } from "../../src/compare.js"
-import * as certificates from "../attacks/certificates-and-withdrawals.js"
-import * as mint from "../attacks/mint-and-validity.js"
-import * as value from "../attacks/value-and-recipient.js"
+import { groups } from "./attack-groups.js"
 import type { Slip } from "./attacks.js"
 import { comparisonOf as comparisonOfSlip } from "./attacks.js"
 import { verdictOf } from "./verdict.js"
@@ -57,12 +55,6 @@ const fromTable = (entry: TableCase): Outcome => ({
   lie: "",
   ...readingOf(verdictOf(comparisonOfCase(entry), entry.name))
 })
-
-export const groups = [
-  { name: "value-and-recipient", title: "What it pays, and who it pays", ...value },
-  { name: "certificates-and-withdrawals", title: "What it stakes, and what it drains", ...certificates },
-  { name: "mint-and-validity", title: "What it creates, and how long it stays submittable", ...mint }
-]
 
 export const outcomes: ReadonlyArray<Outcome> = [
   ...groups.flatMap(({ attacks, honest, name }) => [

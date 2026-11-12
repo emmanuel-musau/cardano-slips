@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs"
 import { readdirSync, readFileSync } from "node:fs"
 import { extname, join, relative } from "node:path"
 import ts from "typescript"
@@ -19,8 +20,14 @@ export const readManifest = <M extends Manifest = Manifest>(directory: string): 
 
 /** Every workspace package's directory and manifest, mirroring `pnpm-workspace.yaml`. */
 export function workspacePackages(): Array<{ dir: string; manifest: Manifest }> {
-  return ["packages", "apps", "examples"].flatMap((root) =>
-    readdirSync(join(workspaceRoot, root), { withFileTypes: true })
+  return ["packages", "apps", "examples"].flatMap((root) => {
+    let entries: Dirent[]
+    try {
+      entries = readdirSync(join(workspaceRoot, root), { withFileTypes: true })
+    } catch {
+      return []
+    }
+    return entries
       .filter((entry) => entry.isDirectory())
       .flatMap((entry) => {
         const dir = `${root}/${entry.name}`
@@ -30,7 +37,7 @@ export function workspacePackages(): Array<{ dir: string; manifest: Manifest }> 
           return []
         }
       })
-  )
+  })
 }
 
 /** What a consumer installs with the package: everything but `devDependencies`. */
@@ -93,7 +100,10 @@ export type DependencyRules = {
 }
 
 /** The checks every package's dependency test shares: what it never reaches for, and what it declares. */
-export function describeDependencyRules(name: string, rules: DependencyRules): void {
+export function describeDependencyRules(
+  name: string,
+  rules: DependencyRules
+): ReadonlyArray<{ file: string; specifier: string }> {
   const declared = runtimeDependencies(readManifest(rules.packageRoot))
   const sources = parseSources(rules.packageRoot)
   const imported = importsOf(sources)
@@ -128,4 +138,6 @@ export function describeDependencyRules(name: string, rules: DependencyRules): v
       expect(undeclared).toEqual([])
     })
   })
+
+  return imported
 }

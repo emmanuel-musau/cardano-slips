@@ -1,6 +1,6 @@
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
-import { describeDependencyRules, importsOf, packageOf, parseSources } from "../../../test/support/workspace.js"
+import { describeDependencyRules, packageOf } from "../../../test/support/workspace.js"
 
 /**
  * The page reaches the protocol through `flow` and `core` only. `server` in a
@@ -23,14 +23,12 @@ const allowedDependencies = [
 /** The only place the page talks to a chain provider: its own server route (ADR-0015). */
 const providerRoute = join("src", "app", "parameters")
 
-describeDependencyRules("the page", {
+const imported = describeDependencyRules("the page", {
   packageRoot,
   forbidden: ["@cardano-slips/server", "@cardano-slips/verifier"],
   allowed: allowedDependencies,
   nodeBuiltins: false
 })
-
-const imported = importsOf(parseSources(packageRoot))
 
 describe("the chain provider", () => {
   it("is reached only from the page's own parameters route, never from browser code", () => {

@@ -109,7 +109,7 @@ welcome as a normal pull request:
 
 1. Pick the file whose group the lie belongs to. If it fits none of them, say
    so in an issue first, because a new group also needs its own `honest`
-   transaction and an entry in `test/support/census.ts` and
+   transaction, an entry in `test/support/attack-groups.ts`, and its name in
    `test/regression.test.ts`.
 2. Add the case to that file's `attacks` list, one edit away from `honest`.
    Write `lie` as the person reading the card would put it, and list every

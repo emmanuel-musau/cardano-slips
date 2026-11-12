@@ -1,9 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
 
-  // `spec/**` is global because `core` reads the examples from outside its own
-  // directory, and per-package inputs cannot reach up out of the package.
-  "globalDependencies": ["tsconfig.base.json", ".npmrc", "spec/**"],
+  // `spec/**` and the shared test helpers are global because packages read them
+  // from outside their own directory, and per-package inputs cannot reach up.
+  "globalDependencies": ["tsconfig.base.json", ".npmrc", "spec/**", "test/support/**"],
 
   "tasks": {
     "build": {
@@ -51,7 +51,14 @@
     // Same reason as `//#lint:root`. Anything these tests read from disk
     // belongs in `inputs`, or turbo serves a cached pass over what it never read.
     "//#test:repo": {
-      "inputs": ["test/**", "spec/**", "vitest.config.ts", ".changeset/config.json", "*/*/package.json"],
+      "inputs": [
+        "test/**",
+        "spec/**",
+        "vitest.config.ts",
+        ".changeset/config.json",
+        "*/*/package.json",
+        "packages/*/src/**"
+      ],
       "outputs": []
     },
 

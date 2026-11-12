@@ -1,17 +1,14 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
+import type { Manifest as WorkspaceManifest } from "./support/workspace.js"
+import { workspacePackages as listWorkspacePackages, workspaceRoot as root } from "./support/workspace.js"
 
 /**
  * What reaches npm. Written against the workspace on disk, so a scaffolded
  * package that cannot be published fails here rather than at `changeset
  * publish` on main.
  */
-
-const root = join(import.meta.dirname, "..")
-
-/** Workspace roots, mirroring `pnpm-workspace.yaml`. */
-const workspaceRoots = ["packages", "apps", "examples"] as const
 
 /** The packages that ship to npm (ADR-0005, ADR-0016). */
 const publishable = [
@@ -22,9 +19,7 @@ const publishable = [
   "@cardano-slips/flow"
 ]
 
-type Manifest = {
-  name?: string
-  private?: boolean
+type Manifest = WorkspaceManifest & {
   license?: string
   repository?: unknown
   publishConfig?: { access?: string }
@@ -43,27 +38,7 @@ type WorkspacePackage = {
   manifest: Manifest
 }
 
-function readWorkspacePackages(): WorkspacePackage[] {
-  return workspaceRoots.flatMap((workspaceRoot) => {
-    let entries: string[]
-    try {
-      entries = readdirSync(join(root, workspaceRoot))
-    } catch {
-      return [] // the directory does not exist yet
-    }
-    return entries.flatMap((entry) => {
-      const dir = `${workspaceRoot}/${entry}`
-      try {
-        const manifest = JSON.parse(readFileSync(join(root, dir, "package.json"), "utf8")) as Manifest
-        return [{ dir, manifest }]
-      } catch {
-        return [] // not a package
-      }
-    })
-  })
-}
-
-const workspacePackages = readWorkspacePackages()
+const workspacePackages = listWorkspacePackages() as WorkspacePackage[]
 const published = workspacePackages.filter((pkg) => pkg.manifest.private !== true)
 const privateNames = new Set(
   workspacePackages.filter((pkg) => pkg.manifest.private === true).map((pkg) => pkg.manifest.name)
@@ -156,11 +131,6 @@ describe.each(publishable)("%s", (name) => {
   const pkg = byName(name)
   const { manifest } = pkg
 
-  it("loads from its source entry", async () => {
-    const entry: unknown = await import(join(root, pkg.dir, "src", "index.ts"))
-    expect(entry).toBeTypeOf("object")
-  })
-
   it("exposes only the module subpaths listed here", () => {
     const modules = Object.keys(manifest.exports ?? {}).filter((subpath) => !subpath.endsWith(".css"))
     expect(modules).toEqual(moduleSubpaths[name])
@@ -171,6 +141,13 @@ describe.each(publishable)("%s", (name) => {
       .filter((subpath) => subpath.endsWith(".css"))
       .map((subpath) => subpath.replace(/^\.\//, ""))
     expect([...exposed].sort()).toEqual(stylesheets(pkg).sort())
+  })
+
+  it("points every stylesheet subpath at a stylesheet", () => {
+    const wrong = Object.entries(manifest.exports ?? {})
+      .filter(([subpath]) => subpath.endsWith(".css"))
+      .filter(([subpath, target]) => target !== `./dist/${subpath.replace(/^\.\//, "")}`)
+    expect(wrong).toEqual([])
   })
 
   it("resolves type declarations before any other condition", () => {

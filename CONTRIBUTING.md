@@ -135,9 +135,10 @@ CI checks this. A PR that touches a package without a changeset fails the
 
 ## Releasing and dependency updates
 
-Maintainers only. How a release runs, and how Dependabot's pull requests are
-handled, are in [docs/WORKFLOW.md](docs/WORKFLOW.md#releases). Nothing merges
-itself, and a dependency bump to a `packages/*` manifest still needs a changeset.
+Maintainers only. How a release runs is in
+[docs/WORKFLOW.md](docs/WORKFLOW.md#releases), and how Dependabot's pull
+requests are handled, including the changeset a bump still needs, is in
+[docs/WORKFLOW.md](docs/WORKFLOW.md#dependencies). Nothing merges itself.
 
 ## Changing the specification
 
