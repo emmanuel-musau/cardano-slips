@@ -41,6 +41,7 @@ Plus `apps/page` (hosted, self-hostable fallback page) and `examples/slips` (the
 | [CONTRIBUTING.md](CONTRIBUTING.md) | setup, branch and PR conventions, the testing bar, changesets |
 | [SECURITY.md](SECURITY.md) | what counts as a vulnerability here, and how to report one privately |
 | [spec/](spec/) | the CIP: request and response shapes, error codes, resolution rules |
+| [The attack examples](packages/verifier/test/attacks/) | lying transactions the verifier must block, and the [report](packages/verifier/test/attacks/REPORT.md) showing it blocks every one |
 
 ## Built on
 

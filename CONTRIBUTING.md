@@ -128,7 +128,8 @@ ticket, not a TODO, not "covered by the integration test later".
 `packages/verifier` carries the highest bar. Its set of attack examples grows with
 every bug: **any transaction that should have been blocked and wasn't becomes a
 permanent test case.** If you find one, the test case is the most valuable half
-of the contribution.
+of the contribution. [The attack examples' README](packages/verifier/test/attacks/README.md)
+says how to add one, and when to report it privately first.
 
 ## Changesets
 

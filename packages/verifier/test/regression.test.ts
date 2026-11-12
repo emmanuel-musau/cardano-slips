@@ -13,11 +13,13 @@ import * as mint from "./attacks/mint-and-validity.js"
 import * as value from "./attacks/value-and-recipient.js"
 import type { Outcome } from "./support/census.js"
 import {
+  cell,
   falseNegatives,
   falseNegativesIn,
   falsePositives,
   falsePositivesIn,
   outcomes,
+  page,
   report
 } from "./support/census.js"
 
@@ -68,6 +70,12 @@ describe("what the rate is counted over", () => {
   it("names every case once", () => {
     const names = outcomes.map((outcome) => `${outcome.group}/${outcome.name}`)
     expect(new Set(names).size).toBe(names.length)
+  })
+
+  it("names every attack once across all the groups, in kebab-case", () => {
+    const names = attacks.map((attack) => attack.name)
+    expect(new Set(names).size).toBe(names.length)
+    expect(names.filter((name) => !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name))).toEqual([])
   })
 
   it("gives a reason for every block and none for anything it signs", () => {
@@ -121,6 +129,23 @@ describe("the report", () => {
     // Machine-readable output that carries a timestamp is output nothing can
     // diff, and the evidence report reads this file across runs.
     expect(JSON.stringify(report())).toBe(JSON.stringify(report()))
+  })
+
+  it("is committed beside the attack examples exactly as this run produces it", async () => {
+    // Rewrite it with `pnpm attack-examples -u`.
+    await expect(page(report())).toMatchFileSnapshot("./attacks/REPORT.md")
+  })
+
+  it("marks only the case that must sign as the one the others are an edit away from", () => {
+    const [honest] = report().results
+    const unexplained = { ...honest!, name: "unexplained", expected: "block" as const, lie: "" }
+    const written = page({ ...report(), results: [honest!, unexplained] })
+    expect(written.match(/one edit away/g)).toHaveLength(1)
+    expect(written).toContain("| `unexplained` | **signed, should have been blocked** |  |")
+  })
+
+  it("keeps a lie inside its own table cell whatever it contains", () => {
+    expect(cell("pays `500` | not\n  5 *ADA* _now_ \\")).toBe("pays \\`500\\` \\| not 5 \\*ADA\\* \\_now\\_ \\\\")
   })
 })
 

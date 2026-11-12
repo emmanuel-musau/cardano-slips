@@ -15,7 +15,7 @@ verify(tx CBOR, declared metadata, user addresses, resolved inputs, protocol par
 
 Five arguments, and no sixth. Nothing is fetched: a transaction body carries only references to the inputs it spends, so their values are handed in; a fee ceiling, an output raised to the ledger minimum, a deposit told apart from a spend, and an expiry shown as a time all need protocol parameters, so those are handed in too. Anything the engine went and got for itself would put a network call between a person and a signature — one that can be slow, absent, or answered by whoever benefits from the answer.
 
-That purity is what makes the attack examples worth anything. They run the same code that runs before a real signature, so "every lying transaction was blocked" is a property of a function rather than a claim about a system. `test/no-io.test.ts` is what keeps it true.
+That purity is what makes the [attack examples](test/attacks/) worth anything. They run the same code that runs before a real signature, so "every lying transaction was blocked" is a property of a function rather than a claim about a system. `test/no-io.test.ts` is what keeps it true.
 
 ## What it derives
 
