@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // Typechecked, never emitted. The reference lets a test import
+  // `../src/index.js` through the emitted declarations, exactly as a consumer will.
+  "extends": "../../tsconfig.test.json",
+  "include": ["test", "vitest.config.ts"],
+  "references": [{ "path": "./tsconfig.src.json" }],
+  "compilerOptions": {
+    "tsBuildInfoFile": ".tsbuildinfo/test.tsbuildinfo"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+
+  // For the editor only: tsserver looks here first, and without it a test file
+  // resolves to no project and loses `@types/node`. See docs/ARCHITECTURE.md.
+  "extends": "../tsconfig.test.json",
+  "include": ["**/*.ts", "**/*.tsx"]
+}

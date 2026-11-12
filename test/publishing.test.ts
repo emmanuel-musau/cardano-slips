@@ -13,11 +13,14 @@ const root = join(import.meta.dirname, "..")
 /** Workspace roots, mirroring `pnpm-workspace.yaml`. */
 const workspaceRoots = ["packages", "apps", "examples"] as const
 
-/**
- * The packages that ship to npm (ADR-0005). `identity` is absent on purpose:
- * whether it exists at all is CIP-0170's go/no-go (#63).
- */
-const publishable = ["@cardano-slips/core", "@cardano-slips/server", "@cardano-slips/verifier", "@cardano-slips/flow"]
+/** The packages that ship to npm (ADR-0005, ADR-0016). */
+const publishable = [
+  "@cardano-slips/core",
+  "@cardano-slips/server",
+  "@cardano-slips/verifier",
+  "@cardano-slips/identity",
+  "@cardano-slips/flow"
+]
 
 type Manifest = {
   name?: string
@@ -68,6 +71,11 @@ describe("what reaches npm", () => {
       .map((pkg) => pkg.manifest.name)
       .filter((name) => name === undefined || !publishable.includes(name))
     expect(unexpected).toEqual([])
+  })
+
+  it("publishes every package the decision records name", () => {
+    const missing = publishable.filter((name) => !published.some((pkg) => pkg.manifest.name === name))
+    expect(missing).toEqual([])
   })
 
   it("keeps apps and examples out of the registry", () => {

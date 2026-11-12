@@ -26,7 +26,7 @@ updates:
           - patch
 
     # `increase` would ratchet every `^` floor on each bump, forcing a
-    # resolution on consumers of the four packages we publish.
+    # resolution on consumers of the packages we publish.
     versioning-strategy: increase-if-necessary
 
     # How long a release must survive before we are offered it. Security
