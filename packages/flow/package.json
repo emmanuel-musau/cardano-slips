@@ -57,7 +57,7 @@
     "@cardano-slips/verifier": "workspace:^",
     "@evolution-sdk/evolution": "^0.8.0",
     "@noble/hashes": "^2.0.1",
-    "effect": "^3.22.1"
+    "effect": "^4.1.0"
   },
   "devDependencies": {
     "@cardano-slips/example-slips": "workspace:^",

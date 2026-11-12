@@ -27,7 +27,7 @@
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
     "@cardano-slips/server": "workspace:^",
-    "effect": "^3.22.1"
+    "effect": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
