@@ -158,6 +158,13 @@ const completionScreen = (failure: CompletionError, context: ScreenContext): Scr
         text: "Something else kept spending from your wallet while this was being built. Nothing was signed twice and nothing left your wallet.",
         move: "retry"
       })
+    case "WalletBehind":
+      return notice({
+        tone: "plain",
+        title: "Your wallet hasn't caught up yet",
+        text: "It still lists money the network has already spent. Nothing was signed twice and nothing left your wallet. Give it a moment, then try again.",
+        move: "retry"
+      })
     case "UnreadableUtxos":
     case "UnreadableAddresses":
     case "NotShown":
@@ -172,8 +179,16 @@ const signingScreen = (failure: SigningError): Screen => {
   switch (failure.refusal) {
     case "Declined":
       return { _tag: "Outcome", outcome: { _tag: "Declined" } }
-    case "SubmitFailed":
     case "IntervalPassed":
+      return notice({
+        tone: "plain",
+        title: "This transaction ran out of time",
+        text: "It reached the network after the time this Slip allows, so it was turned down. Nothing left your wallet. Start again for a fresh one.",
+        code: "INTENT_EXPIRED",
+        move: "retry",
+        moveLabel: "Start again"
+      })
+    case "SubmitFailed":
     case "InputsSpent":
       return { _tag: "Outcome", outcome: { _tag: "Refused", reason: nodeReason(failure) } }
     // The wallet took the transaction before naming another, so it may be on the chain.

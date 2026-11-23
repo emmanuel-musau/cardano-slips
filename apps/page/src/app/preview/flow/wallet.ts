@@ -18,12 +18,15 @@ export const previewHex = {
   /** 100 ADA at that address. */
   firstOutput:
     "82825820aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa100a200583901f52f4b1994711d3adf7bc3fbf0b50ae867aeb219dd3988dce39c491273afff94578568768bfab2e84b94fa87f5ae61f8a3ac5edaa2ddfa5d011a05f5e100",
-  /** 90 ADA at the same address, what the wallet holds once the first has been spent elsewhere. */
+  /** 90 ADA at the same address, which arrives once the first has been spent elsewhere. */
   secondOutput:
     "82825820aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa200a200583901f52f4b1994711d3adf7bc3fbf0b50ae867aeb219dd3988dce39c491273afff94578568768bfab2e84b94fa87f5ae61f8a3ac5edaa2ddfa5d011a055d4a80",
   witnesses:
     "a100d90102818258201111111111111111111111111111111111111111111111111111111111111111584011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
 }
+
+/** The first output's reference, as it appears in a body that spends it. */
+const firstInput = previewHex.firstOutput.slice(4, 74)
 
 export const scenarios = ["signs", "declines", "funds-move", "refuses", "empty", "testnet"] as const
 export type Scenario = (typeof scenarios)[number]
@@ -38,7 +41,6 @@ const walletDelay = 1_200
 
 export const previewApi = (scenario: Scenario, delay = walletDelay): Cip30Api => {
   let reads = 0
-  let submits = 0
   return {
     getNetworkId: async () => (scenario === "testnet" ? 0 : 1),
     getChangeAddress: async () => (scenario === "testnet" ? previewHex.testnetAddress : previewHex.address),
@@ -49,7 +51,9 @@ export const previewApi = (scenario: Scenario, delay = walletDelay): Cip30Api =>
     getUtxos: async () => {
       reads += 1
       if (scenario === "empty") return []
-      return [scenario === "funds-move" && reads > 1 ? previewHex.secondOutput : previewHex.firstOutput]
+      // Like a wallet behind the chain, it goes on listing the first output after the node has called it spent.
+      if (scenario === "funds-move" && reads > 1) return [previewHex.firstOutput, previewHex.secondOutput]
+      return [previewHex.firstOutput]
     },
     getCollateral: async () => [],
     signTx: async () => {
@@ -62,8 +66,9 @@ export const previewApi = (scenario: Scenario, delay = walletDelay): Cip30Api =>
     },
     submitTx: async (transaction) => {
       await pause(delay)
-      submits += 1
-      if (scenario === "funds-move" && submits === 1) throw { code: 2, info: "ValueNotConservedUTxO BadInputsUTxO" }
+      if (scenario === "funds-move" && transaction.includes(firstInput)) {
+        throw { code: 2, info: "ValueNotConservedUTxO BadInputsUTxO" }
+      }
       if (scenario === "refuses") throw { code: 2, info: "FeeTooSmallUTxO (Coin 170000) (Coin 168141)" }
       return Effect.runSync(transactionIdOf(transaction))
     }

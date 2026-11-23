@@ -16,6 +16,7 @@ import {
   type Effects,
   type ResolvedInput
 } from "@cardano-slips/verifier"
+import { TransactionHash } from "@evolution-sdk/evolution"
 import { Effect, Either } from "effect"
 
 import { readOwnAddress } from "./address.js"
@@ -84,6 +85,10 @@ type Failure = BalanceError | CompletionError | SigningError
 
 const fromHex = (hex: string): Uint8Array =>
   Uint8Array.from({ length: hex.length / 2 }, (_, index) => Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16))
+
+const toHex = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")
+
+const outRef = (transactionId: Uint8Array, index: bigint): string => `${toHex(transactionId)}#${index}`
 
 const walletUtxos = (api: Cip30Api) =>
   Effect.gen(function* () {
@@ -167,9 +172,17 @@ const ownAddresses = (request: CompletionRequest, inputs: ReadonlyArray<Resolved
  * here rather than at the caller so that no path reaches `signTransaction`
  * without having passed it.
  */
-const buildAndJudge = (request: CompletionRequest, number: number) =>
+const buildAndJudge = (request: CompletionRequest, number: number, spent: ReadonlySet<string>) =>
   Effect.gen(function* () {
-    const utxos = yield* walletUtxos(request.api)
+    // A wallet behind the chain still lists what the node just reported spent.
+    const utxos = (yield* walletUtxos(request.api)).filter(
+      (utxo) => !spent.has(outRef(TransactionHash.toBytes(utxo.transactionId), utxo.index))
+    )
+    if (utxos.length === 0) {
+      return yield* Effect.fail(
+        refuse("WalletBehind", "The wallet still lists only the outputs that were just spent. Try again in a moment.")
+      )
+    }
     const now = (request.now ?? Date.now)()
 
     const built = yield* balanceIntent({
@@ -244,7 +257,11 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
       catch: (cause) => refuse("NotShown", "This transaction could not be shown, so it will not be signed.", { cause })
     })
 
-    return { cbor: built.cbor, attempt }
+    const inputs = transaction.right.body.inputs.map((input) => ({
+      transactionId: toHex(input.transactionId),
+      ref: outRef(input.transactionId, input.index)
+    }))
+    return { cbor: built.cbor, attempt, inputs }
   })
 
 /** Near enough to the end that a device clock running behind may be what kept the window open. */
@@ -260,6 +277,16 @@ const refusedOpenWindow = (failure: SigningError, network: Network, { validity }
   validity.validUntil !== null &&
   BigInt(now) < validity.validUntil.time - expiryMargin &&
   (validity.validFrom === null || validity.validFrom.time <= BigInt(now))
+
+/** The inputs whose transaction the node's text names, or all of them when it names none. */
+const spentAmong = (
+  inputs: ReadonlyArray<{ readonly transactionId: string; readonly ref: string }>,
+  failure: SigningError
+): ReadonlyArray<string> => {
+  const said = `${failure.cip30?.info ?? ""} ${failure.detail}`.toLowerCase()
+  const named = inputs.filter((input) => said.includes(input.transactionId))
+  return (named.length > 0 ? named : inputs).map((input) => input.ref)
+}
 
 /** A progress report is a courtesy to the screen; one that throws must not stop a submission already under way. */
 const report = (request: CompletionRequest, progress: Progress): void => {
@@ -278,9 +305,10 @@ const report = (request: CompletionRequest, progress: Progress): void => {
 export const completeIntent = (request: CompletionRequest): Effect.Effect<Receipt, Failure> =>
   Effect.gen(function* () {
     const allowed = Math.max(1, request.attempts ?? defaultAttempts)
+    const spent = new Set<string>()
 
     for (let number = 1; number <= allowed; number += 1) {
-      const { attempt, cbor } = yield* buildAndJudge(request, number)
+      const { attempt, cbor, inputs } = yield* buildAndJudge(request, number, spent)
 
       const { confirm } = request
       if (confirm !== undefined) {
@@ -316,6 +344,7 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
       if (submitted.left.refusal !== "InputsSpent") {
         return yield* Effect.fail(submitted.left)
       }
+      for (const input of spentAmong(inputs, submitted.left)) spent.add(input)
       if (number < allowed) report(request, { _tag: "Rebuilding", number: number + 1, of: allowed })
     }
 

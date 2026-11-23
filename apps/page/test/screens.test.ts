@@ -91,6 +91,30 @@ describe("where each kind of failure goes", () => {
     })
   })
 
+  it("says a wallet behind the chain has not caught up, rather than that the funds kept moving", () => {
+    const screen = screenFor(new CompletionError({ refusal: "WalletBehind", detail: "just spent" }), context)
+    expect(screen._tag).toBe("Notice")
+    if (screen._tag !== "Notice") return
+    expect(screen.notice.title).toBe("Your wallet hasn't caught up yet")
+    expect(screen.notice.move).toBe("retry")
+  })
+
+  it("says an expired transaction ran out of time in plain words, and offers to start again", () => {
+    const expired = new SigningError({
+      refusal: "IntervalPassed",
+      detail: "expired",
+      cip30: { code: 2, info: "OutsideValidityIntervalUTxO (ValidityInterval {invalidBefore = SNothing})" }
+    })
+    const screen = screenFor(expired, context)
+    expect(screen._tag).toBe("Notice")
+    if (screen._tag !== "Notice") return
+    expect(screen.notice.title).toBe("This transaction ran out of time")
+    expect(screen.notice.text).not.toMatch(/ValidityInterval/)
+    expect(screen.notice.code).toBe("INTENT_EXPIRED")
+    expect(screen.notice.move).toBe("retry")
+    expect(screen.notice.moveLabel).toBe("Start again")
+  })
+
   // The wallet took the transaction before naming another, so it may be on the chain; "Start again" could pay twice.
   it("never says nothing left the wallet once the wallet may have submitted", () => {
     const screen = screenFor(new SigningError({ refusal: "WrongTransactionId", detail: "different id" }), context)
