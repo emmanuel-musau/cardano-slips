@@ -45,7 +45,12 @@ const addressBytes = (bech32: string): Uint8Array => {
 /** Where payment.json sends its 12 ADA. */
 const shop = "addr1qxettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsq9l5us"
 
-const held = (lovelace: bigint, seed: number): UtxoSpec => ({ bech32: mainnetAddress.bech32, lovelace, seed })
+const held = (lovelace: bigint, seed: number, index = 0n): UtxoSpec => ({
+  bech32: mainnetAddress.bech32,
+  lovelace,
+  seed,
+  index
+})
 
 const asHex = (specs: ReadonlyArray<UtxoSpec>): ReadonlyArray<string> =>
   specs.map((spec) => asCip30Hex(walletUtxo(spec)))
@@ -87,7 +92,9 @@ const spentBy = (cbor: string): ReadonlyArray<string> => {
   return transaction.right.body.inputs.map((input) => `${toHex(input.transactionId)}#${input.index}`)
 }
 
-const outRefOf = (seed: number): string => `${String(seed).padStart(64, "a")}#0`
+const transactionOf = (seed: number): string => String(seed).padStart(64, "a")
+
+const outRefOf = (seed: number, index = 0): string => `${transactionOf(seed)}#${index}`
 
 /** The ledger's own words for an input that is no longer there. */
 const inputsGone = { code: 2, info: "ValueNotConservedUTxO BadInputsUTxO" }
@@ -223,6 +230,40 @@ describe("when the funds move between building and submitting", () => {
     expect([...spentBy(log.submitted[1] ?? "")].sort()).toEqual([outRefOf(2), outRefOf(3)])
   })
 
+  it.each([
+    [
+      "the ledger's own words",
+      `BadInputsUTxO (fromList [TxIn (TxId {unTxId = SafeHash "${transactionOf(1)}"}) (TxIx {unTxIx = 1})])`
+    ],
+    [
+      "an older ledger's words",
+      `BadInputsUTxO (fromList [TxIn (TxId {unTxId = SafeHash "${transactionOf(1)}"}) (TxIx 1)])`
+    ],
+    ["an output reference", `ConwayUtxowFailure (UtxoFailure (BadInputsUTxO [${outRefOf(1, 1)}]))`]
+  ])("keeps a sibling output the node did not name, in %s", async (_, info) => {
+    const { api, log } = mockWallet({
+      utxos: [
+        asHex([held(8_000_000n, 1, 0n), held(8_000_000n, 1, 1n)]),
+        asHex([held(8_000_000n, 1, 0n), held(8_000_000n, 1, 1n), held(8_000_000n, 2)])
+      ],
+      submits: [fails({ code: 2, info }), "accept"]
+    })
+    const receipt = await complete(api)
+
+    expect(receipt.attempts).toBe(2)
+    expect([...spentBy(log.submitted[1] ?? "")].sort()).toEqual([outRefOf(1, 0), outRefOf(2)])
+  })
+
+  it("says the wallet is behind, not short, when only what was just spent would have paid", async () => {
+    const { api, log } = mockWallet({
+      utxos: [asHex([held(100_000_000n, 1)]), asHex([held(100_000_000n, 1), held(2_000_000n, 2)])],
+      submits: [fails(inputsGone)]
+    })
+
+    await failure(api, {}, "WalletBehind")
+    expect(log.signed).toHaveLength(1)
+  })
+
   it("asks for no second signature when the wallet lists nothing but what was just spent", async () => {
     const { api, log } = mockWallet({
       utxos: [asHex([held(100_000_000n, 1)])],
@@ -293,6 +334,57 @@ describe("when the node refuses the validity window", () => {
 
     expect(error.code).toBe("WRONG_NETWORK")
     expect(log.signed).toHaveLength(1)
+  })
+
+  /** Where a preprod node's clock stands at `time`, on preprod's own slot mapping. */
+  const preprodSlotAt = (time: number): bigint => 86_400n + BigInt(Math.floor((time - 1_655_769_600_000) / 1_000))
+
+  /** Where a preview node's clock stands at `time`. */
+  const previewSlotAt = (time: number): bigint => BigInt(Math.floor((time - 1_666_656_000_000) / 1_000))
+
+  const testnetWallet = (info: string) =>
+    mockWallet({
+      networkId: 0,
+      changeAddress: testnetAddress.hex,
+      usedAddresses: [testnetAddress.hex],
+      rewardAddresses: [],
+      utxos: [[asCip30Hex(walletUtxo({ bech32: testnetAddress.bech32, lovelace: 100_000_000n }))]],
+      submits: [fails({ code: 2, info })]
+    })
+
+  const onPreprod: Partial<CompletionRequest> = {
+    intent: { ...specIntent("payment.json"), outputs: [{ address: testnetShop, lovelace: "12000000" }] },
+    network: "preprod",
+    changeAddress: testnetAddress.bech32,
+    parameters: preprodParameters,
+    now: () => wellBeforeExpiry
+  }
+
+  const afterExpiry = Date.parse("2026-08-22T19:45:00Z")
+
+  it.each([
+    [
+      "the ledger's own words",
+      (slot: bigint) =>
+        `OutsideValidityIntervalUTxO (ValidityInterval {invalidBefore = SNothing, invalidHereafter = SJust (SlotNo 1)}) (SlotNo ${slot})`
+    ],
+    [
+      "a wallet's or Ogmios's words",
+      (slot: bigint) =>
+        `OutsideValidityIntervalUTxO {invalidBefore: SNothing, invalidHereafter: SJust (SlotNo 1), slot: SlotNo ${slot}}`
+    ]
+  ])("trusts the node's slot over a slow device clock, in %s", async (_, info) => {
+    const { api } = testnetWallet(info(preprodSlotAt(afterExpiry)))
+
+    expect(await refusalOf(api, onPreprod)).toBe("IntervalPassed")
+  })
+
+  it("names the other testnet when the node's slot is on another chain's clock", async () => {
+    const { api } = testnetWallet(
+      `OutsideValidityIntervalUTxO (ValidityInterval {invalidBefore = SNothing, invalidHereafter = SJust (SlotNo 1)}) (SlotNo ${previewSlotAt(wellBeforeExpiry)})`
+    )
+
+    expect(await refusalOf(api, onPreprod)).toBe("WrongNetwork")
   })
 
   it("never names a mainnet wallet as on another network, which connecting already ruled out", async () => {
