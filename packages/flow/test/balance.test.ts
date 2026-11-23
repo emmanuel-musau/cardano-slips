@@ -10,6 +10,7 @@ import {
   minimumLovelace,
   type Verdict
 } from "@cardano-slips/verifier"
+import { NativeScripts } from "@evolution-sdk/evolution"
 import { Either, Effect } from "effect"
 import { describe, expect, it } from "vitest"
 
@@ -38,6 +39,8 @@ const beforeExpiry = Date.parse("2026-08-22T19:39:00Z")
 const held = (lovelace: bigint, seed = 1): UtxoSpec => ({ bech32: mainnetAddress.bech32, lovelace, seed })
 
 const funded = (lovelace: bigint, seed = 1) => walletUtxo(held(lovelace, seed))
+
+const referenceScript = NativeScripts.makeScriptPubKey(Uint8Array.from({ length: 28 }, () => 0xab))
 
 const inputs = (intent: Intent, overrides: Partial<BalanceInputs> = {}): BalanceInputs => ({
   intent,
@@ -347,6 +350,18 @@ describe("the validity interval", () => {
     expect(endsAt).toBeLessThanOrEqual(declared)
   })
 
+  it("starts no later than now, so a chain whose clock reads another time refuses it", async () => {
+    const intent = specIntent("payment.json")
+    const built = await balance(intent)
+    const start = decoded(built).validityIntervalStart
+    if (start === null) throw new Error("the body carries no validity start")
+    const { slots } = mainnetParameters
+    const startsAt = slots.time + (start - slots.slot) * slots.slotLength
+
+    expect(startsAt).toBeLessThanOrEqual(BigInt(beforeExpiry))
+    expect(blockedBy(built, intent, [held(100_000_000n)])).toEqual([])
+  })
+
   it("refuses an intent that expired while the person was reading it", async () => {
     const error = await expectRefusal(
       specIntent("payment.json"),
@@ -383,6 +398,13 @@ describe("coin selection", () => {
       .filter((utxo) => spent.some((input) => toHex(input.transactionId) === String(utxo.seed).padStart(64, "a")))
       .reduce((total, utxo) => total + utxo.lovelace, 0n)
     expect(lovelaceTo(built, mainnetAddress.bech32)).toBe(swept - 12_000_000n - built.fee)
+  })
+
+  it("never spends an output that carries a reference script, whose bytes the fee would owe", async () => {
+    const carrier: UtxoSpec = { ...held(200_000_000n, 1), script: referenceScript }
+    const built = await balance(specIntent("payment.json"), { utxos: [walletUtxo(carrier), funded(100_000_000n, 2)] })
+
+    expect(decoded(built).inputs.map((input) => toHex(input.transactionId))).toEqual(["2".padStart(64, "a")])
   })
 
   it("pays from many small outputs what it would have paid from one large one", async () => {
@@ -498,6 +520,13 @@ describe("what cannot be built", () => {
 
     expect(error.code).toBe("INSUFFICIENT_FUNDS")
     expect(String(error.cause)).toContain("Coin selection failed")
+  })
+
+  it("refuses when only outputs carrying a reference script could cover the payment", async () => {
+    const carrier = walletUtxo({ ...held(100_000_000n), script: referenceScript })
+    const error = await expectRefusal(specIntent("payment.json"), { utxos: [carrier] }, "InsufficientFunds")
+
+    expect(error.code).toBe("INSUFFICIENT_FUNDS")
   })
 
   it("refuses when what is left over is too small to become change", async () => {

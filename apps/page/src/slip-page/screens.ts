@@ -65,9 +65,12 @@ const walletTrouble: Notice = {
   move: "retry"
 }
 
-const wrongNetwork = (network: Network): Notice => ({
+const wrongNetwork = (
+  network: Network,
+  title = network === "mainnet" ? "Your wallet is on a test network" : "Your wallet is on mainnet"
+): Notice => ({
   tone: "hold",
-  title: network === "mainnet" ? "Your wallet is on a test network" : "Your wallet is on mainnet",
+  title,
   text: `This is a ${network} action. Switch networks in your wallet, then try again.`,
   code: "WRONG_NETWORK",
   move: "retry"
@@ -132,8 +135,11 @@ const balanceScreen = (failure: BalanceError, context: ScreenContext): Screen =>
   }
 }
 
-const completionScreen = (failure: CompletionError): Screen => {
+const completionScreen = (failure: CompletionError, context: ScreenContext): Screen => {
   switch (failure.refusal) {
+    // Only a testnet wallet gets this far on the wrong network; connecting caught mainnet.
+    case "WrongNetwork":
+      return notice(wrongNetwork(context.network, "Your wallet is on another test network"))
     case "Cancelled":
       return { _tag: "Card" }
     case "Blocked":
@@ -204,7 +210,7 @@ export const screenFor = (failure: FlowFailure, context: ScreenContext): Screen 
     case "BalanceError":
       return balanceScreen(failure, context)
     case "CompletionError":
-      return completionScreen(failure)
+      return completionScreen(failure, context)
     case "SigningError":
       return signingScreen(failure)
   }

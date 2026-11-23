@@ -201,6 +201,28 @@ describe("when the funds move between building and submitting", () => {
   })
 })
 
+describe("when the node refuses the validity window", () => {
+  const outsideWindow = { code: 2, info: "OutsideValidityIntervalUTxO" }
+
+  /** Forty minutes before payment.json expires, so the window is open by any honest clock. */
+  const wellBeforeExpiry = Date.parse("2026-08-22T19:00:00Z")
+
+  it("names the wallet as on another network when the window is still open here", async () => {
+    const { api, log } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])], submits: [fails(outsideWindow)] })
+    const error = await failure(api, { now: () => wellBeforeExpiry }, "WrongNetwork")
+
+    expect(error.code).toBe("WRONG_NETWORK")
+    expect(log.signed).toHaveLength(1)
+  })
+
+  it("leaves a refusal at the end of the window as the window having passed", async () => {
+    const { api } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])], submits: [fails(outsideWindow)] })
+    const result = await Effect.runPromise(Effect.either(completeIntent(request(api))))
+
+    expect(Either.isLeft(result) && "refusal" in result.left && result.left.refusal).toBe("IntervalPassed")
+  })
+})
+
 describe("what is never signed", () => {
   const withdrawal = { intent: specIntent("rewards-withdrawal.json"), rewardBalance: 5_000_000n }
 
