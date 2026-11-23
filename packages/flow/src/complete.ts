@@ -247,6 +247,20 @@ const buildAndJudge = (request: CompletionRequest, number: number) =>
     return { cbor: built.cbor, attempt }
   })
 
+/** Near enough to the end that a device clock running behind may be what kept the window open. */
+const expiryMargin = 5n * 60_000n
+
+/**
+ * CIP-30 reports preview and preprod with one network id, so a wallet on the other
+ * testnet is first seen here: its node reads the slots on another chain's clock.
+ */
+const refusedOpenWindow = (failure: SigningError, network: Network, { validity }: Effects, now: number): boolean =>
+  network !== "mainnet" &&
+  failure.refusal === "IntervalPassed" &&
+  validity.validUntil !== null &&
+  BigInt(now) < validity.validUntil.time - expiryMargin &&
+  (validity.validFrom === null || validity.validFrom.time <= BigInt(now))
+
 /** A progress report is a courtesy to the screen; one that throws must not stop a submission already under way. */
 const report = (request: CompletionRequest, progress: Progress): void => {
   try {
@@ -291,6 +305,13 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
       const submitted = yield* Effect.either(submitTransaction(request.api, signed))
       if (Either.isRight(submitted)) {
         return { transactionId: submitted.right, effects: attempt.effects, attempts: number }
+      }
+      if (refusedOpenWindow(submitted.left, request.network, attempt.effects, (request.now ?? Date.now)())) {
+        return yield* Effect.fail(
+          refuse("WrongNetwork", `The wallet's network refused a transaction built for ${request.network}.`, {
+            cause: submitted.left
+          })
+        )
       }
       if (submitted.left.refusal !== "InputsSpent") {
         return yield* Effect.fail(submitted.left)

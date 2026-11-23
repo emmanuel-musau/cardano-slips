@@ -27,6 +27,8 @@ export type CompletionRefusal =
   | "Cancelled"
   /** The funds kept moving, and the transaction has been rebuilt as often as it will be. */
   | "OutOfAttempts"
+  /** The node refused a validity window that is still open by this clock, so its chain is not the Slip's. */
+  | "WrongNetwork"
 
 /**
  * Exhaustive by type: adding a refusal above without listing it here fails to
@@ -40,7 +42,8 @@ export const completionRefusals: Readonly<Record<CompletionRefusal, true>> = {
   Blocked: true,
   NotShown: true,
   Cancelled: true,
-  OutOfAttempts: true
+  OutOfAttempts: true,
+  WrongNetwork: true
 }
 
 export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | undefined => {
@@ -51,6 +54,8 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
       return "INSUFFICIENT_FUNDS"
     case "CannotJudge":
       return "CANNOT_BALANCE"
+    case "WrongNetwork":
+      return "WRONG_NETWORK"
     case "UnreadableUtxos":
     case "UnreadableAddresses":
     case "NotShown":

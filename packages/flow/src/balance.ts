@@ -70,6 +70,9 @@ export type BalancedTransaction = {
 
 const chains = { mainnet, preprod, preview }
 
+/** How far a device clock may run ahead of a testnet before the validity start bars its own transaction. */
+const startSlack = 24 * 60 * 60_000
+
 /**
  * The slot mapping comes from the parameters rather than from the chain preset:
  * the client converts `validUntil` to a slot and the gate converts that slot
@@ -254,12 +257,17 @@ export const balanceIntent = (inputs: BalanceInputs): Effect.Effect<BalancedTran
           }
         }
 
-        // Never after `validUntil`, which is the whole of what the spec fixes here.
-        builder = builder.setValidity({ to: BigInt(validUntil) })
+        // Never after `validUntil`, which is the whole of what the spec fixes here. The start
+        // makes a wallet on the other testnet, months away by slot, fail at its node.
+        builder = builder.setValidity({
+          ...(network === "mainnet" ? {} : { from: BigInt(inputs.now - startSlack) }),
+          to: BigInt(validUntil)
+        })
 
         return await builder.build({
           changeAddress: change,
-          availableUtxos: utxos,
+          // The fee is charged without `minFeeRefScriptCostPerByte`, which the node would add for these.
+          availableUtxos: utxos.filter((utxo) => utxo.scriptRef === undefined),
           protocolParameters: builderParameters(parameters),
           fullProtocolParameters: depositParameters(parameters),
           slotConfig: slotConfigOf(parameters),

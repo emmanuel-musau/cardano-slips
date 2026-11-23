@@ -38,6 +38,16 @@ export const mainnetParameters: BalancingParameters = {
   slots: { slot: 4_492_800n, time: 1_596_059_091_000n, slotLength: 1_000n }
 }
 
+/** Mainnet's fees on preprod's clock: the slot mapping is what differs between the networks here. */
+export const preprodParameters: BalancingParameters = {
+  ...mainnetParameters,
+  slots: { slot: 86_400n, time: 1_655_769_600_000n, slotLength: 1_000n }
+}
+
+/** payment.json's payee, on a test network. */
+export const testnetShop =
+  "addr_test1qzettqndzx5pmwkaxydp0lpaffxsnfgkgwx6afzn43w9wd7pzq7lsck6w56xu7yz5tsypql5gpcw20s5csf9jlr7mkjsrnz5s0"
+
 export type AssetHolding = {
   readonly policyId: string
   readonly assetName: string

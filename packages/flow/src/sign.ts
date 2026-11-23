@@ -49,9 +49,8 @@ export const signTransaction = ({
     yield* requireSameBody(transaction, transactionId)
 
     const witnesses = yield* Effect.tryPromise({
-      // `partialSign: true`: the wallet signs what it holds keys for and leaves
-      // the rest, rather than refusing a transaction a co-signer completes.
-      try: () => api.signTx(transaction, true),
+      // Version 1 has no co-signers, so a wallet short of a key refuses here rather than at the node.
+      try: () => api.signTx(transaction, false),
       catch: (cause) => {
         const error = readApiError(cause)
         // `-3` is `APIError`'s refusal, which wallets send from `signTx` in

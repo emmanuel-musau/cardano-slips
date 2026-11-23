@@ -149,6 +149,15 @@ describe("where each kind of failure goes", () => {
     expect(onMainnet._tag === "Notice" && onMainnet.notice.title).toBe("Your wallet is on mainnet")
   })
 
+  it("sends a node that refused the window to the wrong-network notice, not the node's own words", () => {
+    const refused = screenFor(new CompletionError({ refusal: "WrongNetwork", detail: "" }), {
+      ...context,
+      network: "preprod"
+    })
+    expect(refused).toMatchObject({ _tag: "Notice", notice: { code: "WRONG_NETWORK", move: "retry" } })
+    expect(refused._tag === "Notice" && refused.notice.title).toBe("Your wallet is on another test network")
+  })
+
   it("tells running short apart from a wallet that cannot be shaped into the transaction", () => {
     const short = screenFor(new BalanceError({ refusal: "InsufficientFunds", detail: "" }), context)
     const shapeless = screenFor(new BalanceError({ refusal: "CannotBalance", detail: "" }), context)

@@ -83,13 +83,19 @@ const rejects = (error: unknown) => async (): Promise<never> => {
 }
 
 describe("what the wallet is asked to sign", () => {
-  it("asks for a partial signature, and hands over the transaction unchanged", async () => {
+  it("asks for a whole signature, and hands over the transaction unchanged", async () => {
     const asked: { tx?: string; partial?: boolean } = {}
     await Effect.runPromise(sign(signingWallet(witnessSet("1"), asked)))
 
-    // `partialSign: false` lets a wallet refuse anything it cannot fully sign.
-    expect(asked.partial).toBe(true)
+    expect(asked.partial).toBe(false)
     expect(asked.tx).toBe(unsigned)
+  })
+
+  it("names a wallet that cannot sign all of it, rather than letting the node refuse a half-signed one", async () => {
+    const wallet = signingWallet(rejects({ code: 1, info: "missing key" }))
+    const error = await failure(sign(wallet), "SignFailed")
+
+    expect(error.cip30?.code).toBe(1)
   })
 
   it("refuses to sign a body that is not the one the effects were derived from", async () => {
