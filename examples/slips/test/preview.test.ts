@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import type { AddressInfo } from "node:net"
 import { decodePartialIntent, decodeSlip } from "@cardano-slips/core"
 import { Either } from "effect"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { previewDelegate, previewPool, previewRecipient, previewTip } from "../src/index.js"
 import { createExampleServer } from "../src/server.js"
@@ -10,6 +10,8 @@ import { createExampleServer } from "../src/server.js"
 const teamWallets = JSON.parse(
   readFileSync(new URL("../../../docs/team-wallets.json", import.meta.url), "utf8")
 ) as Record<string, ReadonlyArray<{ readonly addresses: ReadonlyArray<string> }>>
+
+const previewStake = "stake_test1uz2y3k7ctqc7kxpucdeaylkywplhr9lxmhvdnsjhy85tu8cz305ej"
 
 const build = (url: string, network = "preview"): Request =>
   new Request(url, {
@@ -49,10 +51,22 @@ describe("the preview examples", () => {
     expect(teamWallets.preview?.some((wallet) => wallet.addresses.includes(previewRecipient))).toBe(true)
   })
 
-  it("delegate to the preview pool", async () => {
-    const payload = await body(await previewDelegate.POST(build("http://localhost/delegate")))
+  it("delegate to the preview pool, registering a stake key preview Koios reports unregistered", async () => {
+    const koios = vi.fn((_url: string) =>
+      Promise.resolve(Response.json([{ stake_address: previewStake, status: "not registered" }]))
+    )
+    vi.stubGlobal("fetch", koios)
+    try {
+      const payload = await body(await previewDelegate.POST(build("http://localhost/delegate")))
 
-    expect(payload.intent).toMatchObject({ certificates: [{ type: "stakeDelegation", poolId: previewPool }] })
+      expect(koios.mock.calls[0]?.[0]).toBe("https://preview.koios.rest/api/v1/account_info")
+      expect((payload.intent as { certificates: unknown }).certificates).toEqual([
+        { type: "stakeRegistration" },
+        { type: "stakeDelegation", poolId: previewPool }
+      ])
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it("refuse a wallet on preprod, the testnet a wallet cannot tell apart from preview", async () => {

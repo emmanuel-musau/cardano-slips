@@ -13,7 +13,7 @@ import { Either } from "effect"
 import { describe, expect, it } from "vitest"
 
 import { inMinutes } from "../src/deadline.js"
-import { author, delegate, tip } from "../src/index.js"
+import { author, communityPool, delegateSlip, tip } from "../src/index.js"
 
 /**
  * The whole publisher side end to end: an App Router tree's routing, the
@@ -71,8 +71,14 @@ type Route = {
 }
 
 /** One entry per `route.ts` an App Router tree would hold. */
+const delegate = delegateSlip("mainnet", communityPool, () => Promise.resolve(true))
+
+/** The same Slip on a day its chain lookup cannot be read. */
+const delegateUnread = delegateSlip("mainnet", communityPool, () => Promise.reject(new Error("unreachable")))
+
 const routes: ReadonlyArray<Route> = [
   { pattern: /^\/api\/slips\/delegate$/, endpoint: delegate },
+  { pattern: /^\/api\/slips\/delegate-unread$/, endpoint: delegateUnread },
   { pattern: /^\/api\/slips\/tip$/, endpoint: tip },
   { pattern: /^\/api\/slips\/closed$/, endpoint: closed },
   { pattern: /^\/api\/slips\/pay\/([^/]+)$/, endpoint: shop, params: (match) => ({ handle: match[1] }) }
@@ -221,7 +227,8 @@ describe("the failure paths", () => {
     ["an amount the endpoint cannot read", "/api/slips/tip?amount=nonsense", build, "INVALID_PARAMETER", 400],
     ["a wallet on another network", "/api/slips/delegate", { ...build, network: "preprod" }, "WRONG_NETWORK", 400],
     ["a shop that does not exist", "/api/slips/pay/nowhere", build, "NOT_FOUND", 404],
-    ["a campaign that has closed", "/api/slips/closed", build, "UNAVAILABLE", 409]
+    ["a campaign that has closed", "/api/slips/closed", build, "UNAVAILABLE", 409],
+    ["a chain lookup that cannot be read", "/api/slips/delegate-unread", build, "UPSTREAM_FAILURE", 502]
   ] as const) {
     it(`reports ${name} as ${code}`, async () => {
       const response = await serve("POST", path, sent)

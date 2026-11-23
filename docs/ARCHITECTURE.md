@@ -131,7 +131,7 @@ Tier-1 client and the v1 headline: a hosted, self-hostable page that runs the wh
 A Next.js App Router app, so it leaves the four-file TypeScript layout below: Next compiles it and `tsc` only checks it, after `next typegen` writes the route types. It builds to `.next`, which its own `turbo.json` names as the build output.
 
 ### `examples/slips`
-The delegate Slip (a certificate intent, nothing spent but the fee) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
+The delegate Slip (a certificate intent, nothing spent but the fee and, for a stake key not yet registered, its deposit) and the tip Slip (one output whose amount the person picks through a parameterised linked action), both defined with `defineSlip`. Private to the workspace: the server tests, the client tests and the docs read the same two fixtures rather than each keeping a copy that drifts. `test/publishing.test.ts` is what keeps everything under `examples/` off the registry.
 
 The server's end-to-end tests live here too, beside the fixtures rather than in `packages/server/test`. They need both the fixtures and `server`, and this package already depends on `server` — so pointing `server` back at it would be a cycle, and the rule that apps and examples depend on packages and never the reverse is what forbids it. What they drive is an App Router tree's routing over the handlers `defineSlip` returns.
 
