@@ -23,6 +23,12 @@
       "outputs": ["coverage/**"]
     },
 
+    // Uncached: a pass depends on a browser and two servers, none of which turbo can hash.
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+
     // Flat-config ESLint reads source, not build output — no upstream build.
     "lint": {
       "outputs": []

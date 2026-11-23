@@ -2,7 +2,7 @@ import { tip } from "@cardano-slips/example-slips"
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { previewHost, type Scenario } from "../src/app/preview/flow/wallet.js"
+import { type PreviewNetwork, previewHost, type Scenario } from "../src/app/preview/flow/wallet.js"
 import { SlipPage } from "../src/slip-page/slip-page.js"
 
 /**
@@ -55,7 +55,11 @@ const later = async (answer: () => Response | Promise<Response>): Promise<Respon
   return answer()
 }
 
-const open = (scenario: Scenario = "signs", host: unknown = previewHost(scenario, 0)) =>
+/** The scripted wallet with no pause, on mainnet like the tip Slip these tests open. */
+const walletFor = (scenario: Scenario, network: PreviewNetwork = "mainnet") =>
+  previewHost(scenario, { delay: 0, network })
+
+const open = (scenario: Scenario = "signs", host: unknown = walletFor(scenario)) =>
   render(<SlipPage link={link} walletHost={host} />)
 
 const press = async (name: string | RegExp) => fireEvent.click(await screen.findByRole("button", { name }))
@@ -118,7 +122,7 @@ describe("arriving", () => {
 
   it("refuses a link that is not https without fetching it", async () => {
     const sent = network()
-    render(<SlipPage link="http://linktap.example/tip" walletHost={previewHost("signs", 0)} />)
+    render(<SlipPage link="http://linktap.example/tip" walletHost={walletFor("signs")} />)
 
     expect(await screen.findByRole("heading", { name: "This isn't a link this page can open" })).toBeDefined()
     expect(sent).toEqual([])
@@ -151,7 +155,7 @@ describe("a Slip that completes", () => {
 
   it("asks the wallet for nothing until the person presses sign", async () => {
     network()
-    const host = previewHost("signs", 0)
+    const host = walletFor("signs")
     const api = await host.cardano.preview!.enable()
     const signTx = vi.spyOn(api, "signTx")
     open("signs", host)
@@ -181,7 +185,7 @@ describe("what can happen after the signature is asked for", () => {
   // Each retry doubles the wait, so counting declines as retries would hold a person off a failure they never retried.
   it("counts a notice's retries per failure, not every press since the page opened", async () => {
     network()
-    const host = previewHost("declines", 0)
+    const host = walletFor("declines")
     const api = await host.cardano.preview!.enable()
     open("declines", host)
 
@@ -208,7 +212,7 @@ describe("what can happen after the signature is asked for", () => {
 
   it("rebuilds when the funds move, and asks for a second signature only after showing the new transaction", async () => {
     network()
-    const host = previewHost("funds-move", 0)
+    const host = walletFor("funds-move")
     const api = await host.cardano.preview!.enable()
     const signTx = vi.spyOn(api, "signTx")
     open("funds-move", host)
@@ -254,7 +258,7 @@ describe("what stops the flow before a transaction exists", () => {
 
   it("catches a wallet on the wrong network before anything is sent to the endpoint", async () => {
     const sent = network()
-    open("testnet")
+    open("signs", walletFor("signs", "testnet"))
 
     await press("Tip 5 ADA")
     await press(/Preview wallet/)

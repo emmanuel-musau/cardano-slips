@@ -5,14 +5,20 @@
  */
 import { createServer, type Server } from "node:http"
 
+import type { SlipEndpoint } from "@cardano-slips/server"
 import { type NodeHandler, toNodeHandler } from "@cardano-slips/server/adapters/node"
 
 import { previewDelegate, previewTip } from "./preview.js"
 
-export const createExampleServer = (origin: string): Server => {
+export type ExampleSlips = { readonly tip: SlipEndpoint; readonly delegate: SlipEndpoint }
+
+export const createExampleServer = (
+  origin: string,
+  slips: ExampleSlips = { tip: previewTip, delegate: previewDelegate }
+): Server => {
   const routes: Readonly<Record<string, NodeHandler>> = {
-    "/tip": toNodeHandler(previewTip, { origin }),
-    "/delegate": toNodeHandler(previewDelegate, { origin })
+    "/tip": toNodeHandler(slips.tip, { origin }),
+    "/delegate": toNodeHandler(slips.delegate, { origin })
   }
 
   return createServer((request, response) => {

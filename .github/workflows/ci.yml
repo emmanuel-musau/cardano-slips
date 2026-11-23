@@ -72,6 +72,34 @@ jobs:
           path: packages/verifier/build/reports/attack-examples.json
           if-no-files-found: error
 
+  # The slip page in a real browser, with a test wallet that signs for real.
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v3
+        with:
+          runtime: node@22
+          cache: true
+          install: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @cardano-slips/page exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: |
+            apps/page/playwright-report
+            apps/page/test-results
+
   changeset:
     name: changeset
     if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')

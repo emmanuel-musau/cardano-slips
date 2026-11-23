@@ -1,9 +1,10 @@
 import type { AddressInfo } from "node:net"
 import { decodePartialIntent, decodeSlip } from "@cardano-slips/core"
 import { Either } from "effect"
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
-import { previewRecipient } from "../src/preview.js"
+import { delegateSlip } from "../src/delegate.js"
+import { previewPool, previewRecipient, previewTip } from "../src/preview.js"
 import { createExampleServer } from "../src/server.js"
 
 let origin = ""
@@ -42,5 +43,32 @@ describe("the example server", () => {
 
     expect(response.status).toBe(404)
     expect(response.headers.get("access-control-allow-origin")).toBe("*")
+  })
+})
+
+describe("an example server handed its own Slips", () => {
+  it("serves those instead of the preview ones", async () => {
+    const isRegistered = vi.fn(async () => false)
+    const own = createExampleServer("http://localhost", {
+      tip: previewTip,
+      delegate: delegateSlip("preview", previewPool, isRegistered)
+    })
+    await new Promise<void>((listening) => own.listen(0, "127.0.0.1", listening))
+    try {
+      const at = `http://127.0.0.1:${(own.address() as AddressInfo).port}`
+      const response = await fetch(`${at}/delegate`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ changeAddress: previewRecipient, network: "preview" })
+      })
+
+      expect(response.status).toBe(200)
+      expect(isRegistered).toHaveBeenCalledWith(previewRecipient)
+      expect(await response.json()).toMatchObject({
+        intent: { certificates: [{ type: "stakeRegistration" }, { type: "stakeDelegation", poolId: previewPool }] }
+      })
+    } finally {
+      await new Promise((closed) => own.close(closed))
+    }
   })
 })

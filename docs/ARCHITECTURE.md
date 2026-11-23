@@ -240,6 +240,7 @@ Vitest 4 dropped `vitest.workspace.ts`; the workspace now lives in root `vitest.
 | `pnpm test` | `turbo run test` — each package's suite, cached. The CI gate. |
 | `pnpm test:watch` | `vitest` from the root across every project |
 | `pnpm coverage` | the same suites with v8 coverage |
+| `pnpm test:e2e` | Playwright in `apps/page/e2e`: the slip page in Chromium with a test wallet that signs for real. Its own CI check, uncached. |
 
 Test sources are typechecked but never emitted, so root `tsconfig.test.json` turns `composite`/`declaration` back off and adds `types: ["node"]`. Only tests get Node globals: `src/` stays on `types: []`, so a `process.env` read inside `core` is a compile error rather than a silent runtime dependency.
 

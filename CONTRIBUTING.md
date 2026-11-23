@@ -45,7 +45,9 @@ pnpm format       # rewrite formatting rather than just reporting it
 ```
 
 CI runs those same four as separate checks. Run them locally before pushing —
-they are quick, and a red CI run is slower than a local one.
+they are quick, and a red CI run is slower than a local one. A change to the
+slip page also runs `pnpm test:e2e`, the browser tests; `apps/page/README.md`
+has the one-time Chromium install.
 
 ## Picking something to work on
 
