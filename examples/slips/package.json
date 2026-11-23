@@ -28,7 +28,7 @@
     "@cardano-slips/core": "workspace:^",
     "@cardano-slips/server": "workspace:^",
     "@evolution-sdk/evolution": "^0.8.0",
-    "effect": "^3.22.1"
+    "effect": "^4.1.2"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

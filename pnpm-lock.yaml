@@ -63,8 +63,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
       next:
         specifier: ^16.3.6
         version: 16.4.5(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -106,8 +106,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
     devDependencies:
       '@types/node':
         specifier: ^26.2.0
@@ -119,8 +119,8 @@ importers:
   packages/core:
     dependencies:
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
 
   packages/flow:
     dependencies:
@@ -137,8 +137,8 @@ importers:
         specifier: ^2.0.1
         version: 2.4.0
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
     devDependencies:
       '@cardano-slips/example-slips':
         specifier: workspace:^
@@ -174,8 +174,8 @@ importers:
         specifier: workspace:^
         version: link:../core
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
     devDependencies:
       '@types/node':
         specifier: ^26.2.0
@@ -190,8 +190,8 @@ importers:
         specifier: workspace:^
         version: link:../core
       effect:
-        specifier: ^3.22.1
-        version: 3.22.2
+        specifier: ^4.1.2
+        version: 4.1.2
     devDependencies:
       '@noble/hashes':
         specifier: ^2.0.1
@@ -1038,11 +1038,11 @@ packages:
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
 
-  effect@3.22.2:
-    resolution: {integrity: sha512-fm1CQXCs7GTMwpadZxwU5rnAb2bN6mbQpknq/pXBGCzSKkosNYb9k0wsoL0TfB10rSa5xOEZJjo77u/KLXSANg==}
-
   effect@3.22.4:
     resolution: {integrity: sha512-RNshu7AXVxxDh6aS4lothhJ+QoZ4xSykbWNaaVdvDN72RMyVwhCGdALkyl1TbEydgAmRIdD1eTyJqBUGwSBGDA==}
+
+  effect@4.1.2:
+    resolution: {integrity: sha512-d3Oah1WyKxFLFh19yWheS5IXIVaITzxZ71JkE1rkUozq/6EcJSU5nPk5bF2QrSygZ3SQoiNQB8TsxFriyMeMaQ==}
 
   entities@7.0.1:
     resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
@@ -2503,15 +2503,12 @@ snapshots:
 
   dom-accessibility-api@0.5.16: {}
 
-  effect@3.22.2:
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      fast-check: 3.23.2
-
   effect@3.22.4:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
+
+  effect@4.1.2: {}
 
   entities@7.0.1: {}
 
