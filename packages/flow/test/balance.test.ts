@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { decodePartialIntent, type Intent, type PartialIntent } from "@cardano-slips/core"
-import { delegate, tip } from "@cardano-slips/example-slips"
+import { communityPool, delegateSlip, tip } from "@cardano-slips/example-slips"
 import {
   compare,
   decodeBech32,
@@ -102,12 +102,7 @@ const lovelaceTo = (built: BalancedTransaction, bech32: string): bigint => {
  * something `verifier` will let a person sign. A mismatch here in the field is a
  * Slip nobody can complete, and it would be our bug, not the endpoint's.
  */
-const verdictOn = (
-  built: BalancedTransaction,
-  declared: Intent,
-  wallet: ReadonlyArray<UtxoSpec>,
-  now: number
-): Verdict => {
+const effectsOf = (built: BalancedTransaction, wallet: ReadonlyArray<UtxoSpec>) => {
   const transaction = decodeTransaction(fromHex(built.cbor))
   if (Either.isLeft(transaction))
     throw new Error(`the verifier refused our own transaction: ${transaction.left.message}`)
@@ -121,9 +116,17 @@ const verdictOn = (
   })
   if (Either.isLeft(effects))
     throw new Error(`the verifier could not derive our own transaction: ${effects.left.message}`)
+  return effects.right
+}
 
+const verdictOn = (
+  built: BalancedTransaction,
+  declared: Intent,
+  wallet: ReadonlyArray<UtxoSpec>,
+  now: number
+): Verdict => {
   const verdict = compare({
-    effects: effects.right,
+    effects: effectsOf(built, wallet),
     declared,
     changeAddress: mainnetAddress.bech32,
     now: BigInt(now),
@@ -151,6 +154,9 @@ const postedIntent = async (response: Response): Promise<Intent> => {
   if (Either.isLeft(decodedPayload)) throw new Error("the fixture did not answer with a partial intent")
   return (decodedPayload.right as PartialIntent).intent
 }
+
+const delegate = delegateSlip("mainnet", communityPool, () => Promise.resolve(true))
+const delegateUnregistered = delegateSlip("mainnet", communityPool, () => Promise.resolve(false))
 
 const postRequest = (url: string): Request =>
   new Request(url, {
@@ -459,6 +465,22 @@ describe("what the client's own gate says about what the client built", () => {
     const built = await balance(intent, { now })
 
     expect(blockedBy(built, intent, oneOutput, now)).toEqual([])
+    expect(effectsOf(built, oneOutput).certificates.map((certificate) => certificate.deposit)).toEqual([null])
+  })
+
+  it("signs the delegate fixture for an unregistered key, with the stake deposit shown as a deposit", async () => {
+    const intent = await postedIntent(
+      await delegateUnregistered.POST(postRequest("https://linktap.example/api/slips/delegate"))
+    )
+    const now = Date.now()
+    const built = await balance(intent, { now })
+    const effects = effectsOf(built, oneOutput)
+
+    expect(blockedBy(built, intent, oneOutput, now)).toEqual([])
+    expect(effects.certificates.map((certificate) => certificate.ours)).toEqual([true, true])
+    expect(effects.certificates.map((certificate) => certificate.deposit?.kind ?? null)).toEqual(["stake", null])
+    expect(effects.certificates[0]?.deposit?.amount).toBe(mainnetParameters.stakeDeposit)
+    expect(mainnetParameters.stakeDeposit).toBe(2_000_000n)
   })
 
   it("signs the tip fixture end to end", async () => {

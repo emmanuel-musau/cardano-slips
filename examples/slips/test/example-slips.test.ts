@@ -1,8 +1,8 @@
 import { checkTemplates, decodePartialIntent, decodeSlip, fillHref, type Slip } from "@cardano-slips/core"
 import { Either } from "effect"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
-import { author, communityPool, delegate, tip } from "../src/index.js"
+import { author, communityPool, delegate, delegateSlip, tip } from "../src/index.js"
 
 /**
  * The fixtures are only worth sharing if they conform, so every response here
@@ -25,6 +25,9 @@ const build = (url: string, network = "mainnet"): Request =>
 const body = async (response: Response): Promise<Record<string, unknown>> =>
   (await response.json()) as Record<string, unknown>
 
+const registered = () => Promise.resolve(true)
+const unregistered = () => Promise.resolve(false)
+
 const secondsAway = (instant: string): number => (Date.parse(instant) - Date.now()) / 1000
 
 describe("the delegate Slip", () => {
@@ -35,18 +38,52 @@ describe("the delegate Slip", () => {
     expect(Either.isRight(decodeSlip(await body(response)))).toBe(true)
   })
 
-  it("builds one delegation certificate and no output", async () => {
-    const response = await delegate.POST(build(delegateUrl))
+  it("builds one delegation certificate and no output for a registered stake key", async () => {
+    const response = await delegateSlip("mainnet", communityPool, registered).POST(build(delegateUrl))
     const payload = await body(response)
 
     expect(response.status).toBe(200)
     expect(Either.isRight(decodePartialIntent(payload))).toBe(true)
-    expect(payload.intent).toMatchObject({ certificates: [{ type: "stakeDelegation", poolId: communityPool }] })
+    expect((payload.intent as { certificates: unknown }).certificates).toEqual([
+      { type: "stakeDelegation", poolId: communityPool }
+    ])
     expect(payload.intent).not.toHaveProperty("outputs")
   })
 
+  it("registers the stake key before delegating when it is not registered", async () => {
+    const response = await delegateSlip("mainnet", communityPool, unregistered).POST(build(delegateUrl))
+    const payload = await body(response)
+
+    expect(response.status).toBe(200)
+    expect(Either.isRight(decodePartialIntent(payload))).toBe(true)
+    expect((payload.intent as { certificates: unknown }).certificates).toEqual([
+      { type: "stakeRegistration" },
+      { type: "stakeDelegation", poolId: communityPool }
+    ])
+    expect(payload.intent).not.toHaveProperty("outputs")
+  })
+
+  it("asks about the change address the wallet sent", async () => {
+    const lookup = vi.fn(registered)
+
+    await delegateSlip("mainnet", communityPool, lookup).POST(build(delegateUrl))
+
+    expect(lookup).toHaveBeenCalledWith(changeAddress)
+  })
+
+  it("says it could not check, rather than guess, when the lookup fails", async () => {
+    const failing = () => Promise.reject(new Error("koios: 503"))
+    const response = await delegateSlip("mainnet", communityPool, failing).POST(build(delegateUrl))
+    const payload = await body(response)
+
+    expect(response.status).toBe(502)
+    expect(payload.code).toBe("UPSTREAM_FAILURE")
+    expect(payload.message).not.toContain("koios")
+    expect(payload).not.toHaveProperty("intent")
+  })
+
   it("expires, and not in the past", async () => {
-    const payload = await body(await delegate.POST(build(delegateUrl)))
+    const payload = await body(await delegateSlip("mainnet", communityPool, registered).POST(build(delegateUrl)))
     const { validUntil } = payload.intent as { validUntil: string }
 
     expect(secondsAway(validUntil)).toBeGreaterThan(0)

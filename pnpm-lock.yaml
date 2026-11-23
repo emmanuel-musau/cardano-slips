@@ -102,6 +102,9 @@ importers:
       '@cardano-slips/server':
         specifier: workspace:^
         version: link:../../packages/server
+      '@evolution-sdk/evolution':
+        specifier: ^0.8.0
+        version: 0.8.0
       effect:
         specifier: ^3.22.1
         version: 3.22.2
