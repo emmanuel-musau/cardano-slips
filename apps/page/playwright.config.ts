@@ -12,7 +12,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: "node e2e/serve-examples.ts",
+      command: "node e2e/serve-examples.js",
       url: `http://localhost:${examplesPort}/tip`,
       reuseExistingServer: !process.env.CI
     },
