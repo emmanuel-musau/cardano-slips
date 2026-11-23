@@ -10,4 +10,8 @@ export const previewPool = "pool1mfc42za8tj74zc66ez3slwtq4mumdl7yrylaxajd5xugujm
 
 export const previewTip = tipSlip("preview", previewRecipient)
 
-export const previewDelegate = delegateSlip("preview", previewPool, koiosStakeKey("preview", process.env.KOIOS_TOKEN))
+export const previewDelegate = delegateSlip(
+  "preview",
+  previewPool,
+  koiosStakeKey("preview", { token: process.env.KOIOS_TOKEN })
+)

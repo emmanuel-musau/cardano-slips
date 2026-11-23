@@ -25,6 +25,8 @@ const build = (url: string, network = "mainnet"): Request =>
 const body = async (response: Response): Promise<Record<string, unknown>> =>
   (await response.json()) as Record<string, unknown>
 
+const enterpriseChange = "addr1vxhnsjcej3c36wkl00plhu94pt5x0t4jr8wnnzxuuwwyjyseeq605"
+
 const registered = () => Promise.resolve(true)
 const unregistered = () => Promise.resolve(false)
 
@@ -48,6 +50,7 @@ describe("the delegate Slip", () => {
       { type: "stakeDelegation", poolId: communityPool }
     ])
     expect(payload.intent).not.toHaveProperty("outputs")
+    expect(payload.message).toBe("Delegate to the Community Stake Pool. Your ADA never leaves your wallet.")
   })
 
   it("registers the stake key before delegating when it is not registered", async () => {
@@ -61,6 +64,30 @@ describe("the delegate Slip", () => {
       { type: "stakeDelegation", poolId: communityPool }
     ])
     expect(payload.intent).not.toHaveProperty("outputs")
+  })
+
+  it("names the deposit, and does not claim no ADA leaves, when it registers the key", async () => {
+    const payload = await body(await delegateSlip("mainnet", communityPool, unregistered).POST(build(delegateUrl)))
+
+    expect(payload.message).toContain("deposit")
+    expect(payload.message).not.toContain("never leaves")
+  })
+
+  it("refuses a change address with no stake key as the wallet's fault, without asking the chain", async () => {
+    const lookup = vi.fn(registered)
+    const request = new Request(delegateUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ changeAddress: enterpriseChange, network: "mainnet" })
+    })
+    const response = await delegateSlip("mainnet", communityPool, lookup).POST(request)
+    const payload = await body(response)
+
+    expect(response.status).toBe(400)
+    expect(payload.code).toBe("INVALID_PARAMETER")
+    expect(payload.message).toContain("stake key")
+    expect(payload.message).not.toContain("Try again")
+    expect(lookup).not.toHaveBeenCalled()
   })
 
   it("asks about the change address the wallet sent", async () => {

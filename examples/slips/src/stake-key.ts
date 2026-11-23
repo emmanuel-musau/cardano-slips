@@ -17,26 +17,39 @@ const AccountInfo = Schema.Array(
   Schema.Struct({ stake_address: Schema.String, status: Schema.Literal("registered", "not registered") })
 )
 
-const stakeAddressOf = (changeAddress: string): string => {
-  const address = Address.fromBech32(changeAddress)
-  if (address.stakingCredential === undefined) throw new Error(`${changeAddress} carries no stake key`)
+/** The stake address inside a change address, or undefined where it carries no stake key or is not an address. */
+export const stakeAddressOf = (changeAddress: string): string | undefined => {
+  let address: Address.Address
+  try {
+    address = Address.fromBech32(changeAddress)
+  } catch {
+    return undefined
+  }
+  if (address.stakingCredential === undefined) return undefined
   return RewardAccount.toBech32(
     new RewardAccount.RewardAccount({ networkId: address.networkId, stakeCredential: address.stakingCredential })
   )
 }
 
+export type KoiosOptions = {
+  readonly token?: string | undefined
+  readonly timeoutMs?: number
+}
+
 export const koiosStakeKey =
-  (network: Network, token?: string): StakeKeyLookup =>
+  (network: Network, { token, timeoutMs = 10_000 }: KoiosOptions = {}): StakeKeyLookup =>
   async (changeAddress) => {
     const stakeAddress = stakeAddressOf(changeAddress)
+    if (stakeAddress === undefined) throw new Error(`${changeAddress} carries no stake key`)
 
     const response = await fetch(`${koiosUrl[network]}/account_info`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token === undefined ? {} : { Authorization: `Bearer ${token}` })
+        ...(token === undefined || token === "" ? {} : { Authorization: `Bearer ${token}` })
       },
-      body: JSON.stringify({ _stake_addresses: [stakeAddress] })
+      body: JSON.stringify({ _stake_addresses: [stakeAddress] }),
+      signal: AbortSignal.timeout(timeoutMs)
     })
     if (!response.ok) throw new Error(`Koios answered account_info with ${response.status}`)
 

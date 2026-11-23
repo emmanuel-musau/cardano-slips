@@ -1,14 +1,13 @@
 /**
- * A delegation Slip: no output, nothing spent but the fee, and the stake key
- * registered first where the chain says it is not. Its pool and message are the
- * spec's own, so the fixture and the written spec cannot drift apart without a
- * test noticing.
+ * A delegation Slip: no output, and the stake key registered first, deposit and
+ * all, where the chain says it is not. Its pool and registered-key message are
+ * the spec's own, so the fixture and the written spec cannot drift apart.
  */
 import type { Certificate, Network } from "@cardano-slips/core"
 import { defineSlip, fail } from "@cardano-slips/server"
 
 import { inMinutes } from "./deadline.js"
-import { koiosStakeKey, type StakeKeyLookup } from "./stake-key.js"
+import { koiosStakeKey, stakeAddressOf, type StakeKeyLookup } from "./stake-key.js"
 
 export const communityPool = "pool1ayfz9ymjutjzx0a33q8tq6zrn8lj3ckmzp69c9vxk8kyxylly5y"
 
@@ -25,6 +24,10 @@ export const delegateSlip = (network: Network, pool: string, isRegistered: Stake
     }),
 
     post: async ({ changeAddress }) => {
+      if (stakeAddressOf(changeAddress) === undefined) {
+        return fail("INVALID_PARAMETER", "This wallet's address has no stake key, so it cannot delegate.")
+      }
+
       let registered: boolean
       try {
         registered = await isRegistered(changeAddress)
@@ -36,13 +39,16 @@ export const delegateSlip = (network: Network, pool: string, isRegistered: Stake
       }
 
       const delegation: Certificate = { type: "stakeDelegation", poolId: pool }
-      return {
-        intent: {
-          certificates: registered ? [delegation] : [{ type: "stakeRegistration" }, delegation],
-          validUntil: inMinutes(10)
-        },
-        message: "Delegate to the Community Stake Pool. Your ADA never leaves your wallet."
-      }
+      return registered
+        ? {
+            intent: { certificates: [delegation], validUntil: inMinutes(10) },
+            message: "Delegate to the Community Stake Pool. Your ADA never leaves your wallet."
+          }
+        : {
+            intent: { certificates: [{ type: "stakeRegistration" }, delegation], validUntil: inMinutes(10) },
+            message:
+              "Register your stake key and delegate to the Community Stake Pool. Registering holds a deposit you get back if you deregister."
+          }
     }
   })
 

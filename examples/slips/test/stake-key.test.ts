@@ -48,10 +48,34 @@ describe("the Koios stake key lookup", () => {
   it("sends the token as a bearer header when one is given", async () => {
     const fetch = answering(200, [{ stake_address: previewStake, status: "registered" }])
 
-    await koiosStakeKey("preview", "a-token")(previewChange)
+    await koiosStakeKey("preview", { token: "a-token" })(previewChange)
 
     const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit]
     expect(new Headers(init.headers).get("authorization")).toBe("Bearer a-token")
+  })
+
+  it.each([
+    ["no token", undefined],
+    ["a blank token", ""]
+  ])("sends no authorization header for %s", async (_, token) => {
+    const fetch = answering(200, [{ stake_address: previewStake, status: "registered" }])
+
+    await koiosStakeKey("preview", { token })(previewChange)
+
+    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit]
+    expect(new Headers(init.headers).has("authorization")).toBe(false)
+  })
+
+  it("gives up on a Koios that never answers", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+      )
+    )
+
+    await expect(koiosStakeKey("preview", { timeoutMs: 20 })(previewChange)).rejects.toThrow()
   })
 
   it("answers true for a registered key", async () => {
