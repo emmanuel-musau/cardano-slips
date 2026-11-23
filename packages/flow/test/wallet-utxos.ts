@@ -72,16 +72,26 @@ export type UtxoSpec = {
   readonly assets?: ReadonlyArray<AssetHolding>
   /** Distinguishes one fixture from another; any 32 bytes will do. */
   readonly seed?: number
+  /** The output's place in that transaction. */
+  readonly index?: bigint
   /** What the output locks its value behind, where it locks it behind anything. */
   readonly datum?: DatumHash.DatumHash | InlineDatum.InlineDatum
   /** A script the output carries for others to reference. */
   readonly script?: Script.Script
 }
 
-export const walletUtxo = ({ assets = [], bech32, datum, lovelace, script, seed = 1 }: UtxoSpec): UTxO.UTxO =>
+export const walletUtxo = ({
+  assets = [],
+  bech32,
+  datum,
+  index = 0n,
+  lovelace,
+  script,
+  seed = 1
+}: UtxoSpec): UTxO.UTxO =>
   new UTxO.UTxO({
     transactionId: TransactionHash.fromHex(String(seed).padStart(64, "a")),
-    index: 0n,
+    index,
     address: Address.fromBech32(bech32),
     assets: assetsOf(lovelace, assets),
     ...(datum === undefined ? {} : { datumOption: datum }),

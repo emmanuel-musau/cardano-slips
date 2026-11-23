@@ -175,14 +175,13 @@ const ownAddresses = (request: CompletionRequest, inputs: ReadonlyArray<Resolved
 const buildAndJudge = (request: CompletionRequest, number: number, spent: ReadonlySet<string>) =>
   Effect.gen(function* () {
     // A wallet behind the chain still lists what the node just reported spent.
-    const utxos = (yield* walletUtxos(request.api)).filter(
-      (utxo) => !spent.has(outRef(TransactionHash.toBytes(utxo.transactionId), utxo.index))
+    const listed = yield* walletUtxos(request.api)
+    const utxos = listed.filter((utxo) => !spent.has(outRef(TransactionHash.toBytes(utxo.transactionId), utxo.index)))
+    const behind = refuse(
+      "WalletBehind",
+      "The wallet still lists outputs that were just spent, and what is left does not cover this. Try again in a moment."
     )
-    if (utxos.length === 0) {
-      return yield* Effect.fail(
-        refuse("WalletBehind", "The wallet still lists only the outputs that were just spent. Try again in a moment.")
-      )
-    }
+    if (utxos.length === 0) return yield* Effect.fail(behind)
     const now = (request.now ?? Date.now)()
 
     const built = yield* balanceIntent({
@@ -193,7 +192,12 @@ const buildAndJudge = (request: CompletionRequest, number: number, spent: Readon
       parameters: request.parameters,
       ...(request.rewardBalance === undefined ? {} : { rewardBalance: request.rewardBalance }),
       now
-    })
+    }).pipe(
+      Effect.catchIf(
+        (error) => error.refusal === "InsufficientFunds" && utxos.length < listed.length,
+        () => Effect.fail(behind)
+      )
+    )
 
     const transaction = decodeTransaction(fromHex(built.cbor))
     if (Either.isLeft(transaction)) {
@@ -267,25 +271,59 @@ const buildAndJudge = (request: CompletionRequest, number: number, spent: Readon
 /** Near enough to the end that a device clock running behind may be what kept the window open. */
 const expiryMargin = 5n * 60_000n
 
+/** Wider than any device clock drifts, and far narrower than the months between the testnets' slot clocks. */
+const sameChainTolerance = 24n * 60n * 60_000n
+
+/** The node's current slot: `(SlotNo n)` after the interval in the ledger's words, `slot: SlotNo n` in a wallet's or Ogmios's. */
+const nodeSlot = /(?:slot:\s*SlotNo\s+|\}\)\s*\(SlotNo\s+)(\d+)/i
+
+const nodeText = (failure: SigningError): string => `${failure.cip30?.info ?? ""} ${failure.detail}`
+
 /**
  * CIP-30 reports preview and preprod with one network id, so a wallet on the other
  * testnet is first seen here: its node reads the slots on another chain's clock.
  */
-const refusedOpenWindow = (failure: SigningError, network: Network, { validity }: Effects, now: number): boolean =>
-  network !== "mainnet" &&
-  failure.refusal === "IntervalPassed" &&
-  validity.validUntil !== null &&
-  BigInt(now) < validity.validUntil.time - expiryMargin &&
-  (validity.validFrom === null || validity.validFrom.time <= BigInt(now))
+const refusedOpenWindow = (
+  failure: SigningError,
+  network: Network,
+  { validity }: Effects,
+  now: number,
+  { slots }: BalancingParameters
+): boolean => {
+  if (network === "mainnet" || failure.refusal !== "IntervalPassed") return false
+  const slot = nodeSlot.exec(nodeText(failure))?.[1]
+  if (slot !== undefined) {
+    const offset = slots.time + (BigInt(slot) - slots.slot) * slots.slotLength - BigInt(now)
+    return offset > sameChainTolerance || -offset > sameChainTolerance
+  }
+  return (
+    validity.validUntil !== null &&
+    BigInt(now) < validity.validUntil.time - expiryMargin &&
+    (validity.validFrom === null || validity.validFrom.time <= BigInt(now))
+  )
+}
 
-/** The inputs whose transaction the node's text names, or all of them when it names none. */
+/** The output index written right after a transaction id, as a reference or in the ledger's words. */
+const indexAfter = /^(?:#(\d+)|"\s*\}\s*\)\s*\(txix\s*(?:\{\s*untxix\s*=\s*)?(\d+))/
+
+/** The inputs the node's text names, by reference where it gives the index; all of them when it names none. */
 const spentAmong = (
   inputs: ReadonlyArray<{ readonly transactionId: string; readonly ref: string }>,
   failure: SigningError
 ): ReadonlyArray<string> => {
-  const said = `${failure.cip30?.info ?? ""} ${failure.detail}`.toLowerCase()
-  const named = inputs.filter((input) => said.includes(input.transactionId))
-  return (named.length > 0 ? named : inputs).map((input) => input.ref)
+  const said = nodeText(failure).toLowerCase()
+  const named = new Set<string>()
+  const wholly = new Set<string>()
+  for (const transactionId of new Set(inputs.map((input) => input.transactionId))) {
+    for (let at = said.indexOf(transactionId); at !== -1; at = said.indexOf(transactionId, at + 1)) {
+      const found = indexAfter.exec(said.slice(at + transactionId.length))
+      const index = found?.[1] ?? found?.[2]
+      if (index === undefined) wholly.add(transactionId)
+      else named.add(`${transactionId}#${index}`)
+    }
+  }
+  const picked = inputs.filter((input) => named.has(input.ref) || wholly.has(input.transactionId))
+  return (picked.length > 0 ? picked : inputs).map((input) => input.ref)
 }
 
 /** A progress report is a courtesy to the screen; one that throws must not stop a submission already under way. */
@@ -334,7 +372,15 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
       if (Either.isRight(submitted)) {
         return { transactionId: submitted.right, effects: attempt.effects, attempts: number }
       }
-      if (refusedOpenWindow(submitted.left, request.network, attempt.effects, (request.now ?? Date.now)())) {
+      if (
+        refusedOpenWindow(
+          submitted.left,
+          request.network,
+          attempt.effects,
+          (request.now ?? Date.now)(),
+          request.parameters
+        )
+      ) {
         return yield* Effect.fail(
           refuse("WrongNetwork", `The wallet's network refused a transaction built for ${request.network}.`, {
             cause: submitted.left

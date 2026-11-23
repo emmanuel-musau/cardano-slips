@@ -25,4 +25,4 @@ Write an ADR when a choice is hard to reverse, affects more than one package, or
 | [0015](0015-protocol-parameters-from-a-provider.md) | Read protocol parameters from a chain provider through the page's own server, unless a caller passes them in | Accepted |
 | [0016](0016-publish-identity.md) | Publish `identity` to npm with the other four packages | Accepted |
 
-ADR-0014 is the CIP-0170 go/no-go ADR-0006 narrowed to the Tier-2 question. It carries what the spike (#60) found, and #63 accepted it once CIP-0170 version 1.1 had closed the first of its two conditions.
+ADR-0014 is the CIP-0170 go/no-go ADR-0006 narrowed to the Tier-2 question. It carries what the decision ticket (#60) found, and #63 accepted it once CIP-0170 version 1.1 had closed the first of its two conditions.
