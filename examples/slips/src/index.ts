@@ -5,4 +5,5 @@
 export * from "./delegate.js"
 export * from "./tip.js"
 export * from "./preview.js"
+export * from "./server.js"
 export * from "./stake-key.js"

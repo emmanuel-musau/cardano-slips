@@ -31,6 +31,8 @@ vi.mock("../src/slip-page/run.js", async (importOriginal) => {
 
 const link = "https://linktap.example/tip"
 
+const wallet = () => previewHost("signs", { delay: 0, network: "mainnet" })
+
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
@@ -54,7 +56,7 @@ const fault = { name: "This page ran into a problem of its own" }
 describe("a fault in the page itself", () => {
   it("replaces the loading card with a notice instead of loading forever", async () => {
     faults.fetch = true
-    render(<SlipPage link={link} walletHost={previewHost("signs", 0)} />)
+    render(<SlipPage link={link} walletHost={wallet()} />)
 
     expect(await screen.findByRole("heading", fault)).toBeDefined()
     expect(screen.getByRole("button", { name: /^Try again/ })).toBeDefined()
@@ -62,7 +64,7 @@ describe("a fault in the page itself", () => {
 
   it("replaces the busy card with a notice instead of spinning forever", async () => {
     faults.run = true
-    render(<SlipPage link={link} walletHost={previewHost("signs", 0)} />)
+    render(<SlipPage link={link} walletHost={wallet()} />)
 
     fireEvent.click(await screen.findByRole("button", { name: "Tip 5 ADA" }))
     fireEvent.click(await screen.findByRole("button", { name: /Preview wallet/ }))
@@ -70,8 +72,8 @@ describe("a fault in the page itself", () => {
   })
 
   it("takes a request dropped for a newer one as no fault", async () => {
-    const { rerender } = render(<SlipPage link={link} walletHost={previewHost("signs", 0)} />)
-    rerender(<SlipPage link={`${link}?again`} walletHost={previewHost("signs", 0)} />)
+    const { rerender } = render(<SlipPage link={link} walletHost={wallet()} />)
+    rerender(<SlipPage link={`${link}?again`} walletHost={wallet()} />)
 
     expect(await screen.findByRole("heading", { name: "Tip the author" })).toBeDefined()
     expect(screen.queryByRole("heading", fault)).toBeNull()

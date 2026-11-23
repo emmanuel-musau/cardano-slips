@@ -25,7 +25,23 @@ Development builds only; both answer 404 in production.
 - `/preview/effects` — every state the effects panel draws.
 - `/preview/flow?uri=…&wallet=…` — the full flow against a scripted wallet that
   signs nothing real and submits nowhere. `wallet` is one of `signs`,
-  `declines`, `funds-move`, `refuses`, `empty`, `testnet`.
+  `declines`, `funds-move`, `refuses`, `empty`. The wallet is on a test
+  network, like the served examples; add `&network=mainnet` to see the
+  wrong-network screen.
+
+## Browser tests
+
+```sh
+pnpm --filter @cardano-slips/page exec playwright install chromium   # once
+pnpm test:e2e
+```
+
+`e2e/` runs the page in Chromium against the preview examples, with
+`cip30-test-wallet` injected as the wallet: real keys, real signatures, and a
+`submitTx` that refuses what a Conway node refuses. Playwright starts the
+examples on port 4011 and the page on 3100. Nothing reaches a chain or Koios:
+the stake key reads as unregistered, and `/parameters/preview` is answered in
+the test.
 
 ## Protocol parameters
 

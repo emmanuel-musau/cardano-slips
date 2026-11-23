@@ -15,7 +15,8 @@
     "typecheck": "next typegen && tsc -p tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "lint": "eslint .",
-    "clean": "rm -rf .next coverage .tsbuildinfo .turbo next-env.d.ts"
+    "clean": "rm -rf .next coverage .tsbuildinfo .turbo next-env.d.ts playwright-report test-results",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@cardano-slips/core": "workspace:^",
@@ -28,9 +29,11 @@
   },
   "devDependencies": {
     "@cardano-slips/example-slips": "workspace:^",
+    "@playwright/test": "^1.65.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "cip30-test-wallet": "^1.0.0",
     "happy-dom": "^21.0.4",
     "typescript": "^6.0.3"
   }
