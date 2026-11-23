@@ -16,8 +16,16 @@ import { describe, expect, it } from "vitest"
 
 import { balanceIntent, type BalanceInputs, type BalancedTransaction } from "../src/balance.js"
 import { type BalanceError, balanceRefusals, type BalanceRefusal, slipErrorCodeFor } from "../src/balance-error.js"
-import { enterpriseAddress, mainnetAddress } from "./stub-wallet.js"
-import { asResolvedInput, mainnetParameters, rewardAccountOf, type UtxoSpec, walletUtxo } from "./wallet-utxos.js"
+import { enterpriseAddress, mainnetAddress, testnetAddress } from "./stub-wallet.js"
+import {
+  asResolvedInput,
+  mainnetParameters,
+  preprodParameters,
+  rewardAccountOf,
+  testnetShop,
+  type UtxoSpec,
+  walletUtxo
+} from "./wallet-utxos.js"
 
 /**
  * Every transaction here is built by evolution-sdk and read back by the
@@ -75,11 +83,13 @@ const fromHex = (hex: string): Uint8Array => Uint8Array.from(Buffer.from(hex, "h
 const toHex = (bytes: Uint8Array): string => Buffer.from(bytes).toString("hex")
 
 /** The body as `verifier` reads it, which is the only reading that decides anything. */
-const decoded = (built: BalancedTransaction) => {
+const decodedTransaction = (built: BalancedTransaction) => {
   const result = decodeTransaction(fromHex(built.cbor))
   if (Either.isLeft(result)) throw new Error(`the verifier refused our own transaction: ${result.left.message}`)
-  return result.right.body
+  return result.right
 }
+
+const decoded = (built: BalancedTransaction) => decodedTransaction(built).body
 
 const sameBytes = (a: Uint8Array, b: Uint8Array): boolean =>
   a.length === b.length && a.every((byte, index) => byte === b[index])
@@ -350,16 +360,45 @@ describe("the validity interval", () => {
     expect(endsAt).toBeLessThanOrEqual(declared)
   })
 
-  it("starts no later than now, so a chain whose clock reads another time refuses it", async () => {
-    const intent = specIntent("payment.json")
-    const built = await balance(intent)
+  it("carries no start on mainnet, so a fast device clock cannot bar the transaction", async () => {
+    const built = await balance(specIntent("payment.json"))
+
+    expect(decoded(built).validityIntervalStart).toBeNull()
+  })
+
+  it("starts a day before now on a testnet, so the other testnet's node refuses it", async () => {
+    const intent: Intent = {
+      ...specIntent("payment.json"),
+      outputs: [{ address: testnetShop, lovelace: "12000000" }]
+    }
+    const wallet = [{ bech32: testnetAddress.bech32, lovelace: 100_000_000n }]
+    const built = await balance(intent, {
+      network: "preprod",
+      changeAddress: testnetAddress.bech32,
+      utxos: wallet.map(walletUtxo),
+      parameters: preprodParameters
+    })
     const start = decoded(built).validityIntervalStart
     if (start === null) throw new Error("the body carries no validity start")
-    const { slots } = mainnetParameters
-    const startsAt = slots.time + (start - slots.slot) * slots.slotLength
+    const { slots } = preprodParameters
 
-    expect(startsAt).toBeLessThanOrEqual(BigInt(beforeExpiry))
-    expect(blockedBy(built, intent, [held(100_000_000n)])).toEqual([])
+    expect(slots.time + (start - slots.slot) * slots.slotLength).toBe(BigInt(beforeExpiry - 24 * 60 * 60_000))
+
+    const effects = deriveEffects({
+      transaction: decodedTransaction(built),
+      userAddresses: [addressBytesOf(testnetAddress.bech32)],
+      resolvedInputs: wallet.map(asResolvedInput),
+      protocolParameters: preprodParameters
+    })
+    if (Either.isLeft(effects)) throw new Error(effects.left.message)
+    const verdict = compare({
+      effects: effects.right,
+      declared: intent,
+      changeAddress: testnetAddress.bech32,
+      now: BigInt(beforeExpiry),
+      protocolParameters: preprodParameters
+    })
+    expect(Either.isRight(verdict) && verdict.right._tag).toBe("match")
   })
 
   it("refuses an intent that expired while the person was reading it", async () => {

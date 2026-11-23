@@ -11,7 +11,14 @@ import { type CompletionError, completionRefusals, type CompletionRefusal } from
 import { transactionIdOf } from "../src/witness.js"
 import { fails, mockWallet, toHex } from "./mock-wallet.js"
 import { enterpriseAddress, mainnetAddress, testnetAddress } from "./stub-wallet.js"
-import { asCip30Hex, mainnetParameters, type UtxoSpec, walletUtxo } from "./wallet-utxos.js"
+import {
+  asCip30Hex,
+  mainnetParameters,
+  preprodParameters,
+  testnetShop,
+  type UtxoSpec,
+  walletUtxo
+} from "./wallet-utxos.js"
 
 /**
  * The whole path a person walks: build against what the wallet holds, judge it
@@ -207,19 +214,46 @@ describe("when the node refuses the validity window", () => {
   /** Forty minutes before payment.json expires, so the window is open by any honest clock. */
   const wellBeforeExpiry = Date.parse("2026-08-22T19:00:00Z")
 
-  it("names the wallet as on another network when the window is still open here", async () => {
-    const { api, log } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])], submits: [fails(outsideWindow)] })
-    const error = await failure(api, { now: () => wellBeforeExpiry }, "WrongNetwork")
+  const refusalOf = async (api: Cip30Api, overrides: Partial<CompletionRequest>) => {
+    const result = await Effect.runPromise(Effect.either(completeIntent(request(api, overrides))))
+    return Either.isLeft(result) && "refusal" in result.left ? result.left.refusal : "completed"
+  }
+
+  it("names a testnet wallet as on the other testnet when the window is still open here", async () => {
+    const { api, log } = mockWallet({
+      networkId: 0,
+      changeAddress: testnetAddress.hex,
+      usedAddresses: [testnetAddress.hex],
+      rewardAddresses: [],
+      utxos: [[asCip30Hex(walletUtxo({ bech32: testnetAddress.bech32, lovelace: 100_000_000n }))]],
+      submits: [fails(outsideWindow)]
+    })
+    const error = await failure(
+      api,
+      {
+        intent: { ...specIntent("payment.json"), outputs: [{ address: testnetShop, lovelace: "12000000" }] },
+        network: "preprod",
+        changeAddress: testnetAddress.bech32,
+        parameters: preprodParameters,
+        now: () => wellBeforeExpiry
+      },
+      "WrongNetwork"
+    )
 
     expect(error.code).toBe("WRONG_NETWORK")
     expect(log.signed).toHaveLength(1)
   })
 
+  it("never names a mainnet wallet as on another network, which connecting already ruled out", async () => {
+    const { api } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])], submits: [fails(outsideWindow)] })
+
+    expect(await refusalOf(api, { now: () => wellBeforeExpiry })).toBe("IntervalPassed")
+  })
+
   it("leaves a refusal at the end of the window as the window having passed", async () => {
     const { api } = mockWallet({ utxos: [asHex([held(100_000_000n, 1)])], submits: [fails(outsideWindow)] })
-    const result = await Effect.runPromise(Effect.either(completeIntent(request(api))))
 
-    expect(Either.isLeft(result) && "refusal" in result.left && result.left.refusal).toBe("IntervalPassed")
+    expect(await refusalOf(api, {})).toBe("IntervalPassed")
   })
 })
 
