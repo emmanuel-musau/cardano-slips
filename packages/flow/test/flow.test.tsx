@@ -162,7 +162,10 @@ describe("the funds moving mid-flow", () => {
   })
 
   it("stops after the attempts run out, with every one of them shown before it was signed", async () => {
-    const wallet = mockWallet({ utxos: [holding(100_000_000n, 1)], submits: [fails(inputsGone)] })
+    const wallet = mockWallet({
+      utxos: [holding(100_000_000n, 1), holding(90_000_000n, 2), holding(80_000_000n, 3)],
+      submits: [fails(inputsGone)]
+    })
     const failure = refusalOf(await walk(wallet))
 
     expect(failure).toMatchObject({ _tag: "CompletionError", refusal: "OutOfAttempts" })

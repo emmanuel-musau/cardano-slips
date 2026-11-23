@@ -172,8 +172,16 @@ const signingScreen = (failure: SigningError): Screen => {
   switch (failure.refusal) {
     case "Declined":
       return { _tag: "Outcome", outcome: { _tag: "Declined" } }
-    case "SubmitFailed":
     case "IntervalPassed":
+      return notice({
+        tone: "plain",
+        title: "This transaction ran out of time",
+        text: "It reached the network after the time this Slip allows, so it was turned down. Nothing left your wallet. Start again for a fresh one.",
+        code: "INTENT_EXPIRED",
+        move: "retry",
+        moveLabel: "Start again"
+      })
+    case "SubmitFailed":
     case "InputsSpent":
       return { _tag: "Outcome", outcome: { _tag: "Refused", reason: nodeReason(failure) } }
     // The wallet took the transaction before naming another, so it may be on the chain.
