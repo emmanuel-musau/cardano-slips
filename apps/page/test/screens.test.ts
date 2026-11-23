@@ -91,6 +91,14 @@ describe("where each kind of failure goes", () => {
     })
   })
 
+  it("says a wallet behind the chain has not caught up, rather than that the funds kept moving", () => {
+    const screen = screenFor(new CompletionError({ refusal: "WalletBehind", detail: "just spent" }), context)
+    expect(screen._tag).toBe("Notice")
+    if (screen._tag !== "Notice") return
+    expect(screen.notice.title).toBe("Your wallet hasn't caught up yet")
+    expect(screen.notice.move).toBe("retry")
+  })
+
   it("says an expired transaction ran out of time in plain words, and offers to start again", () => {
     const expired = new SigningError({
       refusal: "IntervalPassed",

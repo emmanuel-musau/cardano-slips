@@ -180,7 +180,7 @@ const buildAndJudge = (request: CompletionRequest, number: number, spent: Readon
     )
     if (utxos.length === 0) {
       return yield* Effect.fail(
-        refuse("OutOfAttempts", "The wallet still lists only the outputs that were just spent. Try again in a moment.")
+        refuse("WalletBehind", "The wallet still lists only the outputs that were just spent. Try again in a moment.")
       )
     }
     const now = (request.now ?? Date.now)()
@@ -257,7 +257,10 @@ const buildAndJudge = (request: CompletionRequest, number: number, spent: Readon
       catch: (cause) => refuse("NotShown", "This transaction could not be shown, so it will not be signed.", { cause })
     })
 
-    const inputs = transaction.right.body.inputs.map((input) => outRef(input.transactionId, input.index))
+    const inputs = transaction.right.body.inputs.map((input) => ({
+      transactionId: toHex(input.transactionId),
+      ref: outRef(input.transactionId, input.index)
+    }))
     return { cbor: built.cbor, attempt, inputs }
   })
 
@@ -274,6 +277,16 @@ const refusedOpenWindow = (failure: SigningError, network: Network, { validity }
   validity.validUntil !== null &&
   BigInt(now) < validity.validUntil.time - expiryMargin &&
   (validity.validFrom === null || validity.validFrom.time <= BigInt(now))
+
+/** The inputs whose transaction the node's text names, or all of them when it names none. */
+const spentAmong = (
+  inputs: ReadonlyArray<{ readonly transactionId: string; readonly ref: string }>,
+  failure: SigningError
+): ReadonlyArray<string> => {
+  const said = `${failure.cip30?.info ?? ""} ${failure.detail}`.toLowerCase()
+  const named = inputs.filter((input) => said.includes(input.transactionId))
+  return (named.length > 0 ? named : inputs).map((input) => input.ref)
+}
 
 /** A progress report is a courtesy to the screen; one that throws must not stop a submission already under way. */
 const report = (request: CompletionRequest, progress: Progress): void => {
@@ -331,7 +344,7 @@ export const completeIntent = (request: CompletionRequest): Effect.Effect<Receip
       if (submitted.left.refusal !== "InputsSpent") {
         return yield* Effect.fail(submitted.left)
       }
-      for (const input of inputs) spent.add(input)
+      for (const input of spentAmong(inputs, submitted.left)) spent.add(input)
       if (number < allowed) report(request, { _tag: "Rebuilding", number: number + 1, of: allowed })
     }
 

@@ -193,7 +193,7 @@ describe("when the funds move between building and submitting", () => {
     expect(attempts[0]?.transactionId).not.toBe(attempts[1]?.transactionId)
   })
 
-  it("leaves out the inputs of the attempt that failed, though the wallet still lists them", async () => {
+  it("leaves out every input of the attempt that failed when the node does not name them", async () => {
     const { api, log } = mockWallet({
       utxos: [asHex([held(100_000_000n, 1)]), asHex([held(100_000_000n, 1), held(90_000_000n, 2)])],
       submits: [fails(inputsGone), "accept"]
@@ -204,13 +204,32 @@ describe("when the funds move between building and submitting", () => {
     expect(spentBy(log.submitted[1] ?? "")).toEqual([outRefOf(2)])
   })
 
+  it("leaves out only the inputs the node names, and builds from the rest", async () => {
+    const named = {
+      code: 2,
+      info: `BadInputsUTxO (fromList [TxIn (TxId {unTxId = SafeHash "${outRefOf(1).slice(0, 64)}"}) (TxIx 0)])`
+    }
+    const { api, log } = mockWallet({
+      utxos: [
+        asHex([held(8_000_000n, 1), held(8_000_000n, 2)]),
+        asHex([held(8_000_000n, 1), held(8_000_000n, 2), held(8_000_000n, 3)])
+      ],
+      submits: [fails(named), "accept"]
+    })
+    const receipt = await complete(api)
+
+    expect(spentBy(log.submitted[0] ?? "")).toEqual(expect.arrayContaining([outRefOf(1), outRefOf(2)]))
+    expect(receipt.attempts).toBe(2)
+    expect([...spentBy(log.submitted[1] ?? "")].sort()).toEqual([outRefOf(2), outRefOf(3)])
+  })
+
   it("asks for no second signature when the wallet lists nothing but what was just spent", async () => {
     const { api, log } = mockWallet({
       utxos: [asHex([held(100_000_000n, 1)])],
       submits: [fails(inputsGone)]
     })
 
-    const error = await failure(api, {}, "OutOfAttempts")
+    const error = await failure(api, {}, "WalletBehind")
     expect(log.signed).toHaveLength(1)
     expect(error.message).toContain("just spent")
   })

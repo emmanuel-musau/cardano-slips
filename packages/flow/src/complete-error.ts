@@ -27,6 +27,8 @@ export type CompletionRefusal =
   | "Cancelled"
   /** The funds kept moving, and the transaction has been rebuilt as often as it will be. */
   | "OutOfAttempts"
+  /** The wallet lists nothing but outputs the node has just called spent; it has not caught up with the chain. */
+  | "WalletBehind"
   /** The node refused a validity window that is still open by this clock, so its chain is not the Slip's. */
   | "WrongNetwork"
 
@@ -43,6 +45,7 @@ export const completionRefusals: Readonly<Record<CompletionRefusal, true>> = {
   NotShown: true,
   Cancelled: true,
   OutOfAttempts: true,
+  WalletBehind: true,
   WrongNetwork: true
 }
 
@@ -61,6 +64,7 @@ export const slipErrorCodeFor = (refusal: CompletionRefusal): ClientErrorCode | 
     case "NotShown":
     case "Cancelled":
     case "OutOfAttempts":
+    case "WalletBehind":
       return undefined
   }
 }

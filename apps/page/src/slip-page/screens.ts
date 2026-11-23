@@ -158,6 +158,13 @@ const completionScreen = (failure: CompletionError, context: ScreenContext): Scr
         text: "Something else kept spending from your wallet while this was being built. Nothing was signed twice and nothing left your wallet.",
         move: "retry"
       })
+    case "WalletBehind":
+      return notice({
+        tone: "plain",
+        title: "Your wallet hasn't caught up yet",
+        text: "It still lists money the network has already spent. Nothing was signed twice and nothing left your wallet. Give it a moment, then try again.",
+        move: "retry"
+      })
     case "UnreadableUtxos":
     case "UnreadableAddresses":
     case "NotShown":
